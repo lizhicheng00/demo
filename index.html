@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Demo 项目</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="workspace" aria-label="Demo 项目工作台">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Demo Project</p>
+            <h1>项目工作台</h1>
+          </div>
+          <button class="icon-button" id="themeToggle" type="button" aria-label="切换主题" title="切换主题">
+            <span aria-hidden="true">◐</span>
+          </button>
+        </header>
+
+        <section class="overview" aria-label="项目概览">
+          <article class="metric accent-green">
+            <span>进度</span>
+            <strong id="progressValue">68%</strong>
+          </article>
+          <article class="metric accent-blue">
+            <span>任务</span>
+            <strong id="taskValue">12</strong>
+          </article>
+          <article class="metric accent-red">
+            <span>状态</span>
+            <strong>在线</strong>
+          </article>
+        </section>
+
+        <section class="panel-grid">
+          <article class="panel primary-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Today</p>
+                <h2>发布节奏</h2>
+              </div>
+              <span class="status-dot" aria-label="运行中"></span>
+            </div>
+            <div class="orbit-visual" aria-hidden="true">
+              <span class="orbit orbit-one"></span>
+              <span class="orbit orbit-two"></span>
+              <span class="orbit-core"></span>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Tasks</p>
+                <h2>待办</h2>
+              </div>
+              <button class="text-button" id="addTask" type="button">新增</button>
+            </div>
+            <ul class="task-list" id="taskList">
+              <li><span class="checkmark">✓</span><span>初始化项目</span></li>
+              <li><span class="checkmark">✓</span><span>启动本地服务</span></li>
+              <li><span class="checkmark pending">•</span><span>预览页面</span></li>
+            </ul>
+          </article>
+        </section>
+      </section>
+    </main>
+    <script src="./app.js"></script>
+  </body>
+</html>
