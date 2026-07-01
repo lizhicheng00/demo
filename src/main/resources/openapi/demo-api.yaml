@@ -1,0 +1,583 @@
+openapi: 3.0.3
+info:
+  title: Demo API
+  version: v1
+  description: JWT, relay domain, node sync and ops statistics API.
+servers:
+  - url: http://localhost:8080
+security:
+  - bearerAuth: []
+tags:
+  - name: Auth
+  - name: RelayDomain
+  - name: Node
+  - name: Listening
+  - name: OpsStats
+paths:
+  /api/v1/auth/login:
+    post:
+      tags: [Auth]
+      operationId: login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseTokenResponse'
+  /api/v1/auth/me:
+    get:
+      tags: [Auth]
+      operationId: getCurrentUser
+      responses:
+        '200':
+          description: Current user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseCurrentUserResponse'
+  /api/v1/relay-domains:
+    post:
+      tags: [RelayDomain]
+      operationId: createRelayDomain
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRelayDomainRequest'
+      responses:
+        '200':
+          description: Created relay domain.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseRelayDomainResponse'
+    get:
+      tags: [RelayDomain]
+      operationId: listRelayDomains
+      responses:
+        '200':
+          description: Relay domain list.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseRelayDomainList'
+  /api/v1/relay-domains/{id}:
+    get:
+      tags: [RelayDomain]
+      operationId: getRelayDomain
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Relay domain.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseRelayDomainResponse'
+    put:
+      tags: [RelayDomain]
+      operationId: updateRelayDomain
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRelayDomainRequest'
+      responses:
+        '200':
+          description: Updated relay domain.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseRelayDomainResponse'
+    delete:
+      tags: [RelayDomain]
+      operationId: deleteRelayDomain
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Deleted relay domain.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseVoid'
+  /api/v1/relay-domains/{id}/status:
+    patch:
+      tags: [RelayDomain]
+      operationId: changeRelayDomainStatus
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangeRelayDomainStatusRequest'
+      responses:
+        '200':
+          description: Status changed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseRelayDomainResponse'
+  /api/v1/nodes/sync:
+    post:
+      tags: [Node]
+      operationId: syncNode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NodeSyncRequest'
+      responses:
+        '200':
+          description: Node synced.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseNodeResponse'
+  /api/v1/nodes/{nodeCode}/heartbeat:
+    post:
+      tags: [Node]
+      operationId: heartbeatNode
+      parameters:
+        - name: nodeCode
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NodeHeartbeatRequest'
+      responses:
+        '200':
+          description: Heartbeat accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseNodeResponse'
+  /api/v1/nodes:
+    get:
+      tags: [Node]
+      operationId: listNodes
+      responses:
+        '200':
+          description: Node list.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseNodeList'
+  /api/v1/listenings:
+    post:
+      tags: [Listening]
+      operationId: createListening
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateListeningRequest'
+      responses:
+        '200':
+          description: Listening config created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseListeningResponse'
+  /api/v1/listenings/sync:
+    get:
+      tags: [Listening]
+      operationId: syncListenings
+      parameters:
+        - name: nodeCode
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Listening configs for node sync.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseListeningList'
+  /api/v1/listenings/{id}/status:
+    patch:
+      tags: [Listening]
+      operationId: changeListeningStatus
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangeListeningStatusRequest'
+      responses:
+        '200':
+          description: Listening status changed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseListeningResponse'
+  /api/v1/ops/stats/overview:
+    get:
+      tags: [OpsStats]
+      operationId: getOpsOverview
+      responses:
+        '200':
+          description: Operations overview.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOpsOverviewResponse'
+  /api/v1/ops/stats/traffic:
+    get:
+      tags: [OpsStats]
+      operationId: listTrafficStats
+      responses:
+        '200':
+          description: Recent traffic points.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseTrafficPointList'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+  schemas:
+    ApiResponseVoid:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        data:
+          nullable: true
+    ApiResponseTokenResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponseVoid'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/TokenResponse'
+    ApiResponseCurrentUserResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponseVoid'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/CurrentUserResponse'
+    ApiResponseRelayDomainResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponseVoid'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/RelayDomainResponse'
+    ApiResponseRelayDomainList:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponseVoid'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/RelayDomainResponse'
+    ApiResponseNodeResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponseVoid'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/NodeResponse'
+    ApiResponseNodeList:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponseVoid'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/NodeResponse'
+    ApiResponseListeningResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponseVoid'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/ListeningResponse'
+    ApiResponseListeningList:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponseVoid'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/ListeningResponse'
+    ApiResponseOpsOverviewResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponseVoid'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/OpsOverviewResponse'
+    ApiResponseTrafficPointList:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponseVoid'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/TrafficPointResponse'
+    LoginRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+          minLength: 1
+        password:
+          type: string
+          minLength: 1
+    TokenResponse:
+      type: object
+      properties:
+        tokenType:
+          type: string
+        accessToken:
+          type: string
+    CurrentUserResponse:
+      type: object
+      properties:
+        username:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+    RelayDomainStatus:
+      type: string
+      enum: [ENABLED, DISABLED]
+    CreateRelayDomainRequest:
+      type: object
+      required: [domain, targetUrl]
+      properties:
+        domain:
+          type: string
+          minLength: 1
+          maxLength: 255
+        targetUrl:
+          type: string
+          minLength: 1
+          maxLength: 512
+        remark:
+          type: string
+          maxLength: 512
+    UpdateRelayDomainRequest:
+      allOf:
+        - $ref: '#/components/schemas/CreateRelayDomainRequest'
+    ChangeRelayDomainStatusRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          $ref: '#/components/schemas/RelayDomainStatus'
+    RelayDomainResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        domain:
+          type: string
+        targetUrl:
+          type: string
+        status:
+          $ref: '#/components/schemas/RelayDomainStatus'
+        remark:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    NodeStatus:
+      type: string
+      enum: [ACTIVE, OFFLINE, DISABLED]
+    NodeSyncRequest:
+      type: object
+      required: [nodeCode, name]
+      properties:
+        nodeCode:
+          type: string
+          minLength: 1
+          maxLength: 64
+        name:
+          type: string
+          minLength: 1
+          maxLength: 128
+        address:
+          type: string
+          maxLength: 255
+    NodeHeartbeatRequest:
+      type: object
+      properties:
+        listeningVersion:
+          type: integer
+          format: int64
+          minimum: 0
+    NodeResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        nodeCode:
+          type: string
+        name:
+          type: string
+        address:
+          type: string
+        status:
+          $ref: '#/components/schemas/NodeStatus'
+        lastHeartbeatAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    ListeningProtocol:
+      type: string
+      enum: [TCP, UDP, HTTP, HTTPS]
+    ListeningStatus:
+      type: string
+      enum: [ENABLED, DISABLED]
+    CreateListeningRequest:
+      type: object
+      required: [relayDomainId, listenPort, protocol]
+      properties:
+        relayDomainId:
+          type: integer
+          format: int64
+        nodeCode:
+          type: string
+          maxLength: 64
+        listenPort:
+          type: integer
+          minimum: 1
+          maximum: 65535
+        protocol:
+          $ref: '#/components/schemas/ListeningProtocol'
+        status:
+          $ref: '#/components/schemas/ListeningStatus'
+    ChangeListeningStatusRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          $ref: '#/components/schemas/ListeningStatus'
+    ListeningResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        relayDomainId:
+          type: integer
+          format: int64
+        domain:
+          type: string
+        targetUrl:
+          type: string
+        nodeCode:
+          type: string
+        listenPort:
+          type: integer
+        protocol:
+          $ref: '#/components/schemas/ListeningProtocol'
+        status:
+          $ref: '#/components/schemas/ListeningStatus'
+        version:
+          type: integer
+          format: int64
+        updatedAt:
+          type: string
+          format: date-time
+    OpsOverviewResponse:
+      type: object
+      properties:
+        totalRelayDomains:
+          type: integer
+          format: int64
+        enabledRelayDomains:
+          type: integer
+          format: int64
+        totalNodes:
+          type: integer
+          format: int64
+        activeNodes:
+          type: integer
+          format: int64
+        enabledListenings:
+          type: integer
+          format: int64
+        inboundBytes24h:
+          type: integer
+          format: int64
+        outboundBytes24h:
+          type: integer
+          format: int64
+        activeConnections24h:
+          type: integer
+          format: int64
+    TrafficPointResponse:
+      type: object
+      properties:
+        capturedAt:
+          type: string
+          format: date-time
+        nodeCode:
+          type: string
+        inboundBytes:
+          type: integer
+          format: int64
+        outboundBytes:
+          type: integer
+          format: int64
+        activeConnections:
+          type: integer

@@ -6,9 +6,10 @@ import com.qq24650393.demo.domain.NodeRepository;
 import com.qq24650393.demo.domain.NodeStatus;
 import com.qq24650393.demo.domain.RelayDomainRepository;
 import com.qq24650393.demo.domain.RelayDomainStatus;
-import java.math.BigDecimal;
-import java.math.BigInteger;
+import com.qq24650393.demo.web.model.OpsOverviewResponse;
+import com.qq24650393.demo.web.model.TrafficPointResponse;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -36,37 +37,32 @@ public class OpsStatsService {
     @Transactional(readOnly = true)
     public OpsOverviewResponse overview() {
         Instant since = Instant.now().minus(24, ChronoUnit.HOURS);
-        Object[] sums = trafficSnapshotRepository.sumSince(since);
-        Object[] values = sums.length == 1 && sums[0] instanceof Object[] nested ? nested : sums;
-        return new OpsOverviewResponse(
-                relayDomainRepository.count(),
-                relayDomainRepository.countByStatus(RelayDomainStatus.ENABLED),
-                nodeRepository.count(),
-                nodeRepository.countByStatus(NodeStatus.ACTIVE),
-                listeningConfigRepository.countByStatus(ListeningStatus.ENABLED),
-                toLong(values[0]),
-                toLong(values[1]),
-                toLong(values[2]));
+        TrafficSummary sums = trafficSnapshotRepository.sumSince(since);
+        return new OpsOverviewResponse()
+                .totalRelayDomains(relayDomainRepository.count())
+                .enabledRelayDomains(relayDomainRepository.countByStatus(RelayDomainStatus.ENABLED))
+                .totalNodes(nodeRepository.count())
+                .activeNodes(nodeRepository.countByStatus(NodeStatus.ACTIVE))
+                .enabledListenings(listeningConfigRepository.countByStatus(ListeningStatus.ENABLED))
+                .inboundBytes24h(sums.getInboundBytes())
+                .outboundBytes24h(sums.getOutboundBytes())
+                .activeConnections24h(sums.getActiveConnections());
     }
 
     @Transactional(readOnly = true)
     public List<TrafficPointResponse> traffic() {
         Instant since = Instant.now().minus(24, ChronoUnit.HOURS);
         return trafficSnapshotRepository.findTop100ByCapturedAtAfterOrderByCapturedAtDesc(since).stream()
-                .map(TrafficPointResponse::from)
+                .map(this::toResponse)
                 .toList();
     }
 
-    private long toLong(Object value) {
-        if (value instanceof Number number) {
-            return number.longValue();
-        }
-        if (value instanceof BigInteger bigInteger) {
-            return bigInteger.longValue();
-        }
-        if (value instanceof BigDecimal bigDecimal) {
-            return bigDecimal.longValue();
-        }
-        return 0L;
+    private TrafficPointResponse toResponse(TrafficSnapshot snapshot) {
+        return new TrafficPointResponse()
+                .capturedAt(snapshot.getCapturedAt().atOffset(ZoneOffset.UTC))
+                .nodeCode(snapshot.getNodeCode())
+                .inboundBytes(snapshot.getInboundBytes())
+                .outboundBytes(snapshot.getOutboundBytes())
+                .activeConnections(snapshot.getActiveConnections());
     }
 }

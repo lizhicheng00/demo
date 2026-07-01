@@ -29,6 +29,6 @@ public class AdminInitializer implements CommandLineRunner {
         user.setPasswordHash(passwordEncoder.encode(properties.password()));
         user.setRoles("ROLE_ADMIN");
         user.setEnabled(true);
-        repository.save(user);
+        repository.insert(user);
     }
 }

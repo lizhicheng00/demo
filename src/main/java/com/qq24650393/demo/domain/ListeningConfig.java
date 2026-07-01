@@ -1,87 +1,44 @@
 package com.qq24650393.demo.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
-import jakarta.persistence.Table;
 import java.time.Instant;
 
-@Entity
-@Table(name = "listening_configs")
 public class ListeningConfig {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "relay_domain_id", nullable = false)
-    private RelayDomain relayDomain;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "node_id")
-    private Node node;
-
-    @Column(name = "listen_port", nullable = false)
+    private Long relayDomainId;
+    private Long nodeId;
     private int listenPort;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 32)
     private ListeningProtocol protocol;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 32)
     private ListeningStatus status = ListeningStatus.ENABLED;
-
-    @Column(nullable = false)
     private long version = 1L;
-
-    @Column(name = "created_at", nullable = false)
     private Instant createdAt;
-
-    @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
-
-    @PrePersist
-    void prePersist() {
-        Instant now = Instant.now();
-        createdAt = now;
-        updatedAt = now;
-    }
-
-    @PreUpdate
-    void preUpdate() {
-        updatedAt = Instant.now();
-        version++;
-    }
+    private String domain;
+    private String targetUrl;
+    private String nodeCode;
 
     public Long getId() {
         return id;
     }
 
-    public RelayDomain getRelayDomain() {
-        return relayDomain;
+    public void setId(Long id) {
+        this.id = id;
     }
 
-    public void setRelayDomain(RelayDomain relayDomain) {
-        this.relayDomain = relayDomain;
+    public Long getRelayDomainId() {
+        return relayDomainId;
     }
 
-    public Node getNode() {
-        return node;
+    public void setRelayDomainId(Long relayDomainId) {
+        this.relayDomainId = relayDomainId;
     }
 
-    public void setNode(Node node) {
-        this.node = node;
+    public Long getNodeId() {
+        return nodeId;
+    }
+
+    public void setNodeId(Long nodeId) {
+        this.nodeId = nodeId;
     }
 
     public int getListenPort() {
@@ -112,11 +69,47 @@ public class ListeningConfig {
         return version;
     }
 
+    public void setVersion(long version) {
+        this.version = version;
+    }
+
     public Instant getCreatedAt() {
         return createdAt;
     }
 
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
     public Instant getUpdatedAt() {
         return updatedAt;
+    }
+
+    public void setUpdatedAt(Instant updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public String getDomain() {
+        return domain;
+    }
+
+    public void setDomain(String domain) {
+        this.domain = domain;
+    }
+
+    public String getTargetUrl() {
+        return targetUrl;
+    }
+
+    public void setTargetUrl(String targetUrl) {
+        this.targetUrl = targetUrl;
+    }
+
+    public String getNodeCode() {
+        return nodeCode;
+    }
+
+    public void setNodeCode(String nodeCode) {
+        this.nodeCode = nodeCode;
     }
 }

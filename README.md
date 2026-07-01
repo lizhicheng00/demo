@@ -7,10 +7,10 @@
 - Java 21
 - Spring Boot 3.3
 - Spring Security + JWT
-- Spring Data JPA
+- MyBatis
 - MySQL 8
 - Flyway
-- springdoc-openapi Swagger UI
+- OpenAPI Generator + springdoc-openapi Swagger UI
 
 ## 本地启动
 
@@ -24,6 +24,14 @@ Swagger UI:
 ```text
 http://localhost:8080/swagger-ui/index.html
 ```
+
+接口契约文件：
+
+```text
+src/main/resources/openapi/demo-api.yaml
+```
+
+`mvn compile` 会根据该 OpenAPI 文件生成 `web.api` 接口和 `web.model` 模型，业务代码实现生成接口。
 
 默认会在启动时创建管理员账号：
 
