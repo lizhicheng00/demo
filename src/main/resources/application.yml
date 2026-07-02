@@ -1,0 +1,35 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: relay-controller
+  profiles:
+    active: dev
+  datasource:
+    url: jdbc:mysql://localhost:3306/relay_controller?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 0
+      timeout: 3000ms
+
+mybatis-plus:
+  mapper-locations: classpath:/mapper/*.xml
+  type-aliases-package: com.huawei.devbridge.relaycontroller.infrastructure.persistence.entity
+  configuration:
+    map-underscore-to-camel-case: true
+
+relay:
+  domain: relayprovider.xxx.com
+  default-expiration-seconds: 259200
+  jwt:
+    issuer: devbridge
+    ttl-seconds: 86400
+    key-id: "1"
+    private-key:
+    public-keys: {}
