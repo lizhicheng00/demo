@@ -22,6 +22,7 @@
         <mybatis-plus.version>3.5.7</mybatis-plus.version>
         <nimbus-jose-jwt.version>9.37.3</nimbus-jose-jwt.version>
         <springdoc-openapi.version>2.8.17</springdoc-openapi.version>
+        <openapi-generator.version>7.9.0</openapi-generator.version>
         <lombok.version>1.18.46</lombok.version>
     </properties>
 
@@ -105,6 +106,80 @@
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.openapitools</groupId>
+                <artifactId>openapi-generator-maven-plugin</artifactId>
+                <version>${openapi-generator.version}</version>
+                <executions>
+                    <execution>
+                        <id>generate-openapi-interfaces</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${project.basedir}/src/main/resources/static/openapi.yaml</inputSpec>
+                            <generatorName>spring</generatorName>
+                            <apiPackage>com.huawei.devbridge.relaycontroller.generated.api</apiPackage>
+                            <modelPackage>com.huawei.devbridge.relaycontroller.generated.model</modelPackage>
+                            <generateApiTests>false</generateApiTests>
+                            <generateModelTests>false</generateModelTests>
+                            <generateSupportingFiles>false</generateSupportingFiles>
+                            <globalProperties>
+                                <apis></apis>
+                                <models>false</models>
+                                <supportingFiles>false</supportingFiles>
+                            </globalProperties>
+                            <configOptions>
+                                <useSpringBoot3>true</useSpringBoot3>
+                                <interfaceOnly>true</interfaceOnly>
+                                <skipDefaultInterface>true</skipDefaultInterface>
+                                <useTags>true</useTags>
+                                <useResponseEntity>false</useResponseEntity>
+                                <dateLibrary>java8</dateLibrary>
+                            </configOptions>
+                            <importMappings>
+                                <importMapping>CreateTunnelRequest=com.huawei.devbridge.relaycontroller.interfaces.request.CreateTunnelRequest</importMapping>
+                                <importMapping>UpdateTunnelRequest=com.huawei.devbridge.relaycontroller.interfaces.request.UpdateTunnelRequest</importMapping>
+                                <importMapping>RegisterNodeRequest=com.huawei.devbridge.relaycontroller.interfaces.request.RegisterNodeRequest</importMapping>
+                                <importMapping>MeteringReportRequest=com.huawei.devbridge.relaycontroller.interfaces.request.MeteringReportRequest</importMapping>
+                                <importMapping>CreateOttTokenRequest=com.huawei.devbridge.relaycontroller.interfaces.request.CreateOttTokenRequest</importMapping>
+                                <importMapping>CreateRtTokenRequest=com.huawei.devbridge.relaycontroller.interfaces.request.CreateRtTokenRequest</importMapping>
+                                <importMapping>BooleanResult=com.huawei.devbridge.relaycontroller.common.model.Result</importMapping>
+                                <importMapping>CreateTunnelResult=com.huawei.devbridge.relaycontroller.common.model.Result</importMapping>
+                                <importMapping>TunnelDetailResult=com.huawei.devbridge.relaycontroller.common.model.Result</importMapping>
+                                <importMapping>TunnelListResult=com.huawei.devbridge.relaycontroller.common.model.Result</importMapping>
+                                <importMapping>RegisterNodeResult=com.huawei.devbridge.relaycontroller.common.model.Result</importMapping>
+                                <importMapping>NodeInfoResult=com.huawei.devbridge.relaycontroller.common.model.Result</importMapping>
+                                <importMapping>GridConfigResult=com.huawei.devbridge.relaycontroller.common.model.Result</importMapping>
+                                <importMapping>MeteringReportResult=com.huawei.devbridge.relaycontroller.common.model.Result</importMapping>
+                                <importMapping>RelayStatusResult=com.huawei.devbridge.relaycontroller.common.model.Result</importMapping>
+                                <importMapping>CreateOttTokenResult=com.huawei.devbridge.relaycontroller.common.model.Result</importMapping>
+                                <importMapping>CreateRtTokenResult=com.huawei.devbridge.relaycontroller.common.model.Result</importMapping>
+                            </importMappings>
+                            <schemaMappings>
+                                <schemaMapping>CreateTunnelRequest=com.huawei.devbridge.relaycontroller.interfaces.request.CreateTunnelRequest</schemaMapping>
+                                <schemaMapping>UpdateTunnelRequest=com.huawei.devbridge.relaycontroller.interfaces.request.UpdateTunnelRequest</schemaMapping>
+                                <schemaMapping>RegisterNodeRequest=com.huawei.devbridge.relaycontroller.interfaces.request.RegisterNodeRequest</schemaMapping>
+                                <schemaMapping>MeteringReportRequest=com.huawei.devbridge.relaycontroller.interfaces.request.MeteringReportRequest</schemaMapping>
+                                <schemaMapping>CreateOttTokenRequest=com.huawei.devbridge.relaycontroller.interfaces.request.CreateOttTokenRequest</schemaMapping>
+                                <schemaMapping>CreateRtTokenRequest=com.huawei.devbridge.relaycontroller.interfaces.request.CreateRtTokenRequest</schemaMapping>
+                                <schemaMapping>BooleanResult=com.huawei.devbridge.relaycontroller.common.model.Result</schemaMapping>
+                                <schemaMapping>CreateTunnelResult=com.huawei.devbridge.relaycontroller.common.model.Result</schemaMapping>
+                                <schemaMapping>TunnelDetailResult=com.huawei.devbridge.relaycontroller.common.model.Result</schemaMapping>
+                                <schemaMapping>TunnelListResult=com.huawei.devbridge.relaycontroller.common.model.Result</schemaMapping>
+                                <schemaMapping>RegisterNodeResult=com.huawei.devbridge.relaycontroller.common.model.Result</schemaMapping>
+                                <schemaMapping>NodeInfoResult=com.huawei.devbridge.relaycontroller.common.model.Result</schemaMapping>
+                                <schemaMapping>GridConfigResult=com.huawei.devbridge.relaycontroller.common.model.Result</schemaMapping>
+                                <schemaMapping>MeteringReportResult=com.huawei.devbridge.relaycontroller.common.model.Result</schemaMapping>
+                                <schemaMapping>RelayStatusResult=com.huawei.devbridge.relaycontroller.common.model.Result</schemaMapping>
+                                <schemaMapping>CreateOttTokenResult=com.huawei.devbridge.relaycontroller.common.model.Result</schemaMapping>
+                                <schemaMapping>CreateRtTokenResult=com.huawei.devbridge.relaycontroller.common.model.Result</schemaMapping>
+                            </schemaMappings>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
