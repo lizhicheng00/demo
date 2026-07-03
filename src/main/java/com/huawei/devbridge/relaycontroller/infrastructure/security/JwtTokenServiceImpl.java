@@ -16,18 +16,18 @@ import org.springframework.stereotype.Service;
 public class JwtTokenServiceImpl implements JwtTokenService {
     private final JwtTokenCache jwtTokenCache;
     private final JwtSigner jwtSigner;
-    private final PublicKeyConfigProvider publicKeyConfigProvider;
+    private final JwtKeyProvider jwtKeyProvider;
     private final RelayProperties relayProperties;
 
     @Override
     public String getOrCreateToken(Tunnel tunnel) {
         long ttlSeconds = resolveTokenTtlSeconds(tunnel);
-        String cached = jwtTokenCache.get(tunnel.getTunnelid());
+        String cached = jwtTokenCache.get(tunnel.getTunnelId());
         if (cached != null && !cached.isBlank()) {
             return cached;
         }
         String token = createToken(tunnel);
-        jwtTokenCache.set(tunnel.getTunnelid(), token, ttlSeconds);
+        jwtTokenCache.set(tunnel.getTunnelId(), token, ttlSeconds);
         return token;
     }
 
@@ -43,7 +43,7 @@ public class JwtTokenServiceImpl implements JwtTokenService {
 
     @Override
     public Map<String, String> getPublicKeys() {
-        return publicKeyConfigProvider.getPublicKeys();
+        return jwtKeyProvider.getPublicKeys();
     }
 
     private long resolveTokenTtlSeconds(Tunnel tunnel) {

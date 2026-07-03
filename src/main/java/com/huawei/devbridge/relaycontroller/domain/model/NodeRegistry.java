@@ -11,9 +11,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class NodeRegistry {
     private Long id;
-    private String gridname;
+    private String gridName;
     private String ip;
-    private Long registertime;
+    private Long registerTime;
     private Long createdAt;
     private Long updatedAt;
 }

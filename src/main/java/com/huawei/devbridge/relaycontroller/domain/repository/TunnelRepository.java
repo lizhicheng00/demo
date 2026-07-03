@@ -8,7 +8,7 @@ public interface TunnelRepository {
 
     Tunnel findByTunnelCode(Long tunnelCode);
 
-    List<Tunnel> findByNamespace(String namespace, String gridname);
+    List<Tunnel> findByNamespace(String namespace, String gridName);
 
     boolean existsByTunnelId(String tunnelId);
 

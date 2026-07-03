@@ -14,8 +14,8 @@ public class GridConfigAppService {
     private final GridRepository gridRepository;
     private final JwtTokenService jwtTokenService;
 
-    public GridConfigResponse getConfig(String gridname) {
-        if (!gridRepository.existsByGridName(gridname)) {
+    public GridConfigResponse getConfig(String gridName) {
+        if (!gridRepository.existsByGridName(gridName)) {
             throw new BizException(ErrorCode.GRID_NOT_FOUND);
         }
         return GridConfigResponse.builder()

@@ -9,7 +9,6 @@ import static org.mockito.Mockito.when;
 import com.huawei.devbridge.relaycontroller.common.exception.BizException;
 import com.huawei.devbridge.relaycontroller.common.exception.ErrorCode;
 import com.huawei.devbridge.relaycontroller.common.util.TimeUtils;
-import com.huawei.devbridge.relaycontroller.application.assembler.TunnelAssembler;
 import com.huawei.devbridge.relaycontroller.application.service.TunnelAppService;
 import com.huawei.devbridge.relaycontroller.domain.model.Grid;
 import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
@@ -47,11 +46,10 @@ class TunnelAppServiceTest {
                 new FixedTunnelCodeGenerator(),
                 jwtTokenService,
                 new TunnelDomainService(),
-                new TunnelAssembler(),
                 properties);
         CreateTunnelRequest request = new CreateTunnelRequest();
         request.setName("dev");
-        request.setGridname("grid-a");
+        request.setGridName("grid-a");
         request.setCluster("cluster-a");
 
         when(gridRepository.findByGridName("grid-a"))
@@ -74,7 +72,7 @@ class TunnelAppServiceTest {
         TunnelAppService service = newService(new RelayProperties());
         CreateTunnelRequest request = new CreateTunnelRequest();
         request.setName("dev");
-        request.setGridname("grid-a");
+        request.setGridName("grid-a");
         request.setExpiration(Math.toIntExact(TimeUtils.nowSeconds() - 1));
 
         when(gridRepository.findByGridName("grid-a"))
@@ -93,7 +91,7 @@ class TunnelAppServiceTest {
         request.setTunnelId("000001e240");
         request.setExpiration(Math.toIntExact(TimeUtils.nowSeconds() + 3600));
         Tunnel tunnel = Tunnel.builder()
-                .tunnelid("000001e240")
+                .tunnelId("000001e240")
                 .namespace("ns-user-001")
                 .deleted(0)
                 .expiration(Math.toIntExact(TimeUtils.nowSeconds() + 1800))
@@ -116,7 +114,6 @@ class TunnelAppServiceTest {
                 new FixedTunnelCodeGenerator(),
                 jwtTokenService,
                 new TunnelDomainService(),
-                new TunnelAssembler(),
                 properties);
     }
 

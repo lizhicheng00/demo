@@ -14,9 +14,9 @@ import com.huawei.devbridge.relaycontroller.common.util.TimeUtils;
 import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
 import com.huawei.devbridge.relaycontroller.infrastructure.config.RelayProperties;
 import com.huawei.devbridge.relaycontroller.infrastructure.redis.JwtTokenCache;
+import com.huawei.devbridge.relaycontroller.infrastructure.security.JwtKeyProvider;
 import com.huawei.devbridge.relaycontroller.infrastructure.security.JwtSigner;
 import com.huawei.devbridge.relaycontroller.infrastructure.security.JwtTokenServiceImpl;
-import com.huawei.devbridge.relaycontroller.infrastructure.security.PublicKeyConfigProvider;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -29,13 +29,13 @@ class JwtTokenServiceTest {
     @Mock
     private JwtSigner jwtSigner;
     @Mock
-    private PublicKeyConfigProvider publicKeyConfigProvider;
+    private JwtKeyProvider jwtKeyProvider;
 
     @Test
     void getOrCreateTokenReturnsCachedValue() {
         RelayProperties properties = new RelayProperties();
-        JwtTokenServiceImpl service = new JwtTokenServiceImpl(jwtTokenCache, jwtSigner, publicKeyConfigProvider, properties);
-        Tunnel tunnel = Tunnel.builder().tunnelid("000001e240").build();
+        JwtTokenServiceImpl service = new JwtTokenServiceImpl(jwtTokenCache, jwtSigner, jwtKeyProvider, properties);
+        Tunnel tunnel = Tunnel.builder().tunnelId("000001e240").build();
 
         when(jwtTokenCache.get("000001e240")).thenReturn("cached-token");
 
@@ -49,9 +49,9 @@ class JwtTokenServiceTest {
     void getOrCreateTokenCapsCacheTtlAtTunnelExpiration() {
         RelayProperties properties = new RelayProperties();
         properties.getJwt().setTtlSeconds(86400);
-        JwtTokenServiceImpl service = new JwtTokenServiceImpl(jwtTokenCache, jwtSigner, publicKeyConfigProvider, properties);
+        JwtTokenServiceImpl service = new JwtTokenServiceImpl(jwtTokenCache, jwtSigner, jwtKeyProvider, properties);
         Tunnel tunnel = Tunnel.builder()
-                .tunnelid("000001e240")
+                .tunnelId("000001e240")
                 .expiration(Math.toIntExact(TimeUtils.nowSeconds() + 60))
                 .build();
 
@@ -68,9 +68,9 @@ class JwtTokenServiceTest {
     @Test
     void getOrCreateTokenRejectsExpiredTunnelBeforeReturningCachedToken() {
         RelayProperties properties = new RelayProperties();
-        JwtTokenServiceImpl service = new JwtTokenServiceImpl(jwtTokenCache, jwtSigner, publicKeyConfigProvider, properties);
+        JwtTokenServiceImpl service = new JwtTokenServiceImpl(jwtTokenCache, jwtSigner, jwtKeyProvider, properties);
         Tunnel tunnel = Tunnel.builder()
-                .tunnelid("000001e240")
+                .tunnelId("000001e240")
                 .expiration(Math.toIntExact(TimeUtils.nowSeconds() - 1))
                 .build();
 

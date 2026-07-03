@@ -19,7 +19,7 @@ public class TunnelRepositoryImpl implements TunnelRepository {
     @Override
     public Tunnel findByTunnelId(String tunnelId) {
         TunnelEntity entity = tunnelMapper.selectOne(new LambdaQueryWrapper<TunnelEntity>()
-                .eq(TunnelEntity::getTunnelid, tunnelId)
+                .eq(TunnelEntity::getTunnelId, tunnelId)
                 .last("LIMIT 1"));
         return toDomain(entity);
     }
@@ -27,17 +27,17 @@ public class TunnelRepositoryImpl implements TunnelRepository {
     @Override
     public Tunnel findByTunnelCode(Long tunnelCode) {
         TunnelEntity entity = tunnelMapper.selectOne(new LambdaQueryWrapper<TunnelEntity>()
-                .eq(TunnelEntity::getTunnelcode, tunnelCode)
+                .eq(TunnelEntity::getTunnelCode, tunnelCode)
                 .last("LIMIT 1"));
         return toDomain(entity);
     }
 
     @Override
-    public List<Tunnel> findByNamespace(String namespace, String gridname) {
+    public List<Tunnel> findByNamespace(String namespace, String gridName) {
         return tunnelMapper.selectList(new LambdaQueryWrapper<TunnelEntity>()
                         .eq(TunnelEntity::getNamespace, namespace)
                         .eq(TunnelEntity::getDeleted, 0)
-                        .eq(!StringUtils.isBlank(gridname), TunnelEntity::getGridname, gridname)
+                        .eq(!StringUtils.isBlank(gridName), TunnelEntity::getGridName, gridName)
                         .orderByDesc(TunnelEntity::getCreatedAt))
                 .stream()
                 .map(this::toDomain)
@@ -47,13 +47,13 @@ public class TunnelRepositoryImpl implements TunnelRepository {
     @Override
     public boolean existsByTunnelId(String tunnelId) {
         return tunnelMapper.exists(new LambdaQueryWrapper<TunnelEntity>()
-                .eq(TunnelEntity::getTunnelid, tunnelId));
+                .eq(TunnelEntity::getTunnelId, tunnelId));
     }
 
     @Override
     public boolean existsByTunnelCode(Long tunnelCode) {
         return tunnelMapper.exists(new LambdaQueryWrapper<TunnelEntity>()
-                .eq(TunnelEntity::getTunnelcode, tunnelCode));
+                .eq(TunnelEntity::getTunnelCode, tunnelCode));
     }
 
     @Override
@@ -72,7 +72,7 @@ public class TunnelRepositoryImpl implements TunnelRepository {
     @Override
     public void softDelete(String tunnelId, long updatedAt) {
         tunnelMapper.update(null, new LambdaUpdateWrapper<TunnelEntity>()
-                .eq(TunnelEntity::getTunnelid, tunnelId)
+                .eq(TunnelEntity::getTunnelId, tunnelId)
                 .set(TunnelEntity::getDeleted, 1)
                 .set(TunnelEntity::getUpdatedAt, updatedAt));
     }
@@ -89,14 +89,14 @@ public class TunnelRepositoryImpl implements TunnelRepository {
         return Tunnel.builder()
                 .id(entity.getId())
                 .name(entity.getName())
-                .tunnelid(entity.getTunnelid())
-                .tunnelcode(entity.getTunnelcode())
-                .gridname(entity.getGridname())
+                .tunnelId(entity.getTunnelId())
+                .tunnelCode(entity.getTunnelCode())
+                .gridName(entity.getGridName())
                 .expiration(entity.getExpiration())
                 .namespace(entity.getNamespace())
                 .description(entity.getDescription())
                 .cluster(entity.getCluster())
-                .bandwidthused(entity.getBandwidthused())
+                .bandwidthUsed(entity.getBandwidthUsed())
                 .url(entity.getUrl())
                 .type(entity.getType())
                 .deleted(entity.getDeleted())
@@ -109,14 +109,14 @@ public class TunnelRepositoryImpl implements TunnelRepository {
         TunnelEntity entity = new TunnelEntity();
         entity.setId(tunnel.getId());
         entity.setName(tunnel.getName());
-        entity.setTunnelid(tunnel.getTunnelid());
-        entity.setTunnelcode(tunnel.getTunnelcode());
-        entity.setGridname(tunnel.getGridname());
+        entity.setTunnelId(tunnel.getTunnelId());
+        entity.setTunnelCode(tunnel.getTunnelCode());
+        entity.setGridName(tunnel.getGridName());
         entity.setExpiration(tunnel.getExpiration());
         entity.setNamespace(tunnel.getNamespace());
         entity.setDescription(tunnel.getDescription());
         entity.setCluster(tunnel.getCluster());
-        entity.setBandwidthused(tunnel.getBandwidthused());
+        entity.setBandwidthUsed(tunnel.getBandwidthUsed());
         entity.setUrl(tunnel.getUrl());
         entity.setType(tunnel.getType());
         entity.setDeleted(tunnel.getDeleted());

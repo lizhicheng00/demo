@@ -23,13 +23,13 @@ public class RelayStatusAppService {
         Tunnel tunnel = tunnelRepository.findByTunnelId(tunnelId);
         tunnelDomainService.assertOwnedBy(tunnel, namespace);
         RelayStatus relayStatus = relayStatusRepository.findByTunnelId(tunnelId);
-        if (relayStatus == null || !tunnel.getGridname().equals(relayStatus.getGridname())) {
+        if (relayStatus == null || !tunnel.getGridName().equals(relayStatus.getGridName())) {
             return offlineStatus(tunnelId, tunnel);
         }
         return RelayStatusResponse.builder()
                 .tunnelId(relayStatus.getTunnelId())
                 .status(relayStatus.getStatus())
-                .gridname(relayStatus.getGridname())
+                .gridName(relayStatus.getGridName())
                 .nodeId(relayStatus.getNodeId())
                 .gatewayIp(relayStatus.getGatewayIp())
                 .lastHeartbeat(relayStatus.getLastHeartbeat())
@@ -40,7 +40,7 @@ public class RelayStatusAppService {
         return RelayStatusResponse.builder()
                 .tunnelId(tunnelId)
                 .status("OFFLINE")
-                .gridname(tunnel.getGridname())
+                .gridName(tunnel.getGridName())
                 .build();
     }
 }

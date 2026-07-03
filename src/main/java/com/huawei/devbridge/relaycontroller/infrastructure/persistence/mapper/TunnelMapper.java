@@ -9,9 +9,9 @@ public interface TunnelMapper extends BaseMapper<TunnelEntity> {
 
     @Update("""
             UPDATE tunnel
-            SET bandwidthused = bandwidthused + #{usageBytes},
+            SET bandwidth_used = bandwidth_used + #{usageBytes},
                 updated_at = #{updatedAt}
-            WHERE tunnelid = #{tunnelId}
+            WHERE tunnel_id = #{tunnelId}
               AND deleted = 0
             """)
     int increaseBandwidthUsed(

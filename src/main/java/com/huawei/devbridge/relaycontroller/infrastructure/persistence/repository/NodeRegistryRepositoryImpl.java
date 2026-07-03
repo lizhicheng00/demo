@@ -33,9 +33,9 @@ public class NodeRegistryRepositoryImpl implements NodeRegistryRepository {
     }
 
     @Override
-    public List<NodeRegistry> findByGridName(String gridname) {
+    public List<NodeRegistry> findByGridName(String gridName) {
         return nodeRegistryMapper.selectList(new LambdaQueryWrapper<NodeRegistryEntity>()
-                        .eq(NodeRegistryEntity::getGridname, gridname)
+                        .eq(NodeRegistryEntity::getGridName, gridName)
                         .orderByAsc(NodeRegistryEntity::getId))
                 .stream()
                 .map(this::toDomain)
@@ -48,9 +48,9 @@ public class NodeRegistryRepositoryImpl implements NodeRegistryRepository {
         }
         return NodeRegistry.builder()
                 .id(entity.getId())
-                .gridname(entity.getGridname())
+                .gridName(entity.getGridName())
                 .ip(entity.getIp())
-                .registertime(entity.getRegistertime())
+                .registerTime(entity.getRegisterTime())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();
@@ -59,9 +59,9 @@ public class NodeRegistryRepositoryImpl implements NodeRegistryRepository {
     private NodeRegistryEntity toEntity(NodeRegistry nodeRegistry) {
         NodeRegistryEntity entity = new NodeRegistryEntity();
         entity.setId(nodeRegistry.getId());
-        entity.setGridname(nodeRegistry.getGridname());
+        entity.setGridName(nodeRegistry.getGridName());
         entity.setIp(nodeRegistry.getIp());
-        entity.setRegistertime(nodeRegistry.getRegistertime());
+        entity.setRegisterTime(nodeRegistry.getRegisterTime());
         entity.setCreatedAt(nodeRegistry.getCreatedAt());
         entity.setUpdatedAt(nodeRegistry.getUpdatedAt());
         return entity;

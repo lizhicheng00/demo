@@ -10,5 +10,5 @@ public interface NodeRegistryRepository {
 
     void update(NodeRegistry nodeRegistry);
 
-    List<NodeRegistry> findByGridName(String gridname);
+    List<NodeRegistry> findByGridName(String gridName);
 }

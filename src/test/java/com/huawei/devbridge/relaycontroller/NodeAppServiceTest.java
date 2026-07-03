@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-import com.huawei.devbridge.relaycontroller.application.assembler.NodeAssembler;
 import com.huawei.devbridge.relaycontroller.application.service.NodeAppService;
 import com.huawei.devbridge.relaycontroller.domain.model.NodeRegistry;
 import com.huawei.devbridge.relaycontroller.domain.repository.GridRepository;
@@ -30,8 +29,7 @@ class NodeAppServiceTest {
         NodeAppService service = new NodeAppService(
                 gridRepository,
                 nodeRegistryRepository,
-                new NodeDomainService(),
-                new NodeAssembler());
+                new NodeDomainService());
         RegisterNodeRequest request = new RegisterNodeRequest();
         request.setIp("10.0.1.23");
 

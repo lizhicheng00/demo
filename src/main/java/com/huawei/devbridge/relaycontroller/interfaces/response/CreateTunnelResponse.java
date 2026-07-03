@@ -1,5 +1,6 @@
 package com.huawei.devbridge.relaycontroller.interfaces.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
 
@@ -10,7 +11,8 @@ public class CreateTunnelResponse {
     private String id;
     private String tunnelId;
     private Long tunnelCode;
-    private String gridname;
+    @JsonProperty("gridname")
+    private String gridName;
     private String cluster;
     private String description;
     private Long bandwidthUsed;

@@ -12,14 +12,14 @@ import lombok.NoArgsConstructor;
 public class Tunnel {
     private Long id;
     private String name;
-    private String tunnelid;
-    private Long tunnelcode;
-    private String gridname;
+    private String tunnelId;
+    private Long tunnelCode;
+    private String gridName;
     private Integer expiration;
     private String namespace;
     private String description;
     private String cluster;
-    private Long bandwidthused;
+    private Long bandwidthUsed;
     private String url;
     private String type;
     private Integer deleted;

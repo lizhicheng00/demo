@@ -36,10 +36,10 @@ public class JwtSigner {
                     .issuer(relayProperties.getJwt().getIssuer())
                     .issueTime(Date.from(now))
                     .expirationTime(Date.from(expiresAt))
-                    .claim("tunnelId", tunnel.getTunnelid())
-                    .claim("tunnelCode", tunnel.getTunnelcode())
+                    .claim("tunnelId", tunnel.getTunnelId())
+                    .claim("tunnelCode", tunnel.getTunnelCode())
                     .claim("namespace", tunnel.getNamespace())
-                    .claim("gridname", tunnel.getGridname())
+                    .claim("gridname", tunnel.getGridName())
                     .build();
             SignedJWT jwt = new SignedJWT(header, claims);
             jwt.sign(new RSASSASigner((RSAPrivateKey) jwtKeyProvider.getPrivateKey()));

@@ -1,6 +1,5 @@
 package com.huawei.devbridge.relaycontroller.application.service;
 
-import com.huawei.devbridge.relaycontroller.application.assembler.NodeAssembler;
 import com.huawei.devbridge.relaycontroller.common.exception.BizException;
 import com.huawei.devbridge.relaycontroller.common.exception.ErrorCode;
 import com.huawei.devbridge.relaycontroller.common.util.StringUtils;
@@ -23,18 +22,17 @@ public class NodeAppService {
     private final GridRepository gridRepository;
     private final NodeRegistryRepository nodeRegistryRepository;
     private final NodeDomainService nodeDomainService;
-    private final NodeAssembler nodeAssembler;
 
     @Transactional
-    public RegisterNodeResponse registerNode(String gridname, RegisterNodeRequest request) {
-        ensureGridExists(gridname);
+    public RegisterNodeResponse registerNode(String gridName, RegisterNodeRequest request) {
+        ensureGridExists(gridName);
         long now = TimeUtils.nowSeconds();
         NodeRegistry nodeRegistry;
         if (StringUtils.isBlank(request.getNodeId())) {
             nodeRegistry = nodeRegistryRepository.save(NodeRegistry.builder()
-                    .gridname(gridname)
+                    .gridName(gridName)
                     .ip(request.getIp())
-                    .registertime(now)
+                    .registerTime(now)
                     .createdAt(now)
                     .updatedAt(now)
                     .build());
@@ -44,30 +42,33 @@ public class NodeAppService {
             if (nodeRegistry == null) {
                 throw new BizException(ErrorCode.NODE_NOT_FOUND);
             }
-            if (!gridname.equals(nodeRegistry.getGridname())) {
+            if (!gridName.equals(nodeRegistry.getGridName())) {
                 throw new BizException(ErrorCode.NODE_NOT_FOUND);
             }
             nodeRegistry.setIp(request.getIp());
-            nodeRegistry.setRegistertime(now);
+            nodeRegistry.setRegisterTime(now);
             nodeRegistry.setUpdatedAt(now);
             nodeRegistryRepository.update(nodeRegistry);
         }
-        List<NodeRegistry> nodes = nodeRegistryRepository.findByGridName(gridname);
-        return nodeAssembler.toRegisterResponse(nodeDomainService.toNodeId(nodeRegistry.getId()), nodes);
+        List<NodeRegistry> nodes = nodeRegistryRepository.findByGridName(gridName);
+        return RegisterNodeResponse.builder()
+                .nodeId(nodeDomainService.toNodeId(nodeRegistry.getId()))
+                .nodeList(nodes.stream().map(NodeRegistry::getIp).toList())
+                .build();
     }
 
-    public NodeInfoResponse getNode(String gridname, String nodeId) {
-        ensureGridExists(gridname);
+    public NodeInfoResponse getNode(String gridName, String nodeId) {
+        ensureGridExists(gridName);
         Long id = nodeDomainService.parseNodeId(nodeId);
         NodeRegistry nodeRegistry = nodeRegistryRepository.findById(id);
-        if (nodeRegistry == null || !gridname.equals(nodeRegistry.getGridname())) {
+        if (nodeRegistry == null || !gridName.equals(nodeRegistry.getGridName())) {
             throw new BizException(ErrorCode.NODE_NOT_FOUND);
         }
-        return nodeAssembler.toNodeInfo(nodeRegistry);
+        return NodeInfoResponse.builder().ip(nodeRegistry.getIp()).build();
     }
 
-    private void ensureGridExists(String gridname) {
-        if (!gridRepository.existsByGridName(gridname)) {
+    private void ensureGridExists(String gridName) {
+        if (!gridRepository.existsByGridName(gridName)) {
             throw new BizException(ErrorCode.GRID_NOT_FOUND);
         }
     }

@@ -16,9 +16,9 @@ public class MeteringRepositoryImpl implements MeteringRepository {
     public void save(Metering metering) {
         MeteringEntity entity = new MeteringEntity();
         entity.setId(metering.getId());
-        entity.setGridname(metering.getGridname());
-        entity.setTunnelcode(metering.getTunnelcode());
-        entity.setTunnelid(metering.getTunnelid());
+        entity.setGridName(metering.getGridName());
+        entity.setTunnelCode(metering.getTunnelCode());
+        entity.setTunnelId(metering.getTunnelId());
         entity.setUsageBytes(metering.getUsageBytes());
         entity.setReportedAt(metering.getReportedAt());
         entity.setCreatedAt(metering.getCreatedAt());

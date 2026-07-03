@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.huawei.devbridge.relaycontroller.application.assembler.MeteringAssembler;
 import com.huawei.devbridge.relaycontroller.application.service.MeteringAppService;
 import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
 import com.huawei.devbridge.relaycontroller.domain.repository.GridRepository;
@@ -32,8 +31,7 @@ class MeteringAppServiceTest {
         MeteringAppService service = new MeteringAppService(
                 gridRepository,
                 tunnelRepository,
-                meteringRepository,
-                new MeteringAssembler());
+                meteringRepository);
         MeteringReportRequest request = new MeteringReportRequest();
         request.setTunnelId("000001e240");
         request.setTunnelCode(123456L);
@@ -41,9 +39,9 @@ class MeteringAppServiceTest {
 
         when(gridRepository.existsByGridName("grid-a")).thenReturn(true);
         when(tunnelRepository.findByTunnelId("000001e240")).thenReturn(Tunnel.builder()
-                .tunnelid("000001e240")
-                .tunnelcode(123456L)
-                .gridname("grid-a")
+                .tunnelId("000001e240")
+                .tunnelCode(123456L)
+                .gridName("grid-a")
                 .deleted(0)
                 .build());
 

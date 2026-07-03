@@ -27,9 +27,9 @@ class RelayStatusAppServiceTest {
     void statusIsOfflineWithoutRuntimeRecordAndDoesNotFakeHeartbeat() {
         RelayStatusAppService service = newService();
         when(tunnelRepository.findByTunnelId("000001e240")).thenReturn(Tunnel.builder()
-                .tunnelid("000001e240")
+                .tunnelId("000001e240")
                 .namespace("ns-user-001")
-                .gridname("grid-a")
+                .gridName("grid-a")
                 .deleted(0)
                 .build());
         when(relayStatusRepository.findByTunnelId("000001e240")).thenReturn(null);
@@ -37,7 +37,7 @@ class RelayStatusAppServiceTest {
         RelayStatusResponse response = service.getStatus("user-001", "000001e240");
 
         assertThat(response.getStatus()).isEqualTo("OFFLINE");
-        assertThat(response.getGridname()).isEqualTo("grid-a");
+        assertThat(response.getGridName()).isEqualTo("grid-a");
         assertThat(response.getLastHeartbeat()).isNull();
     }
 
@@ -45,14 +45,14 @@ class RelayStatusAppServiceTest {
     void statusIsOfflineWhenRuntimeGridDoesNotMatchTunnelGrid() {
         RelayStatusAppService service = newService();
         when(tunnelRepository.findByTunnelId("000001e240")).thenReturn(Tunnel.builder()
-                .tunnelid("000001e240")
+                .tunnelId("000001e240")
                 .namespace("ns-user-001")
-                .gridname("grid-a")
+                .gridName("grid-a")
                 .deleted(0)
                 .build());
         when(relayStatusRepository.findByTunnelId("000001e240")).thenReturn(RelayStatus.builder()
                 .tunnelId("000001e240")
-                .gridname("grid-b")
+                .gridName("grid-b")
                 .status("ONLINE")
                 .lastHeartbeat(1720000000L)
                 .build());
@@ -60,7 +60,7 @@ class RelayStatusAppServiceTest {
         RelayStatusResponse response = service.getStatus("user-001", "000001e240");
 
         assertThat(response.getStatus()).isEqualTo("OFFLINE");
-        assertThat(response.getGridname()).isEqualTo("grid-a");
+        assertThat(response.getGridName()).isEqualTo("grid-a");
         assertThat(response.getLastHeartbeat()).isNull();
     }
 

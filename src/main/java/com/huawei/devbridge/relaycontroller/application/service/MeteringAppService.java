@@ -1,6 +1,5 @@
 package com.huawei.devbridge.relaycontroller.application.service;
 
-import com.huawei.devbridge.relaycontroller.application.assembler.MeteringAssembler;
 import com.huawei.devbridge.relaycontroller.common.exception.BizException;
 import com.huawei.devbridge.relaycontroller.common.exception.ErrorCode;
 import com.huawei.devbridge.relaycontroller.common.util.TimeUtils;
@@ -21,30 +20,29 @@ public class MeteringAppService {
     private final GridRepository gridRepository;
     private final TunnelRepository tunnelRepository;
     private final MeteringRepository meteringRepository;
-    private final MeteringAssembler meteringAssembler;
 
     @Transactional
-    public MeteringReportResponse report(String gridname, MeteringReportRequest request) {
-        if (!gridRepository.existsByGridName(gridname)) {
+    public MeteringReportResponse report(String gridName, MeteringReportRequest request) {
+        if (!gridRepository.existsByGridName(gridName)) {
             throw new BizException(ErrorCode.GRID_NOT_FOUND);
         }
         Tunnel tunnel = tunnelRepository.findByTunnelId(request.getTunnelId());
         if (tunnel == null || Integer.valueOf(1).equals(tunnel.getDeleted())) {
             throw new BizException(ErrorCode.TUNNEL_NOT_FOUND);
         }
-        if (!gridname.equals(tunnel.getGridname()) || !request.getTunnelCode().equals(tunnel.getTunnelcode())) {
+        if (!gridName.equals(tunnel.getGridName()) || !request.getTunnelCode().equals(tunnel.getTunnelCode())) {
             throw new BizException(ErrorCode.METERING_REPORT_FAILED, "metering tunnel mismatch");
         }
         long now = TimeUtils.nowSeconds();
         meteringRepository.save(Metering.builder()
-                .gridname(gridname)
-                .tunnelcode(request.getTunnelCode())
-                .tunnelid(request.getTunnelId())
+                .gridName(gridName)
+                .tunnelCode(request.getTunnelCode())
+                .tunnelId(request.getTunnelId())
                 .usageBytes(request.getUsage())
                 .reportedAt(now)
                 .createdAt(now)
                 .build());
         tunnelRepository.increaseBandwidthUsed(request.getTunnelId(), request.getUsage(), now);
-        return meteringAssembler.accepted();
+        return MeteringReportResponse.builder().accepted(true).build();
     }
 }

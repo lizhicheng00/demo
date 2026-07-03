@@ -13,6 +13,7 @@ This service does not implement WebSocket, WebTransport, TCP, or HTTP body forwa
 - MySQL
 - Redis with Jedis client
 - MyBatis Plus
+- Springdoc OpenAPI
 - Nimbus JOSE JWT
 
 ## Implemented APIs
@@ -24,15 +25,22 @@ GET    /tunnel?tunnelId=
 PUT    /tunnel
 DELETE /tunnel?tunnelId=
 
-POST   /{gridname}/node/register
-GET    /{gridname}/node?node_id=
+POST   /{gridName}/node/register
+GET    /{gridName}/node?node_id=
 
-GET    /{gridname}/config
-POST   /{gridname}/metering
+GET    /{gridName}/config
+POST   /{gridName}/metering
 GET    /tunnel/status?tunnelId=
 ```
 
 User tunnel APIs read `X-User-Id` and resolve `namespace = ns-{userId}`.
+
+OpenAPI is generated from API interfaces, keeping controllers as thin service delegates:
+
+```text
+GET /swagger-ui/index.html
+GET /v3/api-docs
+```
 
 ## Database
 
@@ -41,6 +49,8 @@ Create the MySQL schema and seed `grid-a`:
 ```bash
 mysql -uroot -proot relay_controller < src/main/resources/db/schema.sql
 ```
+
+Database columns use snake_case for compound words, for example `tunnel_id`, `tunnel_code`, `grid_name`, `bandwidth_used`, and `register_time`. Java fields remain camelCase and rely on MyBatis Plus underscore-to-camel mapping, so entity classes do not carry redundant `@TableField` annotations.
 
 ## Run
 

@@ -1,6 +1,5 @@
 package com.huawei.devbridge.relaycontroller.application.service;
 
-import com.huawei.devbridge.relaycontroller.application.assembler.TunnelAssembler;
 import com.huawei.devbridge.relaycontroller.common.exception.BizException;
 import com.huawei.devbridge.relaycontroller.common.exception.ErrorCode;
 import com.huawei.devbridge.relaycontroller.common.util.StringUtils;
@@ -34,13 +33,12 @@ public class TunnelAppService {
     private final TunnelCodeGenerator tunnelCodeGenerator;
     private final JwtTokenService jwtTokenService;
     private final TunnelDomainService tunnelDomainService;
-    private final TunnelAssembler tunnelAssembler;
     private final RelayProperties relayProperties;
 
     @Transactional
     public CreateTunnelResponse createTunnel(String userId, CreateTunnelRequest request) {
         String namespace = namespaceService.resolveNamespace(userId);
-        Grid grid = gridRepository.findByGridName(request.getGridname());
+        Grid grid = gridRepository.findByGridName(request.getGridName());
         if (grid == null) {
             throw new BizException(ErrorCode.GRID_NOT_FOUND);
         }
@@ -52,14 +50,14 @@ public class TunnelAppService {
         TunnelCode code = allocateTunnelCode();
         Tunnel tunnel = Tunnel.builder()
                 .name(request.getName())
-                .tunnelid(code.tunnelId())
-                .tunnelcode(code.tunnelCode())
-                .gridname(request.getGridname())
+                .tunnelId(code.tunnelId())
+                .tunnelCode(code.tunnelCode())
+                .gridName(request.getGridName())
                 .expiration(expiration)
                 .namespace(namespace)
                 .description(request.getDescription())
                 .cluster(request.getCluster())
-                .bandwidthused(0L)
+                .bandwidthUsed(0L)
                 .url(buildTunnelUrl(code.tunnelId(), grid))
                 .type(StringUtils.defaultIfBlank(request.getType(), "default"))
                 .deleted(0)
@@ -68,13 +66,32 @@ public class TunnelAppService {
                 .build();
         tunnelRepository.save(tunnel);
         String token = jwtTokenService.getOrCreateToken(tunnel);
-        return tunnelAssembler.toCreateResponse(tunnel, token);
+        return CreateTunnelResponse.builder()
+                .name(tunnel.getName())
+                .id(tunnel.getTunnelId())
+                .tunnelId(tunnel.getTunnelId())
+                .tunnelCode(tunnel.getTunnelCode())
+                .gridName(tunnel.getGridName())
+                .cluster(tunnel.getCluster())
+                .description(tunnel.getDescription())
+                .bandwidthUsed(tunnel.getBandwidthUsed())
+                .expiration(tunnel.getExpiration())
+                .created(tunnel.getCreatedAt())
+                .url(tunnel.getUrl())
+                .type(tunnel.getType())
+                .accessToken(token)
+                .build();
     }
 
-    public List<TunnelListItemResponse> listTunnels(String userId, String gridname) {
+    public List<TunnelListItemResponse> listTunnels(String userId, String gridName) {
         String namespace = namespaceService.resolveNamespace(userId);
-        return tunnelRepository.findByNamespace(namespace, gridname).stream()
-                .map(tunnelAssembler::toListItem)
+        return tunnelRepository.findByNamespace(namespace, gridName).stream()
+                .map(tunnel -> TunnelListItemResponse.builder()
+                        .name(tunnel.getName())
+                        .description(tunnel.getDescription())
+                        .created(tunnel.getCreatedAt())
+                        .url(tunnel.getUrl())
+                        .build())
                 .toList();
     }
 
@@ -84,7 +101,21 @@ public class TunnelAppService {
         tunnelDomainService.assertOwnedBy(tunnel, namespace);
         tunnelDomainService.assertNotExpired(tunnel);
         String token = jwtTokenService.getOrCreateToken(tunnel);
-        return tunnelAssembler.toDetail(tunnel, token);
+        return TunnelDetailResponse.builder()
+                .name(tunnel.getName())
+                .id(tunnel.getTunnelId())
+                .tunnelId(tunnel.getTunnelId())
+                .tunnelCode(tunnel.getTunnelCode())
+                .gridName(tunnel.getGridName())
+                .cluster(tunnel.getCluster())
+                .description(tunnel.getDescription())
+                .bandwidthUsed(tunnel.getBandwidthUsed())
+                .expiration(tunnel.getExpiration())
+                .created(tunnel.getCreatedAt())
+                .url(tunnel.getUrl())
+                .type(tunnel.getType())
+                .accessToken(token)
+                .build();
     }
 
     @Transactional
@@ -113,7 +144,7 @@ public class TunnelAppService {
         tunnel.setUpdatedAt(TimeUtils.nowSeconds());
         tunnelRepository.update(tunnel);
         if (expirationChanged) {
-            jwtTokenService.evictToken(tunnel.getTunnelid());
+            jwtTokenService.evictToken(tunnel.getTunnelId());
         }
         return true;
     }

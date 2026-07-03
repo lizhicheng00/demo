@@ -11,9 +11,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Metering {
     private Long id;
-    private String gridname;
-    private Long tunnelcode;
-    private String tunnelid;
+    private String gridName;
+    private Long tunnelCode;
+    private String tunnelId;
     private Long usageBytes;
     private Long reportedAt;
     private Long createdAt;

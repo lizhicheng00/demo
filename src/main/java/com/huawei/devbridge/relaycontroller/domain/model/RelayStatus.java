@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 public class RelayStatus {
     private String tunnelId;
     private String status;
-    private String gridname;
+    private String gridName;
     private String nodeId;
     private String gatewayIp;
     private Long lastHeartbeat;
