@@ -32,6 +32,13 @@ GET    /open-api-inner/v1/relay-controller/tunnel/{gridName}/config
 POST   /open-api-inner/v1/relay-controller/tunnel/{gridName}/metering
 GET    /open-api-inner/v1/relay-controller/tunnel/status?tunnelId=
 
+POST   /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports
+GET    /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports
+GET    /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports/{port}
+PUT    /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports/{port}
+DELETE /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports/{port}
+GET    /open-api-inner/v1/relay-controller/grids/{gridName}/tunnels/{tunnelId}/ports/{port}
+
 POST   /open-api-inner/v1/relay-controller/tokens/ott
 POST   /open-api-inner/v1/relay-controller/tokens/rt
 ```
@@ -39,6 +46,8 @@ POST   /open-api-inner/v1/relay-controller/tokens/rt
 User tunnel APIs read `X-User-Id` and resolve `namespace = ns-{userId}`.
 
 Token APIs are independent from tunnel resource paths. OTT is a 30-minute one-time token for RT exchange. RT is a 24-hour reusable token cached at `jwt:rt:{tunnelId}`. `POST /open-api-inner/v1/relay-controller/tokens/rt` accepts optional `X-Relay-Authorization` with either raw OTT or `Bearer <OTT>` format.
+
+Tunnel port APIs manage the explicit per-port allow list for a tunnel. Unconfigured ports are denied by default. `allowAnonymous` only controls sending-side access to that port; listening-side gateway connection still requires token authentication.
 
 OpenAPI is maintained as YAML at `src/main/resources/static/openapi.yaml`. Maven uses this YAML during `generate-sources` to generate Spring API interfaces under `target/generated-sources/openapi`; controllers implement those generated interfaces and do not declare request mappings by hand.
 
@@ -57,7 +66,7 @@ Create the MySQL schema and seed `grid-a`:
 mysql -uroot -proot relay_controller < src/main/resources/db/schema.sql
 ```
 
-Database columns use snake_case for compound words, for example `tunnel_id`, `tunnel_code`, `grid_name`, `bandwidth_used`, and `register_time`. Java fields remain camelCase and rely on MyBatis Plus underscore-to-camel mapping, so entity classes do not carry redundant `@TableField` annotations.
+Database columns use snake_case for compound words, for example `tunnel_id`, `tunnel_code`, `grid_name`, `bandwidth_used`, and `register_time`. Java fields remain camelCase and rely on MyBatis Plus underscore-to-camel mapping, so entity classes do not carry redundant `@TableField` annotations except when a legacy schema intentionally uses non-underscore names such as `tunnel_port.tunnelcode` and `tunnel_port.allowanonymous`.
 
 ## Run
 

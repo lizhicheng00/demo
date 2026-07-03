@@ -2,6 +2,8 @@ package com.huawei.devbridge.relaycontroller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -12,6 +14,7 @@ import com.huawei.devbridge.relaycontroller.application.service.TunnelAppService
 import com.huawei.devbridge.relaycontroller.domain.model.Grid;
 import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
 import com.huawei.devbridge.relaycontroller.domain.repository.GridRepository;
+import com.huawei.devbridge.relaycontroller.domain.repository.TunnelPortRepository;
 import com.huawei.devbridge.relaycontroller.domain.repository.TunnelRepository;
 import com.huawei.devbridge.relaycontroller.domain.service.JwtTokenService;
 import com.huawei.devbridge.relaycontroller.domain.service.NamespaceService;
@@ -34,6 +37,8 @@ class TunnelAppServiceTest {
     private GridRepository gridRepository;
     @Mock
     private JwtTokenService jwtTokenService;
+    @Mock
+    private TunnelPortRepository tunnelPortRepository;
 
     @Test
     void createTunnelAllocatesCodeAndReturnsMetadata() {
@@ -45,6 +50,7 @@ class TunnelAppServiceTest {
                 new FixedTunnelCodeGenerator(),
                 jwtTokenService,
                 new TunnelDomainService(),
+                tunnelPortRepository,
                 properties);
         CreateTunnelRequest request = new CreateTunnelRequest();
         request.setName("dev");
@@ -103,6 +109,26 @@ class TunnelAppServiceTest {
         verify(jwtTokenService).evictReusableToken("000001e240");
     }
 
+    @Test
+    void deleteTunnelCleansTunnelPorts() {
+        TunnelAppService service = newService(new RelayProperties());
+        Tunnel tunnel = Tunnel.builder()
+                .tunnelId("000001e240")
+                .tunnelCode(123456L)
+                .namespace("ns-user-001")
+                .deleted(0)
+                .build();
+
+        when(tunnelRepository.findByTunnelId("000001e240")).thenReturn(tunnel);
+
+        Boolean deleted = service.deleteTunnel("user-001", "000001e240");
+
+        assertThat(deleted).isTrue();
+        verify(tunnelRepository).softDelete(eq("000001e240"), anyLong());
+        verify(jwtTokenService).evictReusableToken("000001e240");
+        verify(tunnelPortRepository).deleteByTunnelCode(123456L);
+    }
+
     private TunnelAppService newService(RelayProperties properties) {
         return new TunnelAppService(
                 tunnelRepository,
@@ -111,6 +137,7 @@ class TunnelAppServiceTest {
                 new FixedTunnelCodeGenerator(),
                 jwtTokenService,
                 new TunnelDomainService(),
+                tunnelPortRepository,
                 properties);
     }
 

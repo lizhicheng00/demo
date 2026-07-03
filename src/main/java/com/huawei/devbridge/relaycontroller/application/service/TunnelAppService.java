@@ -7,6 +7,7 @@ import com.huawei.devbridge.relaycontroller.common.util.TimeUtils;
 import com.huawei.devbridge.relaycontroller.domain.model.Grid;
 import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
 import com.huawei.devbridge.relaycontroller.domain.repository.GridRepository;
+import com.huawei.devbridge.relaycontroller.domain.repository.TunnelPortRepository;
 import com.huawei.devbridge.relaycontroller.domain.repository.TunnelRepository;
 import com.huawei.devbridge.relaycontroller.domain.service.JwtTokenService;
 import com.huawei.devbridge.relaycontroller.domain.service.NamespaceService;
@@ -33,6 +34,7 @@ public class TunnelAppService {
     private final TunnelCodeGenerator tunnelCodeGenerator;
     private final JwtTokenService jwtTokenService;
     private final TunnelDomainService tunnelDomainService;
+    private final TunnelPortRepository tunnelPortRepository;
     private final RelayProperties relayProperties;
 
     @Transactional
@@ -152,6 +154,7 @@ public class TunnelAppService {
         tunnelDomainService.assertOwnedBy(tunnel, namespace);
         tunnelRepository.softDelete(tunnelId, TimeUtils.nowSeconds());
         jwtTokenService.evictReusableToken(tunnelId);
+        tunnelPortRepository.deleteByTunnelCode(tunnel.getTunnelCode());
         return true;
     }
 

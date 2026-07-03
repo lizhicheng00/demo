@@ -60,6 +60,17 @@ CREATE TABLE IF NOT EXISTS metering (
     KEY idx_reported_at (reported_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Metering report';
 
+CREATE TABLE IF NOT EXISTS tunnel_port (
+    _id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'primary key',
+    tunnelcode BIGINT UNSIGNED NOT NULL COMMENT 'tunnel code',
+    port BIGINT UNSIGNED NOT NULL COMMENT 'port, business range 1-65535',
+    allowanonymous TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'allow anonymous access',
+    PRIMARY KEY (_id),
+    UNIQUE KEY uk_tunnelcode_port (tunnelcode, port),
+    KEY idx_tunnelcode (tunnelcode),
+    KEY idx_port (port)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Tunnel port policy';
+
 INSERT INTO grid (grid, region, created_at, updated_at)
 VALUES ('grid-a', 'region-a', UNIX_TIMESTAMP(), UNIX_TIMESTAMP())
 ON DUPLICATE KEY UPDATE region = VALUES(region), updated_at = UNIX_TIMESTAMP();

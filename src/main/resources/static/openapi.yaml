@@ -12,6 +12,8 @@ tags:
   - name: Grid Config
   - name: Metering
   - name: Relay Status
+  - name: Tunnel Port
+  - name: Gateway Tunnel Port
 paths:
   /open-api-inner/v1/relay-controller/tunnel:
     post:
@@ -187,6 +189,109 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RelayStatusResult'
+  /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports:
+    post:
+      tags: [Tunnel Port]
+      summary: Create tunnel port policy
+      operationId: createTunnelPort
+      parameters:
+        - $ref: '#/components/parameters/UserIdHeader'
+        - $ref: '#/components/parameters/TunnelIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTunnelPortRequest'
+      responses:
+        '200':
+          description: Created tunnel port policy.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TunnelPortResult'
+    get:
+      tags: [Tunnel Port]
+      summary: List tunnel port policies
+      operationId: listTunnelPorts
+      parameters:
+        - $ref: '#/components/parameters/UserIdHeader'
+        - $ref: '#/components/parameters/TunnelIdPath'
+      responses:
+        '200':
+          description: Tunnel port policy list.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TunnelPortListResult'
+  /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports/{port}:
+    get:
+      tags: [Tunnel Port]
+      summary: Get tunnel port policy
+      operationId: getTunnelPort
+      parameters:
+        - $ref: '#/components/parameters/UserIdHeader'
+        - $ref: '#/components/parameters/TunnelIdPath'
+        - $ref: '#/components/parameters/PortPath'
+      responses:
+        '200':
+          description: Tunnel port policy.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TunnelPortResult'
+    put:
+      tags: [Tunnel Port]
+      summary: Update tunnel port policy
+      operationId: updateTunnelPort
+      parameters:
+        - $ref: '#/components/parameters/UserIdHeader'
+        - $ref: '#/components/parameters/TunnelIdPath'
+        - $ref: '#/components/parameters/PortPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTunnelPortRequest'
+      responses:
+        '200':
+          description: Updated tunnel port policy.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TunnelPortResult'
+    delete:
+      tags: [Tunnel Port]
+      summary: Delete tunnel port policy
+      operationId: deleteTunnelPort
+      parameters:
+        - $ref: '#/components/parameters/UserIdHeader'
+        - $ref: '#/components/parameters/TunnelIdPath'
+        - $ref: '#/components/parameters/PortPath'
+      responses:
+        '200':
+          description: Delete result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BooleanResult'
+  /open-api-inner/v1/relay-controller/grids/{gridName}/tunnels/{tunnelId}/ports/{port}:
+    get:
+      tags: [Gateway Tunnel Port]
+      summary: Get gateway tunnel port policy
+      operationId: getGatewayTunnelPortPolicy
+      parameters:
+        - $ref: '#/components/parameters/GridNamePath'
+        - $ref: '#/components/parameters/TunnelIdPath'
+        - $ref: '#/components/parameters/PortPath'
+      responses:
+        '200':
+          description: Gateway tunnel port policy.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GatewayTunnelPortPolicyResult'
   /open-api-inner/v1/relay-controller/tokens/ott:
     post:
       tags: [Token]
@@ -250,12 +355,25 @@ components:
       required: true
       schema:
         type: string
+    TunnelIdPath:
+      name: tunnelId
+      in: path
+      required: true
+      schema:
+        type: string
     GridNamePath:
       name: gridName
       in: path
       required: true
       schema:
         type: string
+    PortPath:
+      name: port
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
   schemas:
     ResultBase:
       type: object
@@ -347,6 +465,29 @@ components:
           properties:
             data:
               $ref: '#/components/schemas/TokenResponse'
+    TunnelPortResult:
+      allOf:
+        - $ref: '#/components/schemas/ResultBase'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/TunnelPortResponse'
+    TunnelPortListResult:
+      allOf:
+        - $ref: '#/components/schemas/ResultBase'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/TunnelPortResponse'
+    GatewayTunnelPortPolicyResult:
+      allOf:
+        - $ref: '#/components/schemas/ResultBase'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/GatewayTunnelPortPolicyResponse'
     CreateTunnelRequest:
       type: object
       required: [name, gridname]
@@ -429,6 +570,23 @@ components:
       properties:
         tunnelId:
           type: string
+    CreateTunnelPortRequest:
+      type: object
+      required: [port, allowAnonymous]
+      properties:
+        port:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 65535
+        allowAnonymous:
+          type: boolean
+    UpdateTunnelPortRequest:
+      type: object
+      required: [allowAnonymous]
+      properties:
+        allowAnonymous:
+          type: boolean
     Tunnel:
       type: object
       properties:
@@ -525,3 +683,34 @@ components:
         expiresIn:
           type: integer
           format: int64
+    TunnelPortResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        tunnelId:
+          type: string
+        tunnelCode:
+          type: integer
+          format: int64
+        port:
+          type: integer
+          format: int64
+        allowAnonymous:
+          type: boolean
+    GatewayTunnelPortPolicyResponse:
+      type: object
+      properties:
+        tunnelId:
+          type: string
+        tunnelCode:
+          type: integer
+          format: int64
+        gridname:
+          type: string
+        port:
+          type: integer
+          format: int64
+        allowAnonymous:
+          type: boolean
