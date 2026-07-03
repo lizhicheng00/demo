@@ -127,6 +127,7 @@
                             <generateApiTests>false</generateApiTests>
                             <generateModelTests>false</generateModelTests>
                             <generateSupportingFiles>false</generateSupportingFiles>
+                            <skipIfSpecIsUnchanged>true</skipIfSpecIsUnchanged>
                             <globalProperties>
                                 <apis></apis>
                                 <models>false</models>
