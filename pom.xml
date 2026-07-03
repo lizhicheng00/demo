@@ -23,6 +23,7 @@
         <nimbus-jose-jwt.version>9.37.3</nimbus-jose-jwt.version>
         <springdoc-openapi.version>2.8.17</springdoc-openapi.version>
         <openapi-generator.version>7.9.0</openapi-generator.version>
+        <build-helper-maven-plugin.version>3.6.0</build-helper-maven-plugin.version>
         <lombok.version>1.18.46</lombok.version>
     </properties>
 
@@ -177,6 +178,25 @@
                                 <schemaMapping>CreateOttTokenResult=com.huawei.devbridge.relaycontroller.common.model.Result</schemaMapping>
                                 <schemaMapping>CreateRtTokenResult=com.huawei.devbridge.relaycontroller.common.model.Result</schemaMapping>
                             </schemaMappings>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>${build-helper-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>add-openapi-generated-sources</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${project.build.directory}/generated-sources/openapi/src/main/java</source>
+                            </sources>
                         </configuration>
                     </execution>
                 </executions>
