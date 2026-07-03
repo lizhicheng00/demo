@@ -1,16 +1,13 @@
 package com.huawei.devbridge.relaycontroller;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.huawei.devbridge.relaycontroller.common.exception.BizException;
-import com.huawei.devbridge.relaycontroller.common.exception.ErrorCode;
-import com.huawei.devbridge.relaycontroller.common.util.TimeUtils;
+import com.huawei.devbridge.relaycontroller.domain.model.CreateOttTokenCommand;
+import com.huawei.devbridge.relaycontroller.domain.model.OttClaims;
 import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
 import com.huawei.devbridge.relaycontroller.infrastructure.config.RelayProperties;
 import com.huawei.devbridge.relaycontroller.infrastructure.redis.JwtTokenCache;
@@ -32,53 +29,61 @@ class JwtTokenServiceTest {
     private JwtKeyProvider jwtKeyProvider;
 
     @Test
-    void getOrCreateTokenReturnsCachedValue() {
+    void getOrCreateReusableTokenReturnsCachedValue() {
         RelayProperties properties = new RelayProperties();
         JwtTokenServiceImpl service = new JwtTokenServiceImpl(jwtTokenCache, jwtSigner, jwtKeyProvider, properties);
         Tunnel tunnel = Tunnel.builder().tunnelId("000001e240").build();
 
-        when(jwtTokenCache.get("000001e240")).thenReturn("cached-token");
+        when(jwtTokenCache.getReusableToken("000001e240")).thenReturn("cached-token");
 
-        String token = service.getOrCreateToken(tunnel);
+        String token = service.getOrCreateReusableToken(tunnel);
 
         assertThat(token).isEqualTo("cached-token");
-        verify(jwtSigner, never()).sign(eq(tunnel), anyLong());
+        verify(jwtSigner, never()).signReusableToken(eq(tunnel), org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyLong());
     }
 
     @Test
-    void getOrCreateTokenCapsCacheTtlAtTunnelExpiration() {
+    void getOrCreateReusableTokenCreatesAndCachesRt() {
         RelayProperties properties = new RelayProperties();
-        properties.getJwt().setTtlSeconds(86400);
+        properties.getJwt().getRt().setTtlSeconds(86400);
         JwtTokenServiceImpl service = new JwtTokenServiceImpl(jwtTokenCache, jwtSigner, jwtKeyProvider, properties);
-        Tunnel tunnel = Tunnel.builder()
-                .tunnelId("000001e240")
-                .expiration(Math.toIntExact(TimeUtils.nowSeconds() + 60))
-                .build();
+        Tunnel tunnel = Tunnel.builder().tunnelId("000001e240").build();
 
-        when(jwtTokenCache.get("000001e240")).thenReturn(null);
-        when(jwtSigner.sign(eq(tunnel), anyLong())).thenReturn("new-token");
+        when(jwtTokenCache.getReusableToken("000001e240")).thenReturn(null);
+        when(jwtSigner.signReusableToken(eq(tunnel), org.mockito.ArgumentMatchers.startsWith("rt:000001e240:"), eq(86400L)))
+                .thenReturn("new-token");
 
-        String token = service.getOrCreateToken(tunnel);
+        String token = service.getOrCreateReusableToken(tunnel);
 
         assertThat(token).isEqualTo("new-token");
-        verify(jwtSigner).sign(eq(tunnel), org.mockito.ArgumentMatchers.longThat(ttl -> ttl > 0 && ttl <= 60));
-        verify(jwtTokenCache).set(eq("000001e240"), eq("new-token"), org.mockito.ArgumentMatchers.longThat(ttl -> ttl > 0 && ttl <= 60));
+        verify(jwtTokenCache).setReusableToken("000001e240", "new-token", 86400L);
     }
 
     @Test
-    void getOrCreateTokenRejectsExpiredTunnelBeforeReturningCachedToken() {
+    void createOneTimeTokenWritesOttState() {
         RelayProperties properties = new RelayProperties();
+        properties.getJwt().getOtt().setTtlSeconds(1800);
         JwtTokenServiceImpl service = new JwtTokenServiceImpl(jwtTokenCache, jwtSigner, jwtKeyProvider, properties);
         Tunnel tunnel = Tunnel.builder()
                 .tunnelId("000001e240")
-                .expiration(Math.toIntExact(TimeUtils.nowSeconds() - 1))
+                .tunnelCode(123456L)
+                .namespace("ns-user-001")
+                .gridName("grid-a")
+                .build();
+        CreateOttTokenCommand command = CreateOttTokenCommand.builder()
+                .jti("ott:000001e240:conn-1:test")
+                .tunnel(tunnel)
+                .connId("conn-1")
                 .build();
 
-        assertThatThrownBy(() -> service.getOrCreateToken(tunnel))
-                .isInstanceOf(BizException.class)
-                .extracting("errorCode")
-                .isEqualTo(ErrorCode.TUNNEL_EXPIRED);
+        when(jwtSigner.signOneTimeToken(command, 1800L)).thenReturn("ott-token");
 
-        verify(jwtTokenCache, never()).get("000001e240");
+        String token = service.createOneTimeToken(command);
+
+        assertThat(token).isEqualTo("ott-token");
+        verify(jwtTokenCache).setOneTimeToken(org.mockito.ArgumentMatchers.argThat((OttClaims claims) ->
+                claims.getJti().equals("ott:000001e240:conn-1:test")
+                        && claims.getTunnelId().equals("000001e240")
+                        && claims.getGridName().equals("grid-a")), eq(1800L));
     }
 }

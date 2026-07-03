@@ -2,7 +2,6 @@ package com.huawei.devbridge.relaycontroller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -37,7 +36,7 @@ class TunnelAppServiceTest {
     private JwtTokenService jwtTokenService;
 
     @Test
-    void createTunnelAllocatesCodeAndReturnsToken() {
+    void createTunnelAllocatesCodeAndReturnsMetadata() {
         RelayProperties properties = new RelayProperties();
         TunnelAppService service = new TunnelAppService(
                 tunnelRepository,
@@ -56,15 +55,13 @@ class TunnelAppServiceTest {
                 .thenReturn(Grid.builder().grid("grid-a").region("region-a").build());
         when(tunnelRepository.existsByTunnelCode(123456L)).thenReturn(false);
         when(tunnelRepository.existsByTunnelId("000001e240")).thenReturn(false);
-        when(tunnelRepository.save(any(Tunnel.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(jwtTokenService.getOrCreateToken(any(Tunnel.class))).thenReturn("jwt-token");
+        when(tunnelRepository.save(org.mockito.ArgumentMatchers.any(Tunnel.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         CreateTunnelResponse response = service.createTunnel("user-001", request);
 
         assertThat(response.getTunnelId()).isEqualTo("000001e240");
         assertThat(response.getTunnelCode()).isEqualTo(123456L);
         assertThat(response.getUrl()).isEqualTo("000001e240.region-a.relayprovider.xxx.com");
-        assertThat(response.getAccessToken()).isEqualTo("jwt-token");
     }
 
     @Test
@@ -103,7 +100,7 @@ class TunnelAppServiceTest {
 
         assertThat(updated).isTrue();
         verify(tunnelRepository).update(tunnel);
-        verify(jwtTokenService).evictToken("000001e240");
+        verify(jwtTokenService).evictReusableToken("000001e240");
     }
 
     private TunnelAppService newService(RelayProperties properties) {

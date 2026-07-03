@@ -19,6 +19,9 @@ public class TunnelDomainService {
     }
 
     public void assertNotExpired(Tunnel tunnel) {
+        if (tunnel == null || Integer.valueOf(1).equals(tunnel.getDeleted())) {
+            throw new BizException(ErrorCode.TUNNEL_NOT_FOUND);
+        }
         if (tunnel.getExpiration() != null && tunnel.getExpiration() <= TimeUtils.nowSeconds()) {
             throw new BizException(ErrorCode.TUNNEL_EXPIRED);
         }

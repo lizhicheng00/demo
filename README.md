@@ -31,9 +31,14 @@ GET    /v1/tunnel/{gridName}/node?node_id=
 GET    /v1/tunnel/{gridName}/config
 POST   /v1/tunnel/{gridName}/metering
 GET    /v1/tunnel/status?tunnelId=
+
+POST   /open-api-inner/v1/relay-controller/tokens/ott
+POST   /open-api-inner/v1/relay-controller/tokens/rt
 ```
 
 User tunnel APIs read `X-User-Id` and resolve `namespace = ns-{userId}`.
+
+Token APIs are independent from tunnel resource paths. OTT is a 30-minute one-time token for RT exchange. RT is a 24-hour reusable token cached at `jwt:rt:{tunnelId}`. `POST /open-api-inner/v1/relay-controller/tokens/rt` accepts optional `X-Relay-Authorization` with either raw OTT or `Bearer <OTT>` format.
 
 OpenAPI is generated from Springdoc annotations in controllers:
 

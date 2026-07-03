@@ -22,6 +22,9 @@ public enum ErrorCode {
 
     JWT_GENERATE_FAILED(30001, "jwt generate failed"),
     JWT_KEY_INVALID(30002, "jwt key invalid"),
+    TOKEN_INVALID(30003, "token invalid"),
+    TOKEN_NOT_FOUND_OR_EXPIRED(30004, "token not found or expired"),
+    TOKEN_ALREADY_CONSUMED(30005, "token already consumed"),
 
     METERING_REPORT_FAILED(40001, "metering report failed"),
 

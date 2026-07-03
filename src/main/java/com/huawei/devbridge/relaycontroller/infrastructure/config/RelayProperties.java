@@ -17,9 +17,24 @@ public class RelayProperties {
     @Data
     public static class Jwt {
         private String issuer = "devbridge";
-        private long ttlSeconds = 86400;
         private String keyId = "1";
         private String privateKey;
         private Map<String, String> publicKeys = new LinkedHashMap<>();
+        private TokenTtl ott = new TokenTtl(1800, 300);
+        private TokenTtl rt = new TokenTtl(86400, 0);
+    }
+
+    @Data
+    public static class TokenTtl {
+        private long ttlSeconds;
+        private long consumedTtlSeconds;
+
+        public TokenTtl() {
+        }
+
+        public TokenTtl(long ttlSeconds, long consumedTtlSeconds) {
+            this.ttlSeconds = ttlSeconds;
+            this.consumedTtlSeconds = consumedTtlSeconds;
+        }
     }
 }

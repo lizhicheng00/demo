@@ -65,7 +65,6 @@ public class TunnelAppService {
                 .updatedAt(now)
                 .build();
         tunnelRepository.save(tunnel);
-        String token = jwtTokenService.getOrCreateToken(tunnel);
         return CreateTunnelResponse.builder()
                 .name(tunnel.getName())
                 .id(tunnel.getTunnelId())
@@ -79,7 +78,6 @@ public class TunnelAppService {
                 .created(tunnel.getCreatedAt())
                 .url(tunnel.getUrl())
                 .type(tunnel.getType())
-                .accessToken(token)
                 .build();
     }
 
@@ -100,7 +98,6 @@ public class TunnelAppService {
         Tunnel tunnel = tunnelRepository.findByTunnelId(tunnelId);
         tunnelDomainService.assertOwnedBy(tunnel, namespace);
         tunnelDomainService.assertNotExpired(tunnel);
-        String token = jwtTokenService.getOrCreateToken(tunnel);
         return TunnelDetailResponse.builder()
                 .name(tunnel.getName())
                 .id(tunnel.getTunnelId())
@@ -114,7 +111,6 @@ public class TunnelAppService {
                 .created(tunnel.getCreatedAt())
                 .url(tunnel.getUrl())
                 .type(tunnel.getType())
-                .accessToken(token)
                 .build();
     }
 
@@ -144,7 +140,7 @@ public class TunnelAppService {
         tunnel.setUpdatedAt(TimeUtils.nowSeconds());
         tunnelRepository.update(tunnel);
         if (expirationChanged) {
-            jwtTokenService.evictToken(tunnel.getTunnelId());
+            jwtTokenService.evictReusableToken(tunnel.getTunnelId());
         }
         return true;
     }
@@ -155,7 +151,7 @@ public class TunnelAppService {
         Tunnel tunnel = tunnelRepository.findByTunnelId(tunnelId);
         tunnelDomainService.assertOwnedBy(tunnel, namespace);
         tunnelRepository.softDelete(tunnelId, TimeUtils.nowSeconds());
-        jwtTokenService.evictToken(tunnelId);
+        jwtTokenService.evictReusableToken(tunnelId);
         return true;
     }
 

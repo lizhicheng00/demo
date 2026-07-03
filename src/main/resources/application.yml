@@ -30,7 +30,11 @@ relay:
   default-expiration-seconds: 259200
   jwt:
     issuer: devbridge
-    ttl-seconds: 86400
     key-id: "1"
     private-key:
     public-keys: {}
+    ott:
+      ttl-seconds: 1800
+      consumed-ttl-seconds: 300
+    rt:
+      ttl-seconds: 86400

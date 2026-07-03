@@ -20,5 +20,4 @@ public class CreateTunnelResponse {
     private Long created;
     private String url;
     private String type;
-    private String accessToken;
 }

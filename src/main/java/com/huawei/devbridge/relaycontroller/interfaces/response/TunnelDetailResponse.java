@@ -20,5 +20,4 @@ public class TunnelDetailResponse {
     private Long created;
     private String url;
     private String type;
-    private String accessToken;
 }

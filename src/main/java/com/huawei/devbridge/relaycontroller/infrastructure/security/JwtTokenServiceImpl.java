@@ -1,8 +1,9 @@
 package com.huawei.devbridge.relaycontroller.infrastructure.security;
 
-import com.huawei.devbridge.relaycontroller.common.exception.BizException;
-import com.huawei.devbridge.relaycontroller.common.exception.ErrorCode;
-import com.huawei.devbridge.relaycontroller.common.util.TimeUtils;
+import com.huawei.devbridge.relaycontroller.common.util.IdUtils;
+import com.huawei.devbridge.relaycontroller.domain.model.CreateOttTokenCommand;
+import com.huawei.devbridge.relaycontroller.domain.model.OttClaims;
+import com.huawei.devbridge.relaycontroller.domain.model.OttConsumeResult;
 import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
 import com.huawei.devbridge.relaycontroller.domain.service.JwtTokenService;
 import com.huawei.devbridge.relaycontroller.infrastructure.config.RelayProperties;
@@ -20,25 +21,43 @@ public class JwtTokenServiceImpl implements JwtTokenService {
     private final RelayProperties relayProperties;
 
     @Override
-    public String getOrCreateToken(Tunnel tunnel) {
-        long ttlSeconds = resolveTokenTtlSeconds(tunnel);
-        String cached = jwtTokenCache.get(tunnel.getTunnelId());
-        if (cached != null && !cached.isBlank()) {
-            return cached;
-        }
-        String token = createToken(tunnel);
-        jwtTokenCache.set(tunnel.getTunnelId(), token, ttlSeconds);
+    public String createOneTimeToken(CreateOttTokenCommand command) {
+        long ttlSeconds = relayProperties.getJwt().getOtt().getTtlSeconds();
+        String token = jwtSigner.signOneTimeToken(command, ttlSeconds);
+        jwtTokenCache.setOneTimeToken(toOttClaims(command, ttlSeconds), ttlSeconds);
         return token;
     }
 
     @Override
-    public String createToken(Tunnel tunnel) {
-        return jwtSigner.sign(tunnel, resolveTokenTtlSeconds(tunnel));
+    public String getOrCreateReusableToken(Tunnel tunnel) {
+        long ttlSeconds = relayProperties.getJwt().getRt().getTtlSeconds();
+        String cached = jwtTokenCache.getReusableToken(tunnel.getTunnelId());
+        if (cached != null && !cached.isBlank()) {
+            return cached;
+        }
+        String token = createReusableToken(tunnel);
+        jwtTokenCache.setReusableToken(tunnel.getTunnelId(), token, ttlSeconds);
+        return token;
     }
 
     @Override
-    public void evictToken(String tunnelId) {
-        jwtTokenCache.delete(tunnelId);
+    public String createReusableToken(Tunnel tunnel) {
+        return jwtSigner.signReusableToken(tunnel, "rt:" + tunnel.getTunnelId() + ":" + IdUtils.uuid(), relayProperties.getJwt().getRt().getTtlSeconds());
+    }
+
+    @Override
+    public OttClaims parseAndVerifyOtt(String token) {
+        return jwtSigner.parseAndVerifyOtt(token);
+    }
+
+    @Override
+    public OttConsumeResult consumeOneTimeToken(String jti) {
+        return jwtTokenCache.consumeOneTimeToken(jti, relayProperties.getJwt().getOtt().getConsumedTtlSeconds());
+    }
+
+    @Override
+    public void evictReusableToken(String tunnelId) {
+        jwtTokenCache.deleteReusableToken(tunnelId);
     }
 
     @Override
@@ -46,15 +65,18 @@ public class JwtTokenServiceImpl implements JwtTokenService {
         return jwtKeyProvider.getPublicKeys();
     }
 
-    private long resolveTokenTtlSeconds(Tunnel tunnel) {
-        long configuredTtl = relayProperties.getJwt().getTtlSeconds();
-        if (tunnel.getExpiration() == null || tunnel.getExpiration() <= 0) {
-            return configuredTtl;
-        }
-        long remainingSeconds = tunnel.getExpiration() - TimeUtils.nowSeconds();
-        if (remainingSeconds <= 0) {
-            throw new BizException(ErrorCode.TUNNEL_EXPIRED);
-        }
-        return Math.min(configuredTtl, remainingSeconds);
+    private OttClaims toOttClaims(CreateOttTokenCommand command, long ttlSeconds) {
+        Tunnel tunnel = command.getTunnel();
+        return OttClaims.builder()
+                .jti(command.getJti())
+                .tunnelId(tunnel.getTunnelId())
+                .tunnelCode(tunnel.getTunnelCode())
+                .namespace(tunnel.getNamespace())
+                .gridName(tunnel.getGridName())
+                .connId(command.getConnId())
+                .callbackUrl(command.getCallbackUrl())
+                .requestPort(command.getRequestPort())
+                .expiresAt(System.currentTimeMillis() / 1000 + ttlSeconds)
+                .build();
     }
 }
