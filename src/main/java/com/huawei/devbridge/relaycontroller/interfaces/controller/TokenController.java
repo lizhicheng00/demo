@@ -6,8 +6,6 @@ import com.huawei.devbridge.relaycontroller.interfaces.request.CreateOttTokenReq
 import com.huawei.devbridge.relaycontroller.interfaces.request.CreateRtTokenRequest;
 import com.huawei.devbridge.relaycontroller.interfaces.response.CreateOttTokenResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.CreateRtTokenResponse;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
@@ -17,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "Token")
 @Validated
 @RestController
 @RequestMapping("/open-api-inner/v1/relay-controller/tokens")
@@ -27,13 +24,11 @@ public class TokenController {
     private static final String USER_HEADER = "X-User-Id";
     private final TokenAppService tokenAppService;
 
-    @Operation(summary = "Create one-time token")
     @PostMapping("/ott")
     public Result<CreateOttTokenResponse> createOtt(@Valid @RequestBody CreateOttTokenRequest request) {
         return Result.success(tokenAppService.createOtt(request));
     }
 
-    @Operation(summary = "Create reusable token")
     @PostMapping("/rt")
     public Result<CreateRtTokenResponse> createRt(
             @RequestHeader(value = RELAY_AUTHORIZATION_HEADER, required = false) String relayAuthorization,

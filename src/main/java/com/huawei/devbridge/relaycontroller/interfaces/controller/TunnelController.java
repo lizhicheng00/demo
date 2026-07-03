@@ -7,8 +7,6 @@ import com.huawei.devbridge.relaycontroller.interfaces.request.UpdateTunnelReque
 import com.huawei.devbridge.relaycontroller.interfaces.response.CreateTunnelResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelDetailResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelListItemResponse;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +21,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "Tunnel")
 @Validated
 @RestController
 @RequestMapping("/v1/tunnel")
@@ -32,7 +29,6 @@ public class TunnelController {
     private static final String USER_HEADER = "X-User-Id";
     private final TunnelAppService tunnelAppService;
 
-    @Operation(summary = "List user tunnels")
     @GetMapping("/list")
     public Result<List<TunnelListItemResponse>> list(
             @RequestHeader(USER_HEADER) String userId,
@@ -40,7 +36,6 @@ public class TunnelController {
         return Result.success(tunnelAppService.listTunnels(userId, gridName));
     }
 
-    @Operation(summary = "Get tunnel detail with access token")
     @GetMapping
     public Result<TunnelDetailResponse> detail(
             @RequestHeader(USER_HEADER) String userId,
@@ -48,7 +43,6 @@ public class TunnelController {
         return Result.success(tunnelAppService.getTunnelDetail(userId, tunnelId));
     }
 
-    @Operation(summary = "Create tunnel")
     @PostMapping
     public Result<CreateTunnelResponse> create(
             @RequestHeader(USER_HEADER) String userId,
@@ -56,7 +50,6 @@ public class TunnelController {
         return Result.success(tunnelAppService.createTunnel(userId, request));
     }
 
-    @Operation(summary = "Update tunnel")
     @PutMapping
     public Result<Boolean> update(
             @RequestHeader(USER_HEADER) String userId,
@@ -64,7 +57,6 @@ public class TunnelController {
         return Result.success(tunnelAppService.updateTunnel(userId, request));
     }
 
-    @Operation(summary = "Soft delete tunnel")
     @DeleteMapping
     public Result<Boolean> delete(
             @RequestHeader(USER_HEADER) String userId,

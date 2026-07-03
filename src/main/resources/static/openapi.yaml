@@ -1,0 +1,527 @@
+openapi: 3.0.3
+info:
+  title: Relay Controller API
+  version: v1
+  description: Control plane APIs for DevBridge relay tunnels. Relay Controller does not forward traffic.
+servers:
+  - url: http://localhost:8080
+tags:
+  - name: Tunnel
+  - name: Token
+  - name: Gateway Node
+  - name: Grid Config
+  - name: Metering
+  - name: Relay Status
+paths:
+  /v1/tunnel:
+    post:
+      tags: [Tunnel]
+      summary: Create tunnel
+      operationId: createTunnel
+      parameters:
+        - $ref: '#/components/parameters/UserIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTunnelRequest'
+      responses:
+        '200':
+          description: Created tunnel metadata.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateTunnelResult'
+    get:
+      tags: [Tunnel]
+      summary: Get tunnel detail
+      operationId: getTunnelDetail
+      parameters:
+        - $ref: '#/components/parameters/UserIdHeader'
+        - $ref: '#/components/parameters/TunnelIdQuery'
+      responses:
+        '200':
+          description: Tunnel metadata.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TunnelDetailResult'
+    put:
+      tags: [Tunnel]
+      summary: Update tunnel
+      operationId: updateTunnel
+      parameters:
+        - $ref: '#/components/parameters/UserIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTunnelRequest'
+      responses:
+        '200':
+          description: Update result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BooleanResult'
+    delete:
+      tags: [Tunnel]
+      summary: Soft delete tunnel
+      operationId: deleteTunnel
+      parameters:
+        - $ref: '#/components/parameters/UserIdHeader'
+        - $ref: '#/components/parameters/TunnelIdQuery'
+      responses:
+        '200':
+          description: Delete result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BooleanResult'
+  /v1/tunnel/list:
+    get:
+      tags: [Tunnel]
+      summary: List user tunnels
+      operationId: listTunnels
+      parameters:
+        - $ref: '#/components/parameters/UserIdHeader'
+        - name: gridName
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User tunnel list.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TunnelListResult'
+  /v1/tunnel/{gridName}/node/register:
+    post:
+      tags: [Gateway Node]
+      summary: Register gateway node
+      operationId: registerNode
+      parameters:
+        - $ref: '#/components/parameters/GridNamePath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterNodeRequest'
+      responses:
+        '200':
+          description: Registered node information.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterNodeResult'
+  /v1/tunnel/{gridName}/node:
+    get:
+      tags: [Gateway Node]
+      summary: Get gateway node IP
+      operationId: getNode
+      parameters:
+        - $ref: '#/components/parameters/GridNamePath'
+        - name: node_id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Node IP.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NodeInfoResult'
+  /v1/tunnel/{gridName}/config:
+    get:
+      tags: [Grid Config]
+      summary: Get JWT public keys for a grid
+      operationId: getGridConfig
+      parameters:
+        - $ref: '#/components/parameters/GridNamePath'
+      responses:
+        '200':
+          description: Grid JWT public key config.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GridConfigResult'
+  /v1/tunnel/{gridName}/metering:
+    post:
+      tags: [Metering]
+      summary: Report tunnel traffic usage
+      operationId: reportMetering
+      parameters:
+        - $ref: '#/components/parameters/GridNamePath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MeteringReportRequest'
+      responses:
+        '200':
+          description: Metering acceptance result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MeteringReportResult'
+  /v1/tunnel/status:
+    get:
+      tags: [Relay Status]
+      summary: Get tunnel runtime relay status
+      operationId: getRelayStatus
+      parameters:
+        - $ref: '#/components/parameters/UserIdHeader'
+        - $ref: '#/components/parameters/TunnelIdQuery'
+      responses:
+        '200':
+          description: Relay runtime status.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RelayStatusResult'
+  /open-api-inner/v1/relay-controller/tokens/ott:
+    post:
+      tags: [Token]
+      summary: Create one-time token
+      operationId: createOttToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOttTokenRequest'
+      responses:
+        '200':
+          description: One-time token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateOttTokenResult'
+  /open-api-inner/v1/relay-controller/tokens/rt:
+    post:
+      tags: [Token]
+      summary: Create reusable token
+      description: With X-Relay-Authorization, exchanges OTT for RT. Without it, creates or reuses RT by tunnelId and optionally checks X-User-Id namespace.
+      operationId: createRtToken
+      parameters:
+        - name: X-Relay-Authorization
+          in: header
+          required: false
+          schema:
+            type: string
+          description: OTT token, either raw JWT or Bearer token.
+        - name: X-User-Id
+          in: header
+          required: false
+          schema:
+            type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRtTokenRequest'
+      responses:
+        '200':
+          description: Reusable token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateRtTokenResult'
+components:
+  parameters:
+    UserIdHeader:
+      name: X-User-Id
+      in: header
+      required: true
+      schema:
+        type: string
+    TunnelIdQuery:
+      name: tunnelId
+      in: query
+      required: true
+      schema:
+        type: string
+    GridNamePath:
+      name: gridName
+      in: path
+      required: true
+      schema:
+        type: string
+  schemas:
+    ResultBase:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: integer
+          format: int32
+          example: 0
+        message:
+          type: string
+          example: success
+    BooleanResult:
+      allOf:
+        - $ref: '#/components/schemas/ResultBase'
+        - type: object
+          properties:
+            data:
+              type: boolean
+    CreateTunnelResult:
+      allOf:
+        - $ref: '#/components/schemas/ResultBase'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/Tunnel'
+    TunnelDetailResult:
+      allOf:
+        - $ref: '#/components/schemas/ResultBase'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/Tunnel'
+    TunnelListResult:
+      allOf:
+        - $ref: '#/components/schemas/ResultBase'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/TunnelListItem'
+    RegisterNodeResult:
+      allOf:
+        - $ref: '#/components/schemas/ResultBase'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/RegisterNodeResponse'
+    NodeInfoResult:
+      allOf:
+        - $ref: '#/components/schemas/ResultBase'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/NodeInfoResponse'
+    GridConfigResult:
+      allOf:
+        - $ref: '#/components/schemas/ResultBase'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/GridConfigResponse'
+    MeteringReportResult:
+      allOf:
+        - $ref: '#/components/schemas/ResultBase'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/MeteringReportResponse'
+    RelayStatusResult:
+      allOf:
+        - $ref: '#/components/schemas/ResultBase'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/RelayStatusResponse'
+    CreateOttTokenResult:
+      allOf:
+        - $ref: '#/components/schemas/ResultBase'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/TokenResponse'
+    CreateRtTokenResult:
+      allOf:
+        - $ref: '#/components/schemas/ResultBase'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/TokenResponse'
+    CreateTunnelRequest:
+      type: object
+      required: [name, gridname]
+      properties:
+        name:
+          type: string
+          maxLength: 128
+        description:
+          type: string
+          maxLength: 512
+        gridname:
+          type: string
+          description: Grid name. JSON also accepts gridName.
+        cluster:
+          type: string
+        expiration:
+          type: integer
+          format: int32
+          description: Unix seconds.
+        type:
+          type: string
+    UpdateTunnelRequest:
+      type: object
+      required: [tunnelId]
+      properties:
+        tunnelId:
+          type: string
+        name:
+          type: string
+          maxLength: 128
+        description:
+          type: string
+          maxLength: 512
+        cluster:
+          type: string
+        expiration:
+          type: integer
+          format: int32
+        type:
+          type: string
+    RegisterNodeRequest:
+      type: object
+      required: [ip]
+      properties:
+        ip:
+          type: string
+        nodeId:
+          type: string
+    MeteringReportRequest:
+      type: object
+      required: [tunnelCode, tunnelId, usage]
+      properties:
+        tunnelCode:
+          type: integer
+          format: int64
+        tunnelId:
+          type: string
+        usage:
+          type: integer
+          format: int64
+          minimum: 0
+    CreateOttTokenRequest:
+      type: object
+      required: [tunnelId]
+      properties:
+        tunnelId:
+          type: string
+        gridname:
+          type: string
+          description: Optional grid name. JSON also accepts gridName.
+        connId:
+          type: string
+        callbackUrl:
+          type: string
+        requestPort:
+          type: integer
+          format: int32
+    CreateRtTokenRequest:
+      type: object
+      properties:
+        tunnelId:
+          type: string
+    Tunnel:
+      type: object
+      properties:
+        name:
+          type: string
+        id:
+          type: string
+        tunnelId:
+          type: string
+        tunnelCode:
+          type: integer
+          format: int64
+        gridname:
+          type: string
+        cluster:
+          type: string
+        description:
+          type: string
+        bandwidthUsed:
+          type: integer
+          format: int64
+        expiration:
+          type: integer
+          format: int32
+        created:
+          type: integer
+          format: int64
+        url:
+          type: string
+        type:
+          type: string
+    TunnelListItem:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        created:
+          type: integer
+          format: int64
+        url:
+          type: string
+    RegisterNodeResponse:
+      type: object
+      properties:
+        nodeId:
+          type: string
+        nodeList:
+          type: array
+          items:
+            type: string
+    NodeInfoResponse:
+      type: object
+      properties:
+        ip:
+          type: string
+    GridConfigResponse:
+      type: object
+      properties:
+        jwtPublicKeys:
+          type: object
+          additionalProperties:
+            type: string
+    MeteringReportResponse:
+      type: object
+      properties:
+        accepted:
+          type: boolean
+    RelayStatusResponse:
+      type: object
+      properties:
+        tunnelId:
+          type: string
+        status:
+          type: string
+        gridname:
+          type: string
+        nodeId:
+          type: string
+        gatewayIp:
+          type: string
+        lastHeartbeat:
+          type: integer
+          format: int64
+    TokenResponse:
+      type: object
+      properties:
+        tokenType:
+          type: string
+          enum: [OTT, RT]
+        token:
+          type: string
+        expiresIn:
+          type: integer
+          format: int64

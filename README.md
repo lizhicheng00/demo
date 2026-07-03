@@ -40,11 +40,11 @@ User tunnel APIs read `X-User-Id` and resolve `namespace = ns-{userId}`.
 
 Token APIs are independent from tunnel resource paths. OTT is a 30-minute one-time token for RT exchange. RT is a 24-hour reusable token cached at `jwt:rt:{tunnelId}`. `POST /open-api-inner/v1/relay-controller/tokens/rt` accepts optional `X-Relay-Authorization` with either raw OTT or `Bearer <OTT>` format.
 
-OpenAPI is generated from Springdoc annotations in controllers:
+OpenAPI is maintained as YAML at `src/main/resources/static/openapi.yaml`. Swagger UI loads this YAML directly:
 
 ```text
 GET /swagger-ui/index.html
-GET /v3/api-docs
+GET /openapi.yaml
 ```
 
 ## Database

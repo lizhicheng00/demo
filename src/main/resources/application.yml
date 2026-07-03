@@ -19,6 +19,10 @@ spring:
       database: 0
       timeout: 3000ms
 
+springdoc:
+  swagger-ui:
+    url: /openapi.yaml
+
 mybatis-plus:
   mapper-locations: classpath:/mapper/*.xml
   type-aliases-package: com.huawei.devbridge.relaycontroller.infrastructure.persistence.entity
