@@ -27,7 +27,6 @@ springdoc:
     url: /openapi.yaml
 
 mybatis-plus:
-  mapper-locations: classpath:/mapper/*.xml
   type-aliases-package: com.huawei.devbridge.relaycontroller.infrastructure.persistence.entity
   global-config:
     banner: false

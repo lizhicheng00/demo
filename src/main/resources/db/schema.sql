@@ -62,12 +62,12 @@ CREATE TABLE IF NOT EXISTS metering (
 
 CREATE TABLE IF NOT EXISTS tunnel_port (
     _id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'primary key',
-    tunnelcode BIGINT UNSIGNED NOT NULL COMMENT 'tunnel code',
+    tunnel_code BIGINT UNSIGNED NOT NULL COMMENT 'tunnel code',
     port BIGINT UNSIGNED NOT NULL COMMENT 'port, business range 1-65535',
-    allowanonymous TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'allow anonymous access',
+    allow_anonymous TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'allow anonymous access',
     PRIMARY KEY (_id),
-    UNIQUE KEY uk_tunnelcode_port (tunnelcode, port),
-    KEY idx_tunnelcode (tunnelcode),
+    UNIQUE KEY uk_tunnel_code_port (tunnel_code, port),
+    KEY idx_tunnel_code (tunnel_code),
     KEY idx_port (port)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Tunnel port policy';
 

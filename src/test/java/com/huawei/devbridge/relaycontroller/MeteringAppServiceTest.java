@@ -9,6 +9,7 @@ import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
 import com.huawei.devbridge.relaycontroller.domain.repository.GridRepository;
 import com.huawei.devbridge.relaycontroller.domain.repository.MeteringRepository;
 import com.huawei.devbridge.relaycontroller.domain.repository.TunnelRepository;
+import com.huawei.devbridge.relaycontroller.domain.service.TunnelDomainService;
 import com.huawei.devbridge.relaycontroller.interfaces.request.MeteringReportRequest;
 import com.huawei.devbridge.relaycontroller.interfaces.response.MeteringReportResponse;
 import org.junit.jupiter.api.Test;
@@ -31,7 +32,8 @@ class MeteringAppServiceTest {
         MeteringAppService service = new MeteringAppService(
                 gridRepository,
                 tunnelRepository,
-                meteringRepository);
+                meteringRepository,
+                new TunnelDomainService());
         MeteringReportRequest request = new MeteringReportRequest();
         request.setTunnelId("000001e240");
         request.setTunnelCode(123456L);

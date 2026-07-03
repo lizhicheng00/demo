@@ -82,7 +82,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BooleanResult'
-  /open-api-inner/v1/relay-controller/tunnel/list:
+  /open-api-inner/v1/relay-controller/tunnels:
     get:
       tags: [Tunnel]
       summary: List user tunnels
@@ -101,7 +101,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TunnelListResult'
-  /open-api-inner/v1/relay-controller/tunnel/{gridName}/node/register:
+  /open-api-inner/v1/relay-controller/grids/{gridName}/nodes/register:
     post:
       tags: [Gateway Node]
       summary: Register gateway node
@@ -121,7 +121,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RegisterNodeResult'
-  /open-api-inner/v1/relay-controller/tunnel/{gridName}/node:
+  /open-api-inner/v1/relay-controller/grids/{gridName}/nodes:
     get:
       tags: [Gateway Node]
       summary: Get gateway node IP
@@ -140,7 +140,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/NodeInfoResult'
-  /open-api-inner/v1/relay-controller/tunnel/{gridName}/config:
+  /open-api-inner/v1/relay-controller/grids/{gridName}/config:
     get:
       tags: [Grid Config]
       summary: Get JWT public keys for a grid
@@ -154,7 +154,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GridConfigResult'
-  /open-api-inner/v1/relay-controller/tunnel/{gridName}/metering:
+  /open-api-inner/v1/relay-controller/grids/{gridName}/metering:
     post:
       tags: [Metering]
       summary: Report tunnel traffic usage

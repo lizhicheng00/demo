@@ -78,12 +78,7 @@ public class TunnelPortAppService {
 
     public GatewayTunnelPortPolicyResponse getGatewayPortPolicy(String gridName, String tunnelId, Long port) {
         Tunnel tunnel = tunnelRepository.findByTunnelId(tunnelId);
-        if (tunnel == null || Integer.valueOf(1).equals(tunnel.getDeleted())) {
-            throw new BizException(ErrorCode.TUNNEL_NOT_FOUND);
-        }
-        if (!gridName.equals(tunnel.getGridName())) {
-            throw new BizException(ErrorCode.TUNNEL_PORT_ACCESS_DENIED);
-        }
+        tunnelDomainService.assertInGrid(tunnel, gridName, ErrorCode.TUNNEL_PORT_ACCESS_DENIED);
         TunnelPort tunnelPort = findTunnelPort(tunnel.getTunnelCode(), port);
         return TunnelPortAssembler.toGatewayPolicy(tunnel, tunnelPort);
     }

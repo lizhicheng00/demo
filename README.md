@@ -20,16 +20,16 @@ This service does not implement WebSocket, WebTransport, TCP, or HTTP body forwa
 
 ```text
 POST   /open-api-inner/v1/relay-controller/tunnel
-GET    /open-api-inner/v1/relay-controller/tunnel/list?gridName=
+GET    /open-api-inner/v1/relay-controller/tunnels?gridName=
 GET    /open-api-inner/v1/relay-controller/tunnel?tunnelId=
 PUT    /open-api-inner/v1/relay-controller/tunnel
 DELETE /open-api-inner/v1/relay-controller/tunnel?tunnelId=
 
-POST   /open-api-inner/v1/relay-controller/tunnel/{gridName}/node/register
-GET    /open-api-inner/v1/relay-controller/tunnel/{gridName}/node?node_id=
+POST   /open-api-inner/v1/relay-controller/grids/{gridName}/nodes/register
+GET    /open-api-inner/v1/relay-controller/grids/{gridName}/nodes?node_id=
 
-GET    /open-api-inner/v1/relay-controller/tunnel/{gridName}/config
-POST   /open-api-inner/v1/relay-controller/tunnel/{gridName}/metering
+GET    /open-api-inner/v1/relay-controller/grids/{gridName}/config
+POST   /open-api-inner/v1/relay-controller/grids/{gridName}/metering
 GET    /open-api-inner/v1/relay-controller/tunnel/status?tunnelId=
 
 POST   /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports
@@ -66,7 +66,7 @@ Create the MySQL schema and seed `grid-a`:
 mysql -uroot -proot relay_controller < src/main/resources/db/schema.sql
 ```
 
-Database columns use snake_case for compound words, for example `tunnel_id`, `tunnel_code`, `grid_name`, `bandwidth_used`, and `register_time`. Java fields remain camelCase and rely on MyBatis Plus underscore-to-camel mapping, so entity classes do not carry redundant `@TableField` annotations except when a legacy schema intentionally uses non-underscore names such as `tunnel_port.tunnelcode` and `tunnel_port.allowanonymous`.
+Database columns use snake_case for compound words, for example `tunnel_id`, `tunnel_code`, `grid_name`, `bandwidth_used`, `register_time`, and `allow_anonymous`. Java fields remain camelCase and rely on MyBatis Plus underscore-to-camel mapping, so entity classes do not carry redundant `@TableField` annotations.
 
 ## Run
 
