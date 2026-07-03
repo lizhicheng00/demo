@@ -29,12 +29,15 @@ springdoc:
 mybatis-plus:
   mapper-locations: classpath:/mapper/*.xml
   type-aliases-package: com.huawei.devbridge.relaycontroller.infrastructure.persistence.entity
+  global-config:
+    banner: false
   configuration:
     map-underscore-to-camel-case: true
 
 logging:
   level:
     root: WARN
+    com.baomidou.mybatisplus.core.toolkit.Sequence: OFF
     com.huawei.devbridge.relaycontroller.RelayControllerApplication: INFO
 
 relay:
