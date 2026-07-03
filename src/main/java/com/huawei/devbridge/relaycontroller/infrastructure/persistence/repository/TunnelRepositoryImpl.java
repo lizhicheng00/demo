@@ -79,10 +79,7 @@ public class TunnelRepositoryImpl implements TunnelRepository {
 
     @Override
     public void increaseBandwidthUsed(String tunnelId, long usageBytes, long updatedAt) {
-        tunnelMapper.update(null, new LambdaUpdateWrapper<TunnelEntity>()
-                .eq(TunnelEntity::getTunnelid, tunnelId)
-                .setSql("bandwidthused = bandwidthused + " + usageBytes)
-                .set(TunnelEntity::getUpdatedAt, updatedAt));
+        tunnelMapper.increaseBandwidthUsed(tunnelId, usageBytes, updatedAt);
     }
 
     private Tunnel toDomain(TunnelEntity entity) {

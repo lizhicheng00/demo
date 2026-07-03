@@ -8,9 +8,10 @@ This service does not implement WebSocket, WebTransport, TCP, or HTTP body forwa
 
 - Java 17
 - Spring Boot 3
+- Jetty embedded server
 - Maven
 - MySQL
-- Redis
+- Redis with Jedis client
 - MyBatis Plus
 - Nimbus JOSE JWT
 
@@ -48,5 +49,7 @@ Configure MySQL and Redis in `src/main/resources/application.yml`, then run:
 ```bash
 mvn spring-boot:run
 ```
+
+Use JDK 17 for normal development and deployment. The project uses Jetty instead of Tomcat and Jedis instead of Lettuce/Netty to avoid JDK 26 startup warnings from Tomcat native loading and Netty `Unsafe` access. If Maven itself is run on JDK 26, Maven's own Jansi/Guava dependencies may still print JVM warnings before the application starts; those are not emitted by the Relay Controller runtime.
 
 If no RSA private key is configured, the service generates an ephemeral RSA key pair at startup for development. Configure `relay.jwt.private-key` and `relay.jwt.public-keys` for stable production keys.

@@ -11,7 +11,9 @@ import lombok.Data;
 public class GridEntity {
     @TableId(value = "_id", type = IdType.AUTO)
     private Long id;
+    @TableField("grid")
     private String grid;
+    @TableField("region")
     private String region;
     @TableField("created_at")
     private Long createdAt;

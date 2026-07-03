@@ -13,6 +13,7 @@ public class NodeRegistryEntity {
     private Long id;
     @TableField("gridname")
     private String gridname;
+    @TableField("ip")
     private String ip;
     @TableField("registertime")
     private Long registertime;

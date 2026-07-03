@@ -11,6 +11,7 @@ import lombok.Data;
 public class TunnelEntity {
     @TableId(value = "_id", type = IdType.AUTO)
     private Long id;
+    @TableField("name")
     private String name;
     @TableField("tunnelid")
     private String tunnelid;
@@ -18,14 +19,21 @@ public class TunnelEntity {
     private Long tunnelcode;
     @TableField("gridname")
     private String gridname;
+    @TableField("expiration")
     private Integer expiration;
+    @TableField("namespace")
     private String namespace;
+    @TableField("description")
     private String description;
+    @TableField("cluster")
     private String cluster;
     @TableField("bandwidthused")
     private Long bandwidthused;
+    @TableField("url")
     private String url;
+    @TableField("type")
     private String type;
+    @TableField("deleted")
     private Integer deleted;
     @TableField("created_at")
     private Long createdAt;
