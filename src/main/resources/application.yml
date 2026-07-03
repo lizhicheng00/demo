@@ -35,6 +35,7 @@ mybatis-plus:
 logging:
   level:
     root: WARN
+    com.huawei.devbridge.relaycontroller.RelayControllerApplication: INFO
 
 relay:
   domain: relayprovider.xxx.com
