@@ -19,23 +19,23 @@ This service does not implement WebSocket, WebTransport, TCP, or HTTP body forwa
 ## Implemented APIs
 
 ```text
-POST   /tunnel
-GET    /tunnels
-GET    /tunnel?tunnelId=
-PUT    /tunnel
-DELETE /tunnel?tunnelId=
+POST   /v1/tunnel
+GET    /v1/tunnel/list?gridName=
+GET    /v1/tunnel?tunnelId=
+PUT    /v1/tunnel
+DELETE /v1/tunnel?tunnelId=
 
-POST   /{gridName}/node/register
-GET    /{gridName}/node?node_id=
+POST   /v1/tunnel/{gridName}/node/register
+GET    /v1/tunnel/{gridName}/node?node_id=
 
-GET    /{gridName}/config
-POST   /{gridName}/metering
-GET    /tunnel/status?tunnelId=
+GET    /v1/tunnel/{gridName}/config
+POST   /v1/tunnel/{gridName}/metering
+GET    /v1/tunnel/status?tunnelId=
 ```
 
 User tunnel APIs read `X-User-Id` and resolve `namespace = ns-{userId}`.
 
-OpenAPI is generated from API interfaces, keeping controllers as thin service delegates:
+OpenAPI is generated from Springdoc annotations in controllers:
 
 ```text
 GET /swagger-ui/index.html
