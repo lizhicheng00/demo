@@ -19,26 +19,26 @@ This service does not implement WebSocket, WebTransport, TCP, or HTTP body forwa
 ## Implemented APIs
 
 ```text
-POST   /v1/tunnel
-GET    /v1/tunnel/list?gridName=
-GET    /v1/tunnel?tunnelId=
-PUT    /v1/tunnel
-DELETE /v1/tunnel?tunnelId=
+POST   /open-api-inner/v1/relay-controller/tunnel
+GET    /open-api-inner/v1/relay-controller/tunnel/list?gridName=
+GET    /open-api-inner/v1/relay-controller/tunnel?tunnelId=
+PUT    /open-api-inner/v1/relay-controller/tunnel
+DELETE /open-api-inner/v1/relay-controller/tunnel?tunnelId=
 
-POST   /v1/tunnel/{gridName}/node/register
-GET    /v1/tunnel/{gridName}/node?node_id=
+POST   /open-api-inner/v1/relay-controller/tunnel/{gridName}/node/register
+GET    /open-api-inner/v1/relay-controller/tunnel/{gridName}/node?node_id=
 
-GET    /v1/tunnel/{gridName}/config
-POST   /v1/tunnel/{gridName}/metering
-GET    /v1/tunnel/status?tunnelId=
+GET    /open-api-inner/v1/relay-controller/tunnel/{gridName}/config
+POST   /open-api-inner/v1/relay-controller/tunnel/{gridName}/metering
+GET    /open-api-inner/v1/relay-controller/tunnel/status?tunnelId=
 
-POST   /v1/tunnel/tokens/ott
-POST   /v1/tunnel/tokens/rt
+POST   /open-api-inner/v1/relay-controller/tokens/ott
+POST   /open-api-inner/v1/relay-controller/tokens/rt
 ```
 
 User tunnel APIs read `X-User-Id` and resolve `namespace = ns-{userId}`.
 
-Token APIs are independent from tunnel resource paths. OTT is a 30-minute one-time token for RT exchange. RT is a 24-hour reusable token cached at `jwt:rt:{tunnelId}`. `POST /v1/tunnel/tokens/rt` accepts optional `X-Relay-Authorization` with either raw OTT or `Bearer <OTT>` format.
+Token APIs are independent from tunnel resource paths. OTT is a 30-minute one-time token for RT exchange. RT is a 24-hour reusable token cached at `jwt:rt:{tunnelId}`. `POST /open-api-inner/v1/relay-controller/tokens/rt` accepts optional `X-Relay-Authorization` with either raw OTT or `Bearer <OTT>` format.
 
 OpenAPI is maintained as YAML at `src/main/resources/static/openapi.yaml`. Maven uses this YAML during `generate-sources` to generate Spring API interfaces under `target/generated-sources/openapi`; controllers implement those generated interfaces and do not declare request mappings by hand.
 

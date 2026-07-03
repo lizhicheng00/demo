@@ -13,7 +13,7 @@ tags:
   - name: Metering
   - name: Relay Status
 paths:
-  /v1/tunnel:
+  /open-api-inner/v1/relay-controller/tunnel:
     post:
       tags: [Tunnel]
       summary: Create tunnel
@@ -80,7 +80,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BooleanResult'
-  /v1/tunnel/list:
+  /open-api-inner/v1/relay-controller/tunnel/list:
     get:
       tags: [Tunnel]
       summary: List user tunnels
@@ -99,7 +99,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TunnelListResult'
-  /v1/tunnel/{gridName}/node/register:
+  /open-api-inner/v1/relay-controller/tunnel/{gridName}/node/register:
     post:
       tags: [Gateway Node]
       summary: Register gateway node
@@ -119,7 +119,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RegisterNodeResult'
-  /v1/tunnel/{gridName}/node:
+  /open-api-inner/v1/relay-controller/tunnel/{gridName}/node:
     get:
       tags: [Gateway Node]
       summary: Get gateway node IP
@@ -138,7 +138,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/NodeInfoResult'
-  /v1/tunnel/{gridName}/config:
+  /open-api-inner/v1/relay-controller/tunnel/{gridName}/config:
     get:
       tags: [Grid Config]
       summary: Get JWT public keys for a grid
@@ -152,7 +152,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GridConfigResult'
-  /v1/tunnel/{gridName}/metering:
+  /open-api-inner/v1/relay-controller/tunnel/{gridName}/metering:
     post:
       tags: [Metering]
       summary: Report tunnel traffic usage
@@ -172,7 +172,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MeteringReportResult'
-  /v1/tunnel/status:
+  /open-api-inner/v1/relay-controller/tunnel/status:
     get:
       tags: [Relay Status]
       summary: Get tunnel runtime relay status
@@ -187,7 +187,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RelayStatusResult'
-  /v1/tunnel/tokens/ott:
+  /open-api-inner/v1/relay-controller/tokens/ott:
     post:
       tags: [Token]
       summary: Create one-time token
@@ -205,7 +205,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CreateOttTokenResult'
-  /v1/tunnel/tokens/rt:
+  /open-api-inner/v1/relay-controller/tokens/rt:
     post:
       tags: [Token]
       summary: Create reusable token
