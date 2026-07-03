@@ -1,5 +1,8 @@
 package com.huawei.devbridge.relaycontroller.infrastructure.security;
 
+import com.huawei.devbridge.relaycontroller.common.exception.BizException;
+import com.huawei.devbridge.relaycontroller.common.exception.ErrorCode;
+import com.huawei.devbridge.relaycontroller.common.util.TimeUtils;
 import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
 import com.huawei.devbridge.relaycontroller.domain.service.JwtTokenService;
 import com.huawei.devbridge.relaycontroller.infrastructure.config.RelayProperties;
@@ -18,18 +21,19 @@ public class JwtTokenServiceImpl implements JwtTokenService {
 
     @Override
     public String getOrCreateToken(Tunnel tunnel) {
+        long ttlSeconds = resolveTokenTtlSeconds(tunnel);
         String cached = jwtTokenCache.get(tunnel.getTunnelid());
         if (cached != null && !cached.isBlank()) {
             return cached;
         }
         String token = createToken(tunnel);
-        jwtTokenCache.set(tunnel.getTunnelid(), token, relayProperties.getJwt().getTtlSeconds());
+        jwtTokenCache.set(tunnel.getTunnelid(), token, ttlSeconds);
         return token;
     }
 
     @Override
     public String createToken(Tunnel tunnel) {
-        return jwtSigner.sign(tunnel);
+        return jwtSigner.sign(tunnel, resolveTokenTtlSeconds(tunnel));
     }
 
     @Override
@@ -40,5 +44,17 @@ public class JwtTokenServiceImpl implements JwtTokenService {
     @Override
     public Map<String, String> getPublicKeys() {
         return publicKeyConfigProvider.getPublicKeys();
+    }
+
+    private long resolveTokenTtlSeconds(Tunnel tunnel) {
+        long configuredTtl = relayProperties.getJwt().getTtlSeconds();
+        if (tunnel.getExpiration() == null || tunnel.getExpiration() <= 0) {
+            return configuredTtl;
+        }
+        long remainingSeconds = tunnel.getExpiration() - TimeUtils.nowSeconds();
+        if (remainingSeconds <= 0) {
+            throw new BizException(ErrorCode.TUNNEL_EXPIRED);
+        }
+        return Math.min(configuredTtl, remainingSeconds);
     }
 }

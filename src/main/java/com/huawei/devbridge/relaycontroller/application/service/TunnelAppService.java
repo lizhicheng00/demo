@@ -44,11 +44,12 @@ public class TunnelAppService {
         if (grid == null) {
             throw new BizException(ErrorCode.GRID_NOT_FOUND);
         }
-        TunnelCode code = allocateTunnelCode();
         long now = TimeUtils.nowSeconds();
         int expiration = request.getExpiration() == null
                 ? Math.toIntExact(now + relayProperties.getDefaultExpirationSeconds())
                 : request.getExpiration();
+        assertFutureExpiration(expiration, now);
+        TunnelCode code = allocateTunnelCode();
         Tunnel tunnel = Tunnel.builder()
                 .name(request.getName())
                 .tunnelid(code.tunnelId())
@@ -81,6 +82,7 @@ public class TunnelAppService {
         String namespace = namespaceService.resolveNamespace(userId);
         Tunnel tunnel = tunnelRepository.findByTunnelId(tunnelId);
         tunnelDomainService.assertOwnedBy(tunnel, namespace);
+        tunnelDomainService.assertNotExpired(tunnel);
         String token = jwtTokenService.getOrCreateToken(tunnel);
         return tunnelAssembler.toDetail(tunnel, token);
     }
@@ -99,14 +101,20 @@ public class TunnelAppService {
         if (request.getCluster() != null) {
             tunnel.setCluster(request.getCluster());
         }
+        boolean expirationChanged = false;
         if (request.getExpiration() != null) {
+            assertFutureExpiration(request.getExpiration(), TimeUtils.nowSeconds());
             tunnel.setExpiration(request.getExpiration());
+            expirationChanged = true;
         }
         if (!StringUtils.isBlank(request.getType())) {
             tunnel.setType(request.getType());
         }
         tunnel.setUpdatedAt(TimeUtils.nowSeconds());
         tunnelRepository.update(tunnel);
+        if (expirationChanged) {
+            jwtTokenService.evictToken(tunnel.getTunnelid());
+        }
         return true;
     }
 
@@ -133,6 +141,12 @@ public class TunnelAppService {
 
     private String buildTunnelUrl(String tunnelId, Grid grid) {
         return tunnelId + "." + grid.getRegion() + "." + relayProperties.getDomain();
+    }
+
+    private void assertFutureExpiration(int expiration, long now) {
+        if (expiration <= now) {
+            throw new BizException(ErrorCode.TUNNEL_EXPIRED);
+        }
     }
 
     private record TunnelCode(long tunnelCode, String tunnelId) {

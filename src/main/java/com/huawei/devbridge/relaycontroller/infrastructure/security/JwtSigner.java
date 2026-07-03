@@ -23,10 +23,10 @@ public class JwtSigner {
     private final RelayProperties relayProperties;
     private final JwtKeyProvider jwtKeyProvider;
 
-    public String sign(Tunnel tunnel) {
+    public String sign(Tunnel tunnel, long ttlSeconds) {
         try {
             Instant now = Instant.now();
-            Instant expiresAt = now.plusSeconds(relayProperties.getJwt().getTtlSeconds());
+            Instant expiresAt = now.plusSeconds(ttlSeconds);
             JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.RS256)
                     .type(JOSEObjectType.JWT)
                     .keyID(relayProperties.getJwt().getKeyId())

@@ -1,0 +1,74 @@
+package com.huawei.devbridge.relaycontroller;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
+
+import com.huawei.devbridge.relaycontroller.application.service.RelayStatusAppService;
+import com.huawei.devbridge.relaycontroller.domain.model.RelayStatus;
+import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
+import com.huawei.devbridge.relaycontroller.domain.repository.RelayStatusRepository;
+import com.huawei.devbridge.relaycontroller.domain.repository.TunnelRepository;
+import com.huawei.devbridge.relaycontroller.domain.service.NamespaceService;
+import com.huawei.devbridge.relaycontroller.domain.service.TunnelDomainService;
+import com.huawei.devbridge.relaycontroller.interfaces.response.RelayStatusResponse;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+@ExtendWith(MockitoExtension.class)
+class RelayStatusAppServiceTest {
+    @Mock
+    private TunnelRepository tunnelRepository;
+    @Mock
+    private RelayStatusRepository relayStatusRepository;
+
+    @Test
+    void statusIsOfflineWithoutRuntimeRecordAndDoesNotFakeHeartbeat() {
+        RelayStatusAppService service = newService();
+        when(tunnelRepository.findByTunnelId("000001e240")).thenReturn(Tunnel.builder()
+                .tunnelid("000001e240")
+                .namespace("ns-user-001")
+                .gridname("grid-a")
+                .deleted(0)
+                .build());
+        when(relayStatusRepository.findByTunnelId("000001e240")).thenReturn(null);
+
+        RelayStatusResponse response = service.getStatus("user-001", "000001e240");
+
+        assertThat(response.getStatus()).isEqualTo("OFFLINE");
+        assertThat(response.getGridname()).isEqualTo("grid-a");
+        assertThat(response.getLastHeartbeat()).isNull();
+    }
+
+    @Test
+    void statusIsOfflineWhenRuntimeGridDoesNotMatchTunnelGrid() {
+        RelayStatusAppService service = newService();
+        when(tunnelRepository.findByTunnelId("000001e240")).thenReturn(Tunnel.builder()
+                .tunnelid("000001e240")
+                .namespace("ns-user-001")
+                .gridname("grid-a")
+                .deleted(0)
+                .build());
+        when(relayStatusRepository.findByTunnelId("000001e240")).thenReturn(RelayStatus.builder()
+                .tunnelId("000001e240")
+                .gridname("grid-b")
+                .status("ONLINE")
+                .lastHeartbeat(1720000000L)
+                .build());
+
+        RelayStatusResponse response = service.getStatus("user-001", "000001e240");
+
+        assertThat(response.getStatus()).isEqualTo("OFFLINE");
+        assertThat(response.getGridname()).isEqualTo("grid-a");
+        assertThat(response.getLastHeartbeat()).isNull();
+    }
+
+    private RelayStatusAppService newService() {
+        return new RelayStatusAppService(
+                tunnelRepository,
+                relayStatusRepository,
+                new NamespaceService(),
+                new TunnelDomainService());
+    }
+}

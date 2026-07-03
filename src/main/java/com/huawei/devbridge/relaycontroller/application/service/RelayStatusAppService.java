@@ -1,6 +1,5 @@
 package com.huawei.devbridge.relaycontroller.application.service;
 
-import com.huawei.devbridge.relaycontroller.common.util.TimeUtils;
 import com.huawei.devbridge.relaycontroller.domain.model.RelayStatus;
 import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
 import com.huawei.devbridge.relaycontroller.domain.repository.RelayStatusRepository;
@@ -24,13 +23,8 @@ public class RelayStatusAppService {
         Tunnel tunnel = tunnelRepository.findByTunnelId(tunnelId);
         tunnelDomainService.assertOwnedBy(tunnel, namespace);
         RelayStatus relayStatus = relayStatusRepository.findByTunnelId(tunnelId);
-        if (relayStatus == null) {
-            return RelayStatusResponse.builder()
-                    .tunnelId(tunnelId)
-                    .status("OFFLINE")
-                    .gridname(tunnel.getGridname())
-                    .lastHeartbeat(TimeUtils.nowSeconds())
-                    .build();
+        if (relayStatus == null || !tunnel.getGridname().equals(relayStatus.getGridname())) {
+            return offlineStatus(tunnelId, tunnel);
         }
         return RelayStatusResponse.builder()
                 .tunnelId(relayStatus.getTunnelId())
@@ -39,6 +33,14 @@ public class RelayStatusAppService {
                 .nodeId(relayStatus.getNodeId())
                 .gatewayIp(relayStatus.getGatewayIp())
                 .lastHeartbeat(relayStatus.getLastHeartbeat())
+                .build();
+    }
+
+    private RelayStatusResponse offlineStatus(String tunnelId, Tunnel tunnel) {
+        return RelayStatusResponse.builder()
+                .tunnelId(tunnelId)
+                .status("OFFLINE")
+                .gridname(tunnel.getGridname())
                 .build();
     }
 }
