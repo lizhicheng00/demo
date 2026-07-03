@@ -5,4 +5,5 @@ spring:
 
 logging:
   level:
-    com.huawei.devbridge.relaycontroller: INFO
+    root: WARN
+    com.huawei.devbridge.relaycontroller: WARN

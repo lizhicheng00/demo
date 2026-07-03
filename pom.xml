@@ -21,7 +21,7 @@
         <java.version>17</java.version>
         <mybatis-plus.version>3.5.7</mybatis-plus.version>
         <nimbus-jose-jwt.version>9.37.3</nimbus-jose-jwt.version>
-        <springdoc-openapi.version>2.8.17</springdoc-openapi.version>
+        <springdoc-openapi.version>2.6.0</springdoc-openapi.version>
         <openapi-generator.version>7.9.0</openapi-generator.version>
         <build-helper-maven-plugin.version>3.6.0</build-helper-maven-plugin.version>
         <lombok.version>1.18.46</lombok.version>

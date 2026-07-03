@@ -4,6 +4,9 @@ server:
 spring:
   application:
     name: relay-controller
+  main:
+    banner-mode: off
+    log-startup-info: false
   profiles:
     active: dev
   datasource:
@@ -28,6 +31,10 @@ mybatis-plus:
   type-aliases-package: com.huawei.devbridge.relaycontroller.infrastructure.persistence.entity
   configuration:
     map-underscore-to-camel-case: true
+
+logging:
+  level:
+    root: WARN
 
 relay:
   domain: relayprovider.xxx.com
