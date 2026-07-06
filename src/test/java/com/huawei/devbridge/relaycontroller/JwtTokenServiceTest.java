@@ -27,9 +27,9 @@ class JwtTokenServiceTest {
     void getOrCreateTokenReturnsCachedValue() {
         RelayProperties properties = new RelayProperties();
         JwtTokenServiceImpl service = new JwtTokenServiceImpl(jwtTokenCache, jwtSigner, properties);
-        Tunnel tunnel = Tunnel.builder().tunnelId("000001e240").build();
+        Tunnel tunnel = Tunnel.builder().tunnelId("aaaadysa").build();
 
-        when(jwtTokenCache.getToken("000001e240")).thenReturn("cached-token");
+        when(jwtTokenCache.getToken("aaaadysa")).thenReturn("cached-token");
 
         String token = service.getOrCreateToken(tunnel);
 
@@ -42,15 +42,15 @@ class JwtTokenServiceTest {
         RelayProperties properties = new RelayProperties();
         properties.getJwt().getToken().setTtlSeconds(86400);
         JwtTokenServiceImpl service = new JwtTokenServiceImpl(jwtTokenCache, jwtSigner, properties);
-        Tunnel tunnel = Tunnel.builder().tunnelId("000001e240").build();
+        Tunnel tunnel = Tunnel.builder().tunnelId("aaaadysa").build();
 
-        when(jwtTokenCache.getToken("000001e240")).thenReturn(null);
-        when(jwtSigner.signToken(eq(tunnel), org.mockito.ArgumentMatchers.startsWith("token:000001e240:"), eq(86400L)))
+        when(jwtTokenCache.getToken("aaaadysa")).thenReturn(null);
+        when(jwtSigner.signToken(eq(tunnel), org.mockito.ArgumentMatchers.startsWith("token:aaaadysa:"), eq(86400L)))
                 .thenReturn("new-token");
 
         String token = service.getOrCreateToken(tunnel);
 
         assertThat(token).isEqualTo("new-token");
-        verify(jwtTokenCache).setToken("000001e240", "new-token", 86400L);
+        verify(jwtTokenCache).setToken("aaaadysa", "new-token", 86400L);
     }
 }

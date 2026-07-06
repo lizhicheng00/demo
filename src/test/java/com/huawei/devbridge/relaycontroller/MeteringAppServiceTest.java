@@ -37,14 +37,14 @@ class MeteringAppServiceTest {
     void reportWritesMeteringAndIncreasesTunnelBandwidth() {
         MeteringAppService service = newService();
         MeteringReportRequest request = new MeteringReportRequest();
-        request.setTunnelId("000001e240");
+        request.setTunnelId("aaaadysa");
         request.setTunnelCode(123456L);
         request.setUsage(1024L);
 
         when(gridRepository.findByGridNameAndRegion("grid-a", "region-a"))
                 .thenReturn(Grid.builder().grid("grid-a").region("region-a").build());
-        when(tunnelRepository.findByTunnelId("000001e240")).thenReturn(Tunnel.builder()
-                .tunnelId("000001e240")
+        when(tunnelRepository.findByTunnelId("aaaadysa")).thenReturn(Tunnel.builder()
+                .tunnelId("aaaadysa")
                 .tunnelCode(123456L)
                 .gridName("grid-a")
                 .deleted(0)
@@ -54,14 +54,14 @@ class MeteringAppServiceTest {
 
         assertThat(response.getAccepted()).isTrue();
         verify(meteringRepository).save(ArgumentMatchers.argThat(metering -> metering.getUsageBytes().equals(1024L)));
-        verify(tunnelRepository).increaseBandwidthUsed(ArgumentMatchers.eq("000001e240"), ArgumentMatchers.eq(1024L), ArgumentMatchers.anyLong());
+        verify(tunnelRepository).increaseBandwidthUsed(ArgumentMatchers.eq("aaaadysa"), ArgumentMatchers.eq(1024L), ArgumentMatchers.anyLong());
     }
 
     @Test
     void reportRejectsGridOutsideLocalRegion() {
         MeteringAppService service = newService();
         MeteringReportRequest request = new MeteringReportRequest();
-        request.setTunnelId("000001e240");
+        request.setTunnelId("aaaadysa");
         request.setTunnelCode(123456L);
         request.setUsage(1024L);
 

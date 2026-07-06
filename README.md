@@ -44,6 +44,7 @@ Namespace-scoped APIs read `X-Namespace` directly and store it as the tunnel nam
 Each Relay Controller instance owns one configured region. Configure `relay.region`; tunnel, port, token, metering, and status operations only accept grids found under that local region.
 Tunnel `type` is restricted to `bridge` or `env`; blank create requests default to `bridge`.
 Tunnel `expiration` in create and update requests is a duration in hours. Blank create requests default to 72 hours. Responses still return expiration as Unix seconds.
+Tunnel `tunnelCode` is a 40-bit `long`; `tunnelId` is the fixed 8-character lowercase base32 encoding of that 40-bit value.
 
 Token APIs are independent from tunnel resource paths. Tokens are reusable for 24 hours and cached at `jwt:token:{tunnelId}`.
 

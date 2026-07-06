@@ -37,9 +37,9 @@ class TokenAppServiceTest {
     void createTokenChecksNamespaceWhenUserIdExists() {
         TokenAppService service = newService();
         CreateTokenRequest request = new CreateTokenRequest();
-        request.setTunnelId("000001e240");
+        request.setTunnelId("aaaadysa");
 
-        when(tunnelRepository.findByTunnelId("000001e240")).thenReturn(tunnel());
+        when(tunnelRepository.findByTunnelId("aaaadysa")).thenReturn(tunnel());
         when(gridRepository.findByGridNameAndRegion("grid-a", "region-a"))
                 .thenReturn(Grid.builder().grid("grid-a").region("region-a").build());
         when(jwtTokenService.getOrCreateToken(ArgumentMatchers.any(Tunnel.class))).thenReturn("token-token");
@@ -65,9 +65,9 @@ class TokenAppServiceTest {
     void createTokenRejectsGridOutsideLocalRegion() {
         TokenAppService service = newService();
         CreateTokenRequest request = new CreateTokenRequest();
-        request.setTunnelId("000001e240");
+        request.setTunnelId("aaaadysa");
 
-        when(tunnelRepository.findByTunnelId("000001e240")).thenReturn(tunnel());
+        when(tunnelRepository.findByTunnelId("aaaadysa")).thenReturn(tunnel());
 
         assertThatThrownBy(() -> service.createToken("ns-user-001", request))
                 .isInstanceOf(BizException.class)
@@ -88,7 +88,7 @@ class TokenAppServiceTest {
 
     private Tunnel tunnel() {
         return Tunnel.builder()
-                .tunnelId("000001e240")
+                .tunnelId("aaaadysa")
                 .tunnelCode(123456L)
                 .gridName("grid-a")
                 .namespace("ns-user-001")

@@ -1,6 +1,6 @@
 package com.huawei.devbridge.relaycontroller.domain.service;
 
-import com.huawei.devbridge.relaycontroller.common.util.HexUtils;
+import com.huawei.devbridge.relaycontroller.common.util.Base32Utils;
 import java.security.SecureRandom;
 import org.springframework.stereotype.Service;
 
@@ -10,10 +10,10 @@ public class TunnelCodeGenerator {
     private final SecureRandom secureRandom = new SecureRandom();
 
     public long generate() {
-        return secureRandom.nextLong(MAX_40_BIT + 1);
+        return secureRandom.nextLong(MAX_40_BIT) + 1;
     }
 
     public String toTunnelId(long tunnelCode) {
-        return HexUtils.toFixedWidthHex(tunnelCode, 10);
+        return Base32Utils.encode40Bit(tunnelCode);
     }
 }

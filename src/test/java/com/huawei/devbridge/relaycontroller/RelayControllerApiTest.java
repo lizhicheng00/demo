@@ -50,7 +50,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 class RelayControllerApiTest {
     private static final String BASE = "/open-api-inner/v1/relay-controller";
     private static final String NAMESPACE = "ns-user-001";
-    private static final String TUNNEL_ID = "000001e240";
+    private static final String TUNNEL_ID = "aaaadysa";
     private static final String GRID_NAME = "grid-a";
 
     private MockMvc mockMvc;
@@ -139,7 +139,7 @@ class RelayControllerApiTest {
                         .name("dev")
                         .description("dev tunnel")
                         .created(1720000000L)
-                        .url("000001e240.region-a.relayprovider.xxx.com")
+                        .url("aaaadysa.region-a.relayprovider.xxx.com")
                         .build()));
 
         mockMvc.perform(get(BASE + "/tunnels")
@@ -159,7 +159,7 @@ class RelayControllerApiTest {
                 .tunnelId(TUNNEL_ID)
                 .tunnelCode(123456L)
                 .gridName(GRID_NAME)
-                .url("000001e240.region-a.relayprovider.xxx.com")
+                .url("aaaadysa.region-a.relayprovider.xxx.com")
                 .type("bridge")
                 .build());
 
@@ -220,7 +220,7 @@ class RelayControllerApiTest {
                         .content("""
                                 {
                                   "tunnelCode": 123456,
-                                  "tunnelId": "000001e240",
+                                  "tunnelId": "aaaadysa",
                                   "usage": 1024
                                 }
                                 """))
@@ -372,7 +372,7 @@ class RelayControllerApiTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "tunnelId": "000001e240"
+                                  "tunnelId": "aaaadysa"
                                 }
                                 """))
                 .andExpect(status().isOk())
@@ -392,7 +392,7 @@ class RelayControllerApiTest {
                 .bandwidthUsed(0L)
                 .expiration(1720086400)
                 .created(1720000000L)
-                .url("000001e240.region-a.relayprovider.xxx.com")
+                .url("aaaadysa.region-a.relayprovider.xxx.com")
                 .type("bridge")
                 .build();
     }

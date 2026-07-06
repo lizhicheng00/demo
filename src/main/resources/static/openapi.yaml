@@ -304,6 +304,8 @@ components:
       required: true
       schema:
         type: string
+        pattern: '^[a-z2-7]{8}$'
+        description: Lowercase base32 encoded 40-bit tunnel code.
     GridNamePath:
       name: gridName
       in: path
@@ -431,6 +433,7 @@ components:
       properties:
         tunnelId:
           type: string
+          pattern: '^[a-z2-7]{8}$'
           deprecated: true
           description: Deprecated. The tunnelId path parameter is the source of truth.
         name:
@@ -458,6 +461,7 @@ components:
           format: int64
         tunnelId:
           type: string
+          pattern: '^[a-z2-7]{8}$'
         usage:
           type: integer
           format: int64
@@ -467,6 +471,7 @@ components:
       properties:
         tunnelId:
           type: string
+          pattern: '^[a-z2-7]{8}$'
     CreateTunnelPortRequest:
       type: object
       required: [port, allowAnonymous]
@@ -493,6 +498,7 @@ components:
           type: string
         tunnelId:
           type: string
+          pattern: '^[a-z2-7]{8}$'
         tunnelCode:
           type: integer
           format: int64
@@ -539,6 +545,7 @@ components:
       properties:
         tunnelId:
           type: string
+          pattern: '^[a-z2-7]{8}$'
         status:
           type: string
         gridname:
@@ -569,6 +576,7 @@ components:
           format: int64
         tunnelId:
           type: string
+          pattern: '^[a-z2-7]{8}$'
         tunnelCode:
           type: integer
           format: int64
@@ -582,6 +590,7 @@ components:
       properties:
         tunnelId:
           type: string
+          pattern: '^[a-z2-7]{8}$'
         tunnelCode:
           type: integer
           format: int64

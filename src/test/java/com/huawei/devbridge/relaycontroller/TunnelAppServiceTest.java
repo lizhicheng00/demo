@@ -66,15 +66,15 @@ class TunnelAppServiceTest {
         when(gridRepository.findByGridNameAndRegion("grid-a", "region-a"))
                 .thenReturn(Grid.builder().grid("grid-a").region("region-a").build());
         when(tunnelRepository.existsByTunnelCode(123456L)).thenReturn(false);
-        when(tunnelRepository.existsByTunnelId("000001e240")).thenReturn(false);
+        when(tunnelRepository.existsByTunnelId("aaaadysa")).thenReturn(false);
         when(tunnelRepository.save(org.mockito.ArgumentMatchers.any(Tunnel.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         CreateTunnelResponse response = service.createTunnel("ns-user-001", request);
         long after = TimeUtils.nowSeconds();
 
-        assertThat(response.getTunnelId()).isEqualTo("000001e240");
+        assertThat(response.getTunnelId()).isEqualTo("aaaadysa");
         assertThat(response.getTunnelCode()).isEqualTo(123456L);
-        assertThat(response.getUrl()).isEqualTo("000001e240.region-a.relayprovider.xxx.com");
+        assertThat(response.getUrl()).isEqualTo("aaaadysa.region-a.relayprovider.xxx.com");
         assertThat(response.getType()).isEqualTo("bridge");
         assertThat(response.getExpiration())
                 .isBetween(Math.toIntExact(before + 72 * 3600L), Math.toIntExact(after + 72 * 3600L));
@@ -105,7 +105,7 @@ class TunnelAppServiceTest {
         when(gridRepository.findByGridNameAndRegion("grid-a", "region-a"))
                 .thenReturn(Grid.builder().grid("grid-a").region("region-a").build());
         when(tunnelRepository.existsByTunnelCode(123456L)).thenReturn(false);
-        when(tunnelRepository.existsByTunnelId("000001e240")).thenReturn(false);
+        when(tunnelRepository.existsByTunnelId("aaaadysa")).thenReturn(false);
         when(tunnelRepository.save(org.mockito.ArgumentMatchers.any(Tunnel.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         CreateTunnelResponse response = service.createTunnel("ns-user-001", request);
@@ -136,17 +136,17 @@ class TunnelAppServiceTest {
     void updateTunnelEvictsTokenWhenExpirationChanges() {
         TunnelAppService service = newService(new RelayProperties());
         UpdateTunnelRequest request = new UpdateTunnelRequest();
-        request.setTunnelId("000001e240");
+        request.setTunnelId("aaaadysa");
         request.setExpiration(1);
         Tunnel tunnel = Tunnel.builder()
-                .tunnelId("000001e240")
+                .tunnelId("aaaadysa")
                 .namespace("ns-user-001")
                 .gridName("grid-a")
                 .deleted(0)
                 .expiration(Math.toIntExact(TimeUtils.nowSeconds() + 1800))
                 .build();
 
-        when(tunnelRepository.findByTunnelId("000001e240")).thenReturn(tunnel);
+        when(tunnelRepository.findByTunnelId("aaaadysa")).thenReturn(tunnel);
         stubLocalGrid("grid-a");
 
         long before = TimeUtils.nowSeconds();
@@ -157,7 +157,7 @@ class TunnelAppServiceTest {
         assertThat(tunnel.getExpiration())
                 .isBetween(Math.toIntExact(before + 3600L), Math.toIntExact(after + 3600L));
         verify(tunnelRepository).update(tunnel);
-        verify(jwtTokenService).evictToken("000001e240");
+        verify(jwtTokenService).evictToken("aaaadysa");
     }
 
     @Test
@@ -190,17 +190,17 @@ class TunnelAppServiceTest {
     void updateTunnelStoresEnumType() {
         TunnelAppService service = newService(new RelayProperties());
         UpdateTunnelRequest request = new UpdateTunnelRequest();
-        request.setTunnelId("000001e240");
+        request.setTunnelId("aaaadysa");
         request.setType(TunnelType.ENV);
         Tunnel tunnel = Tunnel.builder()
-                .tunnelId("000001e240")
+                .tunnelId("aaaadysa")
                 .namespace("ns-user-001")
                 .gridName("grid-a")
                 .deleted(0)
                 .type(TunnelType.BRIDGE)
                 .build();
 
-        when(tunnelRepository.findByTunnelId("000001e240")).thenReturn(tunnel);
+        when(tunnelRepository.findByTunnelId("aaaadysa")).thenReturn(tunnel);
         stubLocalGrid("grid-a");
 
         Boolean updated = service.updateTunnel("ns-user-001", request);
@@ -214,21 +214,21 @@ class TunnelAppServiceTest {
     void deleteTunnelCleansTunnelPorts() {
         TunnelAppService service = newService(new RelayProperties());
         Tunnel tunnel = Tunnel.builder()
-                .tunnelId("000001e240")
+                .tunnelId("aaaadysa")
                 .tunnelCode(123456L)
                 .namespace("ns-user-001")
                 .gridName("grid-a")
                 .deleted(0)
                 .build();
 
-        when(tunnelRepository.findByTunnelId("000001e240")).thenReturn(tunnel);
+        when(tunnelRepository.findByTunnelId("aaaadysa")).thenReturn(tunnel);
         stubLocalGrid("grid-a");
 
-        Boolean deleted = service.deleteTunnel("ns-user-001", "000001e240");
+        Boolean deleted = service.deleteTunnel("ns-user-001", "aaaadysa");
 
         assertThat(deleted).isTrue();
-        verify(tunnelRepository).softDelete(eq("000001e240"), anyLong());
-        verify(jwtTokenService).evictToken("000001e240");
+        verify(tunnelRepository).softDelete(eq("aaaadysa"), anyLong());
+        verify(jwtTokenService).evictToken("aaaadysa");
         verify(tunnelPortRepository).deleteByTunnelCode(123456L);
     }
 
@@ -236,14 +236,14 @@ class TunnelAppServiceTest {
     void deleteTunnelsCleansLocalRegionTunnelsOnly() {
         TunnelAppService service = newService(new RelayProperties());
         Tunnel first = Tunnel.builder()
-                .tunnelId("000001e240")
+                .tunnelId("aaaadysa")
                 .tunnelCode(123456L)
                 .namespace("ns-user-001")
                 .gridName("grid-a")
                 .deleted(0)
                 .build();
         Tunnel second = Tunnel.builder()
-                .tunnelId("000001e241")
+                .tunnelId("aaaadysb")
                 .tunnelCode(123457L)
                 .namespace("ns-user-001")
                 .gridName("grid-b")
@@ -256,9 +256,9 @@ class TunnelAppServiceTest {
         Boolean deleted = service.deleteTunnels("ns-user-001");
 
         assertThat(deleted).isTrue();
-        verify(tunnelRepository).softDelete(eq("000001e240"), anyLong());
-        verify(tunnelRepository, never()).softDelete(eq("000001e241"), anyLong());
-        verify(jwtTokenService).evictToken("000001e240");
+        verify(tunnelRepository).softDelete(eq("aaaadysa"), anyLong());
+        verify(tunnelRepository, never()).softDelete(eq("aaaadysb"), anyLong());
+        verify(jwtTokenService).evictToken("aaaadysa");
         verify(tunnelPortRepository).deleteByTunnelCode(123456L);
         verify(tunnelPortRepository, never()).deleteByTunnelCode(123457L);
     }

@@ -32,17 +32,17 @@ class RelayStatusAppServiceTest {
     @Test
     void statusIsOfflineWithoutRuntimeRecordAndDoesNotFakeHeartbeat() {
         RelayStatusAppService service = newService();
-        when(tunnelRepository.findByTunnelId("000001e240")).thenReturn(Tunnel.builder()
-                .tunnelId("000001e240")
+        when(tunnelRepository.findByTunnelId("aaaadysa")).thenReturn(Tunnel.builder()
+                .tunnelId("aaaadysa")
                 .namespace("ns-user-001")
                 .gridName("grid-a")
                 .deleted(0)
                 .build());
         when(gridRepository.findByGridNameAndRegion("grid-a", "region-a"))
                 .thenReturn(Grid.builder().grid("grid-a").region("region-a").build());
-        when(relayStatusRepository.findByTunnelId("000001e240")).thenReturn(null);
+        when(relayStatusRepository.findByTunnelId("aaaadysa")).thenReturn(null);
 
-        RelayStatusResponse response = service.getStatus("ns-user-001", "000001e240");
+        RelayStatusResponse response = service.getStatus("ns-user-001", "aaaadysa");
 
         assertThat(response.getStatus()).isEqualTo("OFFLINE");
         assertThat(response.getGridName()).isEqualTo("grid-a");
@@ -52,22 +52,22 @@ class RelayStatusAppServiceTest {
     @Test
     void statusIsOfflineWhenRuntimeGridDoesNotMatchTunnelGrid() {
         RelayStatusAppService service = newService();
-        when(tunnelRepository.findByTunnelId("000001e240")).thenReturn(Tunnel.builder()
-                .tunnelId("000001e240")
+        when(tunnelRepository.findByTunnelId("aaaadysa")).thenReturn(Tunnel.builder()
+                .tunnelId("aaaadysa")
                 .namespace("ns-user-001")
                 .gridName("grid-a")
                 .deleted(0)
                 .build());
         when(gridRepository.findByGridNameAndRegion("grid-a", "region-a"))
                 .thenReturn(Grid.builder().grid("grid-a").region("region-a").build());
-        when(relayStatusRepository.findByTunnelId("000001e240")).thenReturn(RelayStatus.builder()
-                .tunnelId("000001e240")
+        when(relayStatusRepository.findByTunnelId("aaaadysa")).thenReturn(RelayStatus.builder()
+                .tunnelId("aaaadysa")
                 .gridName("grid-b")
                 .status("ONLINE")
                 .lastHeartbeat(1720000000L)
                 .build());
 
-        RelayStatusResponse response = service.getStatus("ns-user-001", "000001e240");
+        RelayStatusResponse response = service.getStatus("ns-user-001", "aaaadysa");
 
         assertThat(response.getStatus()).isEqualTo("OFFLINE");
         assertThat(response.getGridName()).isEqualTo("grid-a");
