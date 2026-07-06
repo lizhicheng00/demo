@@ -18,33 +18,33 @@ public class TunnelController implements TunnelApi {
     private final TunnelAppService tunnelAppService;
 
     @Override
-    public Result<CreateTunnelResponse> createTunnel(String xUserId, CreateTunnelRequest request) {
-        return Result.success(tunnelAppService.createTunnel(xUserId, request));
+    public Result<CreateTunnelResponse> createTunnel(String xNamespace, CreateTunnelRequest request) {
+        return Result.success(tunnelAppService.createTunnel(xNamespace, request));
     }
 
     @Override
-    public Result<Boolean> deleteTunnel(String xUserId, String tunnelId) {
-        return Result.success(tunnelAppService.deleteTunnel(xUserId, tunnelId));
+    public Result<Boolean> deleteTunnel(String xNamespace, String tunnelId) {
+        return Result.success(tunnelAppService.deleteTunnel(xNamespace, tunnelId));
     }
 
     @Override
-    public Result<Boolean> deleteTunnels(String xUserId) {
-        return Result.success(tunnelAppService.deleteTunnels(xUserId));
+    public Result<Boolean> deleteTunnels(String xNamespace) {
+        return Result.success(tunnelAppService.deleteTunnels(xNamespace));
     }
 
     @Override
-    public Result<TunnelDetailResponse> getTunnelDetail(String xUserId, String tunnelId) {
-        return Result.success(tunnelAppService.getTunnelDetail(xUserId, tunnelId));
+    public Result<TunnelDetailResponse> getTunnelDetail(String xNamespace, String tunnelId) {
+        return Result.success(tunnelAppService.getTunnelDetail(xNamespace, tunnelId));
     }
 
     @Override
-    public Result<List<TunnelListItemResponse>> listTunnels(String xUserId, String gridName) {
-        return Result.success(tunnelAppService.listTunnels(xUserId, gridName));
+    public Result<List<TunnelListItemResponse>> listTunnels(String xNamespace, String gridName) {
+        return Result.success(tunnelAppService.listTunnels(xNamespace, gridName));
     }
 
     @Override
-    public Result<Boolean> updateTunnel(String xUserId, String tunnelId, UpdateTunnelRequest request) {
+    public Result<Boolean> updateTunnel(String xNamespace, String tunnelId, UpdateTunnelRequest request) {
         request.setTunnelId(tunnelId);
-        return Result.success(tunnelAppService.updateTunnel(xUserId, request));
+        return Result.success(tunnelAppService.updateTunnel(xNamespace, request));
     }
 }

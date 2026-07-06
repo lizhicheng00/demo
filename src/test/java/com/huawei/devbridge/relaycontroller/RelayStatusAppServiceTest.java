@@ -34,7 +34,7 @@ class RelayStatusAppServiceTest {
                 .build());
         when(relayStatusRepository.findByTunnelId("000001e240")).thenReturn(null);
 
-        RelayStatusResponse response = service.getStatus("user-001", "000001e240");
+        RelayStatusResponse response = service.getStatus("ns-user-001", "000001e240");
 
         assertThat(response.getStatus()).isEqualTo("OFFLINE");
         assertThat(response.getGridName()).isEqualTo("grid-a");
@@ -57,7 +57,7 @@ class RelayStatusAppServiceTest {
                 .lastHeartbeat(1720000000L)
                 .build());
 
-        RelayStatusResponse response = service.getStatus("user-001", "000001e240");
+        RelayStatusResponse response = service.getStatus("ns-user-001", "000001e240");
 
         assertThat(response.getStatus()).isEqualTo("OFFLINE");
         assertThat(response.getGridName()).isEqualTo("grid-a");

@@ -49,7 +49,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @ExtendWith(MockitoExtension.class)
 class RelayControllerApiTest {
     private static final String BASE = "/open-api-inner/v1/relay-controller";
-    private static final String USER_ID = "user-001";
+    private static final String NAMESPACE = "ns-user-001";
     private static final String TUNNEL_ID = "000001e240";
     private static final String GRID_NAME = "grid-a";
 
@@ -80,11 +80,11 @@ class RelayControllerApiTest {
 
     @Test
     void createTunnelApi() throws Exception {
-        when(tunnelAppService.createTunnel(eq(USER_ID), any(CreateTunnelRequest.class)))
+        when(tunnelAppService.createTunnel(eq(NAMESPACE), any(CreateTunnelRequest.class)))
                 .thenReturn(createTunnelResponse());
 
         mockMvc.perform(post(BASE + "/tunnels")
-                        .header("X-User-Id", USER_ID)
+                        .header("X-Namespace", NAMESPACE)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -113,13 +113,13 @@ class RelayControllerApiTest {
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.error_code").value("40100"))
-                .andExpect(jsonPath("$.error_message").value("X-User-Id is required"));
+                .andExpect(jsonPath("$.error_message").value("X-Namespace is required"));
     }
 
     @Test
     void createTunnelWithInvalidTypeReturnsParamInvalid() throws Exception {
         mockMvc.perform(post(BASE + "/tunnels")
-                        .header("X-User-Id", USER_ID)
+                        .header("X-Namespace", NAMESPACE)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -134,7 +134,7 @@ class RelayControllerApiTest {
 
     @Test
     void listTunnelsApi() throws Exception {
-        when(tunnelAppService.listTunnels(USER_ID, GRID_NAME)).thenReturn(List.of(
+        when(tunnelAppService.listTunnels(NAMESPACE, GRID_NAME)).thenReturn(List.of(
                 TunnelListItemResponse.builder()
                         .name("dev")
                         .description("dev tunnel")
@@ -143,7 +143,7 @@ class RelayControllerApiTest {
                         .build()));
 
         mockMvc.perform(get(BASE + "/tunnels")
-                        .header("X-User-Id", USER_ID)
+                        .header("X-Namespace", NAMESPACE)
                         .param("gridName", GRID_NAME))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.error_code").value("0000"))
@@ -153,7 +153,7 @@ class RelayControllerApiTest {
 
     @Test
     void getTunnelDetailApi() throws Exception {
-        when(tunnelAppService.getTunnelDetail(USER_ID, TUNNEL_ID)).thenReturn(TunnelDetailResponse.builder()
+        when(tunnelAppService.getTunnelDetail(NAMESPACE, TUNNEL_ID)).thenReturn(TunnelDetailResponse.builder()
                 .name("dev")
                 .id(TUNNEL_ID)
                 .tunnelId(TUNNEL_ID)
@@ -164,7 +164,7 @@ class RelayControllerApiTest {
                 .build());
 
         mockMvc.perform(get(BASE + "/tunnels/{tunnelId}", TUNNEL_ID)
-                        .header("X-User-Id", USER_ID))
+                        .header("X-Namespace", NAMESPACE))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.error_code").value("0000"))
                 .andExpect(jsonPath("$.data.id").value(TUNNEL_ID))
@@ -173,10 +173,10 @@ class RelayControllerApiTest {
 
     @Test
     void updateTunnelApi() throws Exception {
-        when(tunnelAppService.updateTunnel(eq(USER_ID), any(UpdateTunnelRequest.class))).thenReturn(true);
+        when(tunnelAppService.updateTunnel(eq(NAMESPACE), any(UpdateTunnelRequest.class))).thenReturn(true);
 
         mockMvc.perform(put(BASE + "/tunnels/{tunnelId}", TUNNEL_ID)
-                        .header("X-User-Id", USER_ID)
+                        .header("X-Namespace", NAMESPACE)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -190,10 +190,10 @@ class RelayControllerApiTest {
 
     @Test
     void deleteTunnelApi() throws Exception {
-        when(tunnelAppService.deleteTunnel(USER_ID, TUNNEL_ID)).thenReturn(true);
+        when(tunnelAppService.deleteTunnel(NAMESPACE, TUNNEL_ID)).thenReturn(true);
 
         mockMvc.perform(delete(BASE + "/tunnels/{tunnelId}", TUNNEL_ID)
-                        .header("X-User-Id", USER_ID))
+                        .header("X-Namespace", NAMESPACE))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.error_code").value("0000"))
                 .andExpect(jsonPath("$.data").value(true));
@@ -201,10 +201,10 @@ class RelayControllerApiTest {
 
     @Test
     void deleteTunnelsApi() throws Exception {
-        when(tunnelAppService.deleteTunnels(USER_ID)).thenReturn(true);
+        when(tunnelAppService.deleteTunnels(NAMESPACE)).thenReturn(true);
 
         mockMvc.perform(delete(BASE + "/tunnels")
-                        .header("X-User-Id", USER_ID))
+                        .header("X-Namespace", NAMESPACE))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.error_code").value("0000"))
                 .andExpect(jsonPath("$.data").value(true));
@@ -231,7 +231,7 @@ class RelayControllerApiTest {
 
     @Test
     void getRelayStatusApi() throws Exception {
-        when(relayStatusAppService.getStatus(USER_ID, TUNNEL_ID)).thenReturn(RelayStatusResponse.builder()
+        when(relayStatusAppService.getStatus(NAMESPACE, TUNNEL_ID)).thenReturn(RelayStatusResponse.builder()
                 .tunnelId(TUNNEL_ID)
                 .status("ONLINE")
                 .gridName(GRID_NAME)
@@ -241,7 +241,7 @@ class RelayControllerApiTest {
                 .build());
 
         mockMvc.perform(get(BASE + "/tunnels/{tunnelId}/status", TUNNEL_ID)
-                        .header("X-User-Id", USER_ID))
+                        .header("X-Namespace", NAMESPACE))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.error_code").value("0000"))
                 .andExpect(jsonPath("$.data.status").value("ONLINE"))
@@ -250,11 +250,11 @@ class RelayControllerApiTest {
 
     @Test
     void createTunnelPortApi() throws Exception {
-        when(tunnelPortAppService.create(eq(USER_ID), eq(TUNNEL_ID), any(CreateTunnelPortRequest.class)))
+        when(tunnelPortAppService.create(eq(NAMESPACE), eq(TUNNEL_ID), any(CreateTunnelPortRequest.class)))
                 .thenReturn(tunnelPortResponse(false));
 
         mockMvc.perform(post(BASE + "/tunnels/{tunnelId}/ports", TUNNEL_ID)
-                        .header("X-User-Id", USER_ID)
+                        .header("X-Namespace", NAMESPACE)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -270,7 +270,7 @@ class RelayControllerApiTest {
 
     @Test
     void listTunnelPortsApi() throws Exception {
-        when(tunnelPortAppService.list(USER_ID, TUNNEL_ID)).thenReturn(List.of(
+        when(tunnelPortAppService.list(NAMESPACE, TUNNEL_ID)).thenReturn(List.of(
                 tunnelPortResponse(false),
                 TunnelPortResponse.builder()
                         .id(2L)
@@ -281,7 +281,7 @@ class RelayControllerApiTest {
                         .build()));
 
         mockMvc.perform(get(BASE + "/tunnels/{tunnelId}/ports", TUNNEL_ID)
-                        .header("X-User-Id", USER_ID))
+                        .header("X-Namespace", NAMESPACE))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.error_code").value("0000"))
                 .andExpect(jsonPath("$.data", hasSize(2)))
@@ -290,10 +290,10 @@ class RelayControllerApiTest {
 
     @Test
     void getTunnelPortApi() throws Exception {
-        when(tunnelPortAppService.detail(USER_ID, TUNNEL_ID, 8080L)).thenReturn(tunnelPortResponse(false));
+        when(tunnelPortAppService.detail(NAMESPACE, TUNNEL_ID, 8080L)).thenReturn(tunnelPortResponse(false));
 
         mockMvc.perform(get(BASE + "/tunnels/{tunnelId}/ports/{port}", TUNNEL_ID, 8080)
-                        .header("X-User-Id", USER_ID))
+                        .header("X-Namespace", NAMESPACE))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.error_code").value("0000"))
                 .andExpect(jsonPath("$.data.tunnelId").value(TUNNEL_ID))
@@ -302,11 +302,11 @@ class RelayControllerApiTest {
 
     @Test
     void updateTunnelPortApi() throws Exception {
-        when(tunnelPortAppService.update(eq(USER_ID), eq(TUNNEL_ID), eq(8080L), any(UpdateTunnelPortRequest.class)))
+        when(tunnelPortAppService.update(eq(NAMESPACE), eq(TUNNEL_ID), eq(8080L), any(UpdateTunnelPortRequest.class)))
                 .thenReturn(tunnelPortResponse(true));
 
         mockMvc.perform(put(BASE + "/tunnels/{tunnelId}/ports/{port}", TUNNEL_ID, 8080)
-                        .header("X-User-Id", USER_ID)
+                        .header("X-Namespace", NAMESPACE)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -320,10 +320,10 @@ class RelayControllerApiTest {
 
     @Test
     void deleteTunnelPortApi() throws Exception {
-        when(tunnelPortAppService.delete(USER_ID, TUNNEL_ID, 8080L)).thenReturn(true);
+        when(tunnelPortAppService.delete(NAMESPACE, TUNNEL_ID, 8080L)).thenReturn(true);
 
         mockMvc.perform(delete(BASE + "/tunnels/{tunnelId}/ports/{port}", TUNNEL_ID, 8080)
-                        .header("X-User-Id", USER_ID))
+                        .header("X-Namespace", NAMESPACE))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.error_code").value("0000"))
                 .andExpect(jsonPath("$.data").value(true));
@@ -331,10 +331,10 @@ class RelayControllerApiTest {
 
     @Test
     void deleteTunnelPortsApi() throws Exception {
-        when(tunnelPortAppService.deleteAll(USER_ID, TUNNEL_ID)).thenReturn(true);
+        when(tunnelPortAppService.deleteAll(NAMESPACE, TUNNEL_ID)).thenReturn(true);
 
         mockMvc.perform(delete(BASE + "/tunnels/{tunnelId}/ports", TUNNEL_ID)
-                        .header("X-User-Id", USER_ID))
+                        .header("X-Namespace", NAMESPACE))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.error_code").value("0000"))
                 .andExpect(jsonPath("$.data").value(true));
@@ -360,7 +360,7 @@ class RelayControllerApiTest {
 
     @Test
     void createTokenApi() throws Exception {
-        when(tokenAppService.createToken(eq(USER_ID), any(CreateTokenRequest.class)))
+        when(tokenAppService.createToken(eq(NAMESPACE), any(CreateTokenRequest.class)))
                 .thenReturn(CreateTokenResponse.builder()
                         .tokenType("TOKEN")
                         .token("token-token")
@@ -368,7 +368,7 @@ class RelayControllerApiTest {
                         .build());
 
         mockMvc.perform(post(BASE + "/tokens")
-                        .header("X-User-Id", USER_ID)
+                        .header("X-Namespace", NAMESPACE)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {

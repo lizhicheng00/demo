@@ -37,7 +37,7 @@ class TokenAppServiceTest {
         when(tunnelRepository.findByTunnelId("000001e240")).thenReturn(tunnel());
         when(jwtTokenService.getOrCreateToken(ArgumentMatchers.any(Tunnel.class))).thenReturn("token-token");
 
-        CreateTokenResponse response = service.createToken("user-001", request);
+        CreateTokenResponse response = service.createToken("ns-user-001", request);
 
         assertThat(response.getTokenType()).isEqualTo("TOKEN");
         assertThat(response.getToken()).isEqualTo("token-token");

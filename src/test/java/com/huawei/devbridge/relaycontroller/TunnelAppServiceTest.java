@@ -65,7 +65,7 @@ class TunnelAppServiceTest {
         when(tunnelRepository.existsByTunnelId("000001e240")).thenReturn(false);
         when(tunnelRepository.save(org.mockito.ArgumentMatchers.any(Tunnel.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        CreateTunnelResponse response = service.createTunnel("user-001", request);
+        CreateTunnelResponse response = service.createTunnel("ns-user-001", request);
 
         assertThat(response.getTunnelId()).isEqualTo("000001e240");
         assertThat(response.getTunnelCode()).isEqualTo(123456L);
@@ -84,7 +84,7 @@ class TunnelAppServiceTest {
         when(gridRepository.findByGridName("grid-a"))
                 .thenReturn(Grid.builder().grid("grid-a").region("region-a").build());
 
-        assertThatThrownBy(() -> service.createTunnel("user-001", request))
+        assertThatThrownBy(() -> service.createTunnel("ns-user-001", request))
                 .isInstanceOf(BizException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.TUNNEL_EXPIRED);
@@ -105,7 +105,7 @@ class TunnelAppServiceTest {
 
         when(tunnelRepository.findByTunnelId("000001e240")).thenReturn(tunnel);
 
-        Boolean updated = service.updateTunnel("user-001", request);
+        Boolean updated = service.updateTunnel("ns-user-001", request);
 
         assertThat(updated).isTrue();
         verify(tunnelRepository).update(tunnel);
@@ -127,7 +127,7 @@ class TunnelAppServiceTest {
 
         when(tunnelRepository.findByTunnelId("000001e240")).thenReturn(tunnel);
 
-        Boolean updated = service.updateTunnel("user-001", request);
+        Boolean updated = service.updateTunnel("ns-user-001", request);
 
         assertThat(updated).isTrue();
         assertThat(tunnel.getType()).isEqualTo(TunnelType.ENV);
@@ -146,7 +146,7 @@ class TunnelAppServiceTest {
 
         when(tunnelRepository.findByTunnelId("000001e240")).thenReturn(tunnel);
 
-        Boolean deleted = service.deleteTunnel("user-001", "000001e240");
+        Boolean deleted = service.deleteTunnel("ns-user-001", "000001e240");
 
         assertThat(deleted).isTrue();
         verify(tunnelRepository).softDelete(eq("000001e240"), anyLong());
@@ -172,7 +172,7 @@ class TunnelAppServiceTest {
 
         when(tunnelRepository.findByNamespace("ns-user-001", null)).thenReturn(List.of(first, second));
 
-        Boolean deleted = service.deleteTunnels("user-001");
+        Boolean deleted = service.deleteTunnels("ns-user-001");
 
         assertThat(deleted).isTrue();
         verify(tunnelRepository).softDeleteByNamespace(eq("ns-user-001"), anyLong());

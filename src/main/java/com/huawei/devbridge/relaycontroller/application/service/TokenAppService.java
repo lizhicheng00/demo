@@ -25,18 +25,18 @@ public class TokenAppService {
     private final TunnelDomainService tunnelDomainService;
     private final RelayProperties relayProperties;
 
-    public CreateTokenResponse createToken(String userId, CreateTokenRequest request) {
+    public CreateTokenResponse createToken(String namespace, CreateTokenRequest request) {
         String tunnelId = request == null ? null : request.getTunnelId();
         if (StringUtils.isBlank(tunnelId)) {
             throw new BizException(ErrorCode.PARAM_INVALID, "tunnelId is required");
         }
         Tunnel tunnel = findActiveTunnel(tunnelId);
-        if (!StringUtils.isBlank(userId)) {
-            tunnelDomainService.assertOwnedBy(tunnel, namespaceService.resolveNamespace(userId));
+        if (!StringUtils.isBlank(namespace)) {
+            tunnelDomainService.assertOwnedBy(tunnel, namespaceService.requireNamespace(namespace));
         }
         String token = jwtTokenService.getOrCreateToken(tunnel);
-        log.info("Token issued: tunnelId={}, gridName={}, mode=direct, userIdPresent={}, expiresIn={}",
-                tunnel.getTunnelId(), tunnel.getGridName(), !StringUtils.isBlank(userId),
+        log.info("Token issued: tunnelId={}, gridName={}, mode=direct, namespacePresent={}, expiresIn={}",
+                tunnel.getTunnelId(), tunnel.getGridName(), !StringUtils.isBlank(namespace),
                 relayProperties.getJwt().getToken().getTtlSeconds());
         return tokenResponse(token);
     }

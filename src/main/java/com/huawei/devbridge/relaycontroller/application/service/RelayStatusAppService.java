@@ -18,8 +18,8 @@ public class RelayStatusAppService {
     private final NamespaceService namespaceService;
     private final TunnelDomainService tunnelDomainService;
 
-    public RelayStatusResponse getStatus(String userId, String tunnelId) {
-        String namespace = namespaceService.resolveNamespace(userId);
+    public RelayStatusResponse getStatus(String rawNamespace, String tunnelId) {
+        String namespace = namespaceService.requireNamespace(rawNamespace);
         Tunnel tunnel = tunnelRepository.findByTunnelId(tunnelId);
         tunnelDomainService.assertOwnedBy(tunnel, namespace);
         RelayStatus relayStatus = relayStatusRepository.findByTunnelId(tunnelId);

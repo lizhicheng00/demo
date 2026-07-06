@@ -3,7 +3,7 @@ set -u
 
 BASE_URL="${BASE_URL:-http://localhost:8080}"
 API_BASE="$BASE_URL/open-api-inner/v1/relay-controller"
-USER_ID="${USER_ID:-user-001}"
+NAMESPACE="${NAMESPACE:-ns-user-001}"
 TUNNEL_ID="${TUNNEL_ID:-000001e240}"
 GRID_NAME="${GRID_NAME:-grid-a}"
 
@@ -12,12 +12,12 @@ request() {
   local method="$2"
   local url="$3"
   local body="${4:-}"
-  local user_header="${5:-}"
+  local namespace_header="${5:-}"
   local response http_code content
   local headers=(-H "Content-Type: application/json")
 
-  if [[ -n "$user_header" ]]; then
-    headers+=(-H "X-User-Id: $USER_ID")
+  if [[ -n "$namespace_header" ]]; then
+    headers+=(-H "X-Namespace: $NAMESPACE")
   fi
 
   if [[ -n "$body" ]]; then
@@ -31,7 +31,7 @@ request() {
   printf '%-36s %-4s %s\n' "$name" "$http_code" "$content"
 }
 
-request "01 create missing user" POST "$API_BASE/tunnels" "{\"name\":\"dev\",\"gridname\":\"$GRID_NAME\",\"type\":\"bridge\"}"
+request "01 create missing namespace" POST "$API_BASE/tunnels" "{\"name\":\"dev\",\"gridname\":\"$GRID_NAME\",\"type\":\"bridge\"}"
 request "02 create invalid type" POST "$API_BASE/tunnels" "{\"name\":\"dev\",\"gridname\":\"$GRID_NAME\",\"type\":\"default\"}" yes
 request "03 create bridge" POST "$API_BASE/tunnels" "{\"name\":\"dev\",\"gridname\":\"$GRID_NAME\",\"type\":\"bridge\"}" yes
 request "04 list tunnels" GET "$API_BASE/tunnels?gridName=$GRID_NAME" "" yes

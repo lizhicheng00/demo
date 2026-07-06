@@ -18,23 +18,23 @@ public class TunnelPortController implements TunnelPortApi, GatewayTunnelPortApi
     private final TunnelPortAppService tunnelPortAppService;
 
     @Override
-    public Result<TunnelPortResponse> createTunnelPort(String xUserId, String tunnelId, CreateTunnelPortRequest request) {
-        return Result.success(tunnelPortAppService.create(xUserId, tunnelId, request));
+    public Result<TunnelPortResponse> createTunnelPort(String xNamespace, String tunnelId, CreateTunnelPortRequest request) {
+        return Result.success(tunnelPortAppService.create(xNamespace, tunnelId, request));
     }
 
     @Override
-    public Result<Boolean> deleteTunnelPort(String xUserId, String tunnelId, Long port) {
-        return Result.success(tunnelPortAppService.delete(xUserId, tunnelId, port));
+    public Result<Boolean> deleteTunnelPort(String xNamespace, String tunnelId, Long port) {
+        return Result.success(tunnelPortAppService.delete(xNamespace, tunnelId, port));
     }
 
     @Override
-    public Result<Boolean> deleteTunnelPorts(String xUserId, String tunnelId) {
-        return Result.success(tunnelPortAppService.deleteAll(xUserId, tunnelId));
+    public Result<Boolean> deleteTunnelPorts(String xNamespace, String tunnelId) {
+        return Result.success(tunnelPortAppService.deleteAll(xNamespace, tunnelId));
     }
 
     @Override
-    public Result<TunnelPortResponse> getTunnelPort(String xUserId, String tunnelId, Long port) {
-        return Result.success(tunnelPortAppService.detail(xUserId, tunnelId, port));
+    public Result<TunnelPortResponse> getTunnelPort(String xNamespace, String tunnelId, Long port) {
+        return Result.success(tunnelPortAppService.detail(xNamespace, tunnelId, port));
     }
 
     @Override
@@ -43,12 +43,12 @@ public class TunnelPortController implements TunnelPortApi, GatewayTunnelPortApi
     }
 
     @Override
-    public Result<List<TunnelPortResponse>> listTunnelPorts(String xUserId, String tunnelId) {
-        return Result.success(tunnelPortAppService.list(xUserId, tunnelId));
+    public Result<List<TunnelPortResponse>> listTunnelPorts(String xNamespace, String tunnelId) {
+        return Result.success(tunnelPortAppService.list(xNamespace, tunnelId));
     }
 
     @Override
-    public Result<TunnelPortResponse> updateTunnelPort(String xUserId, String tunnelId, Long port, UpdateTunnelPortRequest request) {
-        return Result.success(tunnelPortAppService.update(xUserId, tunnelId, port, request));
+    public Result<TunnelPortResponse> updateTunnelPort(String xNamespace, String tunnelId, Long port, UpdateTunnelPortRequest request) {
+        return Result.success(tunnelPortAppService.update(xNamespace, tunnelId, port, request));
     }
 }

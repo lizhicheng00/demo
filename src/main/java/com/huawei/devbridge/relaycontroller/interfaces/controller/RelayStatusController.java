@@ -13,7 +13,7 @@ public class RelayStatusController implements RelayStatusApi {
     private final RelayStatusAppService relayStatusAppService;
 
     @Override
-    public Result<RelayStatusResponse> getRelayStatus(String xUserId, String tunnelId) {
-        return Result.success(relayStatusAppService.getStatus(xUserId, tunnelId));
+    public Result<RelayStatusResponse> getRelayStatus(String xNamespace, String tunnelId) {
+        return Result.success(relayStatusAppService.getStatus(xNamespace, tunnelId));
     }
 }

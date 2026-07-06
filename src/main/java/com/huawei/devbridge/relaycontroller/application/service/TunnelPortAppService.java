@@ -31,8 +31,8 @@ public class TunnelPortAppService {
     private final TunnelPortDomainService tunnelPortDomainService;
 
     @Transactional
-    public TunnelPortResponse create(String userId, String tunnelId, CreateTunnelPortRequest request) {
-        Tunnel tunnel = ownedTunnel(userId, tunnelId);
+    public TunnelPortResponse create(String rawNamespace, String tunnelId, CreateTunnelPortRequest request) {
+        Tunnel tunnel = ownedTunnel(rawNamespace, tunnelId);
         tunnelPortDomainService.validatePort(request.getPort());
         tunnelPortDomainService.validateAllowAnonymous(request.getAllowAnonymous());
         if (tunnelPortRepository.existsByTunnelCodeAndPort(tunnel.getTunnelCode(), request.getPort())) {
@@ -49,22 +49,22 @@ public class TunnelPortAppService {
         return TunnelPortAssembler.toResponse(tunnel, tunnelPort);
     }
 
-    public List<TunnelPortResponse> list(String userId, String tunnelId) {
-        Tunnel tunnel = ownedTunnel(userId, tunnelId);
+    public List<TunnelPortResponse> list(String rawNamespace, String tunnelId) {
+        Tunnel tunnel = ownedTunnel(rawNamespace, tunnelId);
         return tunnelPortRepository.findByTunnelCode(tunnel.getTunnelCode()).stream()
                 .map(tunnelPort -> TunnelPortAssembler.toResponse(tunnel, tunnelPort))
                 .toList();
     }
 
-    public TunnelPortResponse detail(String userId, String tunnelId, Long port) {
-        Tunnel tunnel = ownedTunnel(userId, tunnelId);
+    public TunnelPortResponse detail(String rawNamespace, String tunnelId, Long port) {
+        Tunnel tunnel = ownedTunnel(rawNamespace, tunnelId);
         TunnelPort tunnelPort = findTunnelPort(tunnel.getTunnelCode(), port);
         return TunnelPortAssembler.toResponse(tunnel, tunnelPort);
     }
 
     @Transactional
-    public TunnelPortResponse update(String userId, String tunnelId, Long port, UpdateTunnelPortRequest request) {
-        Tunnel tunnel = ownedTunnel(userId, tunnelId);
+    public TunnelPortResponse update(String rawNamespace, String tunnelId, Long port, UpdateTunnelPortRequest request) {
+        Tunnel tunnel = ownedTunnel(rawNamespace, tunnelId);
         tunnelPortDomainService.validateAllowAnonymous(request.getAllowAnonymous());
         TunnelPort tunnelPort = findTunnelPort(tunnel.getTunnelCode(), port);
         tunnelPortRepository.updateAllowAnonymous(tunnel.getTunnelCode(), port, request.getAllowAnonymous());
@@ -75,8 +75,8 @@ public class TunnelPortAppService {
     }
 
     @Transactional
-    public Boolean delete(String userId, String tunnelId, Long port) {
-        Tunnel tunnel = ownedTunnel(userId, tunnelId);
+    public Boolean delete(String rawNamespace, String tunnelId, Long port) {
+        Tunnel tunnel = ownedTunnel(rawNamespace, tunnelId);
         findTunnelPort(tunnel.getTunnelCode(), port);
         tunnelPortRepository.deleteByTunnelCodeAndPort(tunnel.getTunnelCode(), port);
         log.info("Tunnel port deleted: tunnelId={}, tunnelCode={}, port={}",
@@ -85,8 +85,8 @@ public class TunnelPortAppService {
     }
 
     @Transactional
-    public Boolean deleteAll(String userId, String tunnelId) {
-        Tunnel tunnel = ownedTunnel(userId, tunnelId);
+    public Boolean deleteAll(String rawNamespace, String tunnelId) {
+        Tunnel tunnel = ownedTunnel(rawNamespace, tunnelId);
         tunnelPortRepository.deleteByTunnelCode(tunnel.getTunnelCode());
         log.info("Tunnel ports deleted: tunnelId={}, tunnelCode={}", tunnel.getTunnelId(), tunnel.getTunnelCode());
         return true;
@@ -99,8 +99,8 @@ public class TunnelPortAppService {
         return TunnelPortAssembler.toGatewayPolicy(tunnel, tunnelPort);
     }
 
-    private Tunnel ownedTunnel(String userId, String tunnelId) {
-        String namespace = namespaceService.resolveNamespace(userId);
+    private Tunnel ownedTunnel(String rawNamespace, String tunnelId) {
+        String namespace = namespaceService.requireNamespace(rawNamespace);
         Tunnel tunnel = tunnelRepository.findByTunnelId(tunnelId);
         tunnelDomainService.assertOwnedBy(tunnel, namespace);
         return tunnel;

@@ -40,7 +40,7 @@ GET    /open-api-inner/v1/relay-controller/grids/{gridName}/tunnels/{tunnelId}/p
 POST   /open-api-inner/v1/relay-controller/tokens
 ```
 
-User tunnel APIs read `X-User-Id` and resolve `namespace = ns-{userId}`.
+Namespace-scoped APIs read `X-Namespace` directly and store it as the tunnel namespace.
 Tunnel `type` is restricted to `bridge` or `env`; blank create requests default to `bridge`.
 
 Token APIs are independent from tunnel resource paths. Tokens are reusable for 24 hours and cached at `jwt:token:{tunnelId}`.

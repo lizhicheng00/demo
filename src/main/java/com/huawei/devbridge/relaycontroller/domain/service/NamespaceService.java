@@ -8,10 +8,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class NamespaceService {
 
-    public String resolveNamespace(String userId) {
-        if (StringUtils.isBlank(userId)) {
+    public String requireNamespace(String namespace) {
+        if (StringUtils.isBlank(namespace)) {
             throw new BizException(ErrorCode.UNAUTHORIZED);
         }
-        return "ns-" + userId.trim();
+        return namespace.trim();
     }
 }

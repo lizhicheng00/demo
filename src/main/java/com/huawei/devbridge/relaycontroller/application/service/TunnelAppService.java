@@ -40,8 +40,8 @@ public class TunnelAppService {
     private final TunnelPortRepository tunnelPortRepository;
     private final RelayProperties relayProperties;
 
-    public CreateTunnelResponse createTunnel(String userId, CreateTunnelRequest request) {
-        String namespace = namespaceService.resolveNamespace(userId);
+    public CreateTunnelResponse createTunnel(String rawNamespace, CreateTunnelRequest request) {
+        String namespace = namespaceService.requireNamespace(rawNamespace);
         TunnelType type = request.getType() == null ? TunnelType.BRIDGE : request.getType();
         Grid grid = findGrid(request.getGridName());
         long now = TimeUtils.nowSeconds();
@@ -71,22 +71,22 @@ public class TunnelAppService {
         return TunnelAssembler.toCreateResponse(tunnel);
     }
 
-    public List<TunnelListItemResponse> listTunnels(String userId, String gridName) {
-        String namespace = namespaceService.resolveNamespace(userId);
+    public List<TunnelListItemResponse> listTunnels(String rawNamespace, String gridName) {
+        String namespace = namespaceService.requireNamespace(rawNamespace);
         return tunnelRepository.findByNamespace(namespace, gridName).stream()
                 .map(TunnelAssembler::toListItem)
                 .toList();
     }
 
-    public TunnelDetailResponse getTunnelDetail(String userId, String tunnelId) {
-        Tunnel tunnel = findOwnedTunnel(userId, tunnelId);
+    public TunnelDetailResponse getTunnelDetail(String rawNamespace, String tunnelId) {
+        Tunnel tunnel = findOwnedTunnel(rawNamespace, tunnelId);
         tunnelDomainService.assertNotExpired(tunnel);
         return TunnelAssembler.toDetailResponse(tunnel);
     }
 
     @Transactional
-    public Boolean updateTunnel(String userId, UpdateTunnelRequest request) {
-        Tunnel tunnel = findOwnedTunnel(userId, request.getTunnelId());
+    public Boolean updateTunnel(String rawNamespace, UpdateTunnelRequest request) {
+        Tunnel tunnel = findOwnedTunnel(rawNamespace, request.getTunnelId());
         boolean expirationChanged = applyUpdates(tunnel, request);
         tunnel.setUpdatedAt(TimeUtils.nowSeconds());
         tunnelRepository.update(tunnel);
@@ -99,8 +99,8 @@ public class TunnelAppService {
     }
 
     @Transactional
-    public Boolean deleteTunnel(String userId, String tunnelId) {
-        Tunnel tunnel = findOwnedTunnel(userId, tunnelId);
+    public Boolean deleteTunnel(String rawNamespace, String tunnelId) {
+        Tunnel tunnel = findOwnedTunnel(rawNamespace, tunnelId);
         tunnelRepository.softDelete(tunnelId, TimeUtils.nowSeconds());
         jwtTokenService.evictToken(tunnelId);
         tunnelPortRepository.deleteByTunnelCode(tunnel.getTunnelCode());
@@ -110,8 +110,8 @@ public class TunnelAppService {
     }
 
     @Transactional
-    public Boolean deleteTunnels(String userId) {
-        String namespace = namespaceService.resolveNamespace(userId);
+    public Boolean deleteTunnels(String rawNamespace) {
+        String namespace = namespaceService.requireNamespace(rawNamespace);
         List<Tunnel> tunnels = tunnelRepository.findByNamespace(namespace, null);
         long now = TimeUtils.nowSeconds();
         tunnelRepository.softDeleteByNamespace(namespace, now);
@@ -156,8 +156,8 @@ public class TunnelAppService {
         throw new BizException(ErrorCode.TUNNEL_ID_CONFLICT);
     }
 
-    private Tunnel findOwnedTunnel(String userId, String tunnelId) {
-        String namespace = namespaceService.resolveNamespace(userId);
+    private Tunnel findOwnedTunnel(String rawNamespace, String tunnelId) {
+        String namespace = namespaceService.requireNamespace(rawNamespace);
         Tunnel tunnel = tunnelRepository.findByTunnelId(tunnelId);
         tunnelDomainService.assertOwnedBy(tunnel, namespace);
         return tunnel;
