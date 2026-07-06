@@ -66,8 +66,6 @@ COLLATE utf8mb4_0900_ai_ci;
 
 Flyway runs on application startup and applies migrations from `src/main/resources/db/migration`. The initial migration creates `grid`, `tunnel`, `metering`, `tunnel_port`, and seeds `grid-a`.
 
-`src/main/resources/db/schema.sql` is kept only as a manual initialization reference. Flyway migrations are the runtime source of truth.
-
 Database columns use snake_case for compound words, for example `tunnel_id`, `tunnel_code`, `grid_name`, `bandwidth_used`, and `allow_anonymous`. Java fields remain camelCase and rely on MyBatis Plus underscore-to-camel mapping, so entity classes do not carry redundant `@TableField` annotations.
 
 ## Run

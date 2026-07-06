@@ -41,11 +41,10 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MissingRequestHeaderException.class)
     public Result<Void> handleMissingRequestHeader(MissingRequestHeaderException exception) {
+        log.warn("Missing request header: {}", exception.getHeaderName());
         if ("X-User-Id".equalsIgnoreCase(exception.getHeaderName())) {
-            log.warn("Missing request header: {}", exception.getHeaderName());
             return Result.failure(ErrorCode.UNAUTHORIZED, "X-User-Id is required");
         }
-        log.warn("Missing request header: {}", exception.getHeaderName());
         return Result.failure(ErrorCode.PARAM_INVALID, exception.getMessage());
     }
 

@@ -5,7 +5,6 @@ import com.huawei.devbridge.relaycontroller.domain.model.Grid;
 import com.huawei.devbridge.relaycontroller.domain.repository.GridRepository;
 import com.huawei.devbridge.relaycontroller.infrastructure.persistence.entity.GridEntity;
 import com.huawei.devbridge.relaycontroller.infrastructure.persistence.mapper.GridMapper;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -26,15 +25,6 @@ public class GridRepositoryImpl implements GridRepository {
     public boolean existsByGridName(String gridName) {
         return gridMapper.exists(new LambdaQueryWrapper<GridEntity>()
                 .eq(GridEntity::getGrid, gridName));
-    }
-
-    @Override
-    public List<Grid> findByRegion(String region) {
-        return gridMapper.selectList(new LambdaQueryWrapper<GridEntity>()
-                        .eq(GridEntity::getRegion, region))
-                .stream()
-                .map(this::toDomain)
-                .toList();
     }
 
     private Grid toDomain(GridEntity entity) {

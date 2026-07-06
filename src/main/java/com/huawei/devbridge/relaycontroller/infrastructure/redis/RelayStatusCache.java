@@ -20,9 +20,7 @@ public class RelayStatusCache {
                 return null;
             }
             return objectMapper.readValue(json, RelayStatus.class);
-        } catch (RuntimeException exception) {
-            return null;
-        } catch (Exception exception) {
+        } catch (Exception ignored) {
             return null;
         }
     }

@@ -25,14 +25,6 @@ public class TunnelRepositoryImpl implements TunnelRepository {
     }
 
     @Override
-    public Tunnel findByTunnelCode(Long tunnelCode) {
-        TunnelEntity entity = tunnelMapper.selectOne(new LambdaQueryWrapper<TunnelEntity>()
-                .eq(TunnelEntity::getTunnelCode, tunnelCode)
-                .last("LIMIT 1"));
-        return toDomain(entity);
-    }
-
-    @Override
     public List<Tunnel> findByNamespace(String namespace, String gridName) {
         return tunnelMapper.selectList(new LambdaQueryWrapper<TunnelEntity>()
                         .eq(TunnelEntity::getNamespace, namespace)

@@ -6,8 +6,6 @@ import java.util.List;
 public interface TunnelRepository {
     Tunnel findByTunnelId(String tunnelId);
 
-    Tunnel findByTunnelCode(Long tunnelCode);
-
     List<Tunnel> findByNamespace(String namespace, String gridName);
 
     boolean existsByTunnelId(String tunnelId);
