@@ -22,14 +22,8 @@ public enum ErrorCode {
     TUNNEL_PORT_NOT_FOUND(11003, "tunnel port not found"),
     TUNNEL_PORT_ACCESS_DENIED(11004, "tunnel port access denied"),
 
-    NODE_NOT_FOUND(20001, "node not found"),
-    NODE_ID_INVALID(20002, "node id invalid"),
-
     JWT_GENERATE_FAILED(30001, "jwt generate failed"),
     JWT_KEY_INVALID(30002, "jwt key invalid"),
-    TOKEN_INVALID(30003, "token invalid"),
-    TOKEN_NOT_FOUND_OR_EXPIRED(30004, "token not found or expired"),
-    TOKEN_ALREADY_CONSUMED(30005, "token already consumed"),
 
     METERING_REPORT_FAILED(40001, "metering report failed"),
 

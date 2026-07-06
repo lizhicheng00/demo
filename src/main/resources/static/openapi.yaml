@@ -8,8 +8,6 @@ servers:
 tags:
   - name: Tunnel
   - name: Token
-  - name: Gateway Node
-  - name: Grid Config
   - name: Metering
   - name: Relay Status
   - name: Tunnel Port
@@ -101,59 +99,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TunnelListResult'
-  /open-api-inner/v1/relay-controller/grids/{gridName}/nodes/register:
-    post:
-      tags: [Gateway Node]
-      summary: Register gateway node
-      operationId: registerNode
-      parameters:
-        - $ref: '#/components/parameters/GridNamePath'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RegisterNodeRequest'
-      responses:
-        '200':
-          description: Registered node information.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RegisterNodeResult'
-  /open-api-inner/v1/relay-controller/grids/{gridName}/nodes:
-    get:
-      tags: [Gateway Node]
-      summary: Get gateway node IP
-      operationId: getNode
-      parameters:
-        - $ref: '#/components/parameters/GridNamePath'
-        - name: node_id
-          in: query
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Node IP.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/NodeInfoResult'
-  /open-api-inner/v1/relay-controller/grids/{gridName}/config:
-    get:
-      tags: [Grid Config]
-      summary: Get JWT public keys for a grid
-      operationId: getGridConfig
-      parameters:
-        - $ref: '#/components/parameters/GridNamePath'
-      responses:
-        '200':
-          description: Grid JWT public key config.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GridConfigResult'
   /open-api-inner/v1/relay-controller/grids/{gridName}/metering:
     post:
       tags: [Metering]
@@ -292,37 +237,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GatewayTunnelPortPolicyResult'
-  /open-api-inner/v1/relay-controller/tokens/ott:
-    post:
-      tags: [Token]
-      summary: Create one-time token
-      operationId: createOttToken
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateOttTokenRequest'
-      responses:
-        '200':
-          description: One-time token.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CreateOttTokenResult'
   /open-api-inner/v1/relay-controller/tokens/rt:
     post:
       tags: [Token]
       summary: Create reusable token
-      description: With X-Relay-Authorization, exchanges OTT for RT. Without it, creates or reuses RT by tunnelId and optionally checks X-User-Id namespace.
+      description: Creates or reuses RT by tunnelId and optionally checks X-User-Id namespace.
       operationId: createRtToken
       parameters:
-        - name: X-Relay-Authorization
-          in: header
-          required: false
-          schema:
-            type: string
-          description: OTT token, either raw JWT or Bearer token.
         - name: X-User-Id
           in: header
           required: false
@@ -416,27 +337,6 @@ components:
               type: array
               items:
                 $ref: '#/components/schemas/TunnelListItem'
-    RegisterNodeResult:
-      allOf:
-        - $ref: '#/components/schemas/ResultBase'
-        - type: object
-          properties:
-            data:
-              $ref: '#/components/schemas/RegisterNodeResponse'
-    NodeInfoResult:
-      allOf:
-        - $ref: '#/components/schemas/ResultBase'
-        - type: object
-          properties:
-            data:
-              $ref: '#/components/schemas/NodeInfoResponse'
-    GridConfigResult:
-      allOf:
-        - $ref: '#/components/schemas/ResultBase'
-        - type: object
-          properties:
-            data:
-              $ref: '#/components/schemas/GridConfigResponse'
     MeteringReportResult:
       allOf:
         - $ref: '#/components/schemas/ResultBase'
@@ -451,13 +351,6 @@ components:
           properties:
             data:
               $ref: '#/components/schemas/RelayStatusResponse'
-    CreateOttTokenResult:
-      allOf:
-        - $ref: '#/components/schemas/ResultBase'
-        - type: object
-          properties:
-            data:
-              $ref: '#/components/schemas/TokenResponse'
     CreateRtTokenResult:
       allOf:
         - $ref: '#/components/schemas/ResultBase'
@@ -531,14 +424,6 @@ components:
         type:
           type: string
           enum: [bridge, env]
-    RegisterNodeRequest:
-      type: object
-      required: [ip]
-      properties:
-        ip:
-          type: string
-        nodeId:
-          type: string
     MeteringReportRequest:
       type: object
       required: [tunnelCode, tunnelId, usage]
@@ -552,22 +437,6 @@ components:
           type: integer
           format: int64
           minimum: 0
-    CreateOttTokenRequest:
-      type: object
-      required: [tunnelId]
-      properties:
-        tunnelId:
-          type: string
-        gridname:
-          type: string
-          description: Optional grid name. JSON also accepts gridName.
-        connId:
-          type: string
-        callbackUrl:
-          type: string
-        requestPort:
-          type: integer
-          format: int32
     CreateRtTokenRequest:
       type: object
       properties:
@@ -634,27 +503,6 @@ components:
           format: int64
         url:
           type: string
-    RegisterNodeResponse:
-      type: object
-      properties:
-        nodeId:
-          type: string
-        nodeList:
-          type: array
-          items:
-            type: string
-    NodeInfoResponse:
-      type: object
-      properties:
-        ip:
-          type: string
-    GridConfigResponse:
-      type: object
-      properties:
-        jwtPublicKeys:
-          type: object
-          additionalProperties:
-            type: string
     MeteringReportResponse:
       type: object
       properties:
@@ -681,7 +529,7 @@ components:
       properties:
         tokenType:
           type: string
-          enum: [OTT, RT]
+          enum: [RT]
         token:
           type: string
         expiresIn:

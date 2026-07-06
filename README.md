@@ -1,6 +1,6 @@
 # Relay Controller
 
-Relay Controller is the DevBridge / Relay Tunnel control plane service. It manages tunnel metadata, namespace isolation, gateway node registry, JWT signing/public key distribution, metering reports, and relay status lookup placeholders.
+Relay Controller is the DevBridge / Relay Tunnel control plane service. It manages tunnel metadata, namespace isolation, reusable JWT signing, metering reports, port policies, and relay status lookup placeholders.
 
 This service does not implement WebSocket, WebTransport, TCP, or HTTP body forwarding. Real traffic bridging belongs to Relay Gateway.
 
@@ -25,10 +25,6 @@ GET    /open-api-inner/v1/relay-controller/tunnel?tunnelId=
 PUT    /open-api-inner/v1/relay-controller/tunnel
 DELETE /open-api-inner/v1/relay-controller/tunnel?tunnelId=
 
-POST   /open-api-inner/v1/relay-controller/grids/{gridName}/nodes/register
-GET    /open-api-inner/v1/relay-controller/grids/{gridName}/nodes?node_id=
-
-GET    /open-api-inner/v1/relay-controller/grids/{gridName}/config
 POST   /open-api-inner/v1/relay-controller/grids/{gridName}/metering
 GET    /open-api-inner/v1/relay-controller/tunnel/status?tunnelId=
 
@@ -39,14 +35,13 @@ PUT    /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports/{port}
 DELETE /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports/{port}
 GET    /open-api-inner/v1/relay-controller/grids/{gridName}/tunnels/{tunnelId}/ports/{port}
 
-POST   /open-api-inner/v1/relay-controller/tokens/ott
 POST   /open-api-inner/v1/relay-controller/tokens/rt
 ```
 
 User tunnel APIs read `X-User-Id` and resolve `namespace = ns-{userId}`.
 Tunnel `type` is restricted to `bridge` or `env`; blank create requests default to `bridge`.
 
-Token APIs are independent from tunnel resource paths. OTT is a 30-minute one-time token for RT exchange. RT is a 24-hour reusable token cached at `jwt:rt:{tunnelId}`. `POST /open-api-inner/v1/relay-controller/tokens/rt` accepts optional `X-Relay-Authorization` with either raw OTT or `Bearer <OTT>` format.
+Token APIs are independent from tunnel resource paths. RT is a 24-hour reusable token cached at `jwt:rt:{tunnelId}`.
 
 Tunnel port APIs manage the explicit per-port allow list for a tunnel. Unconfigured ports are denied by default. `allowAnonymous` only controls sending-side access to that port; listening-side gateway connection still requires token authentication.
 
@@ -85,4 +80,4 @@ bash scripts/http-smoke-test.sh
 
 Use JDK 17 for normal development and deployment. The project uses Jetty instead of Tomcat and Jedis instead of Lettuce/Netty to avoid JDK 26 startup warnings from Tomcat native loading and Netty `Unsafe` access. If Maven itself is run on JDK 26, Maven's own dependencies may still print JVM warnings before the application starts; those are not emitted by the Relay Controller runtime.
 
-If no RSA private key is configured, the service generates an ephemeral RSA key pair at startup for development. Configure `relay.jwt.private-key` and `relay.jwt.public-keys` for stable production keys.
+If no RSA private key is configured, the service generates an ephemeral RSA key pair at startup for development. Configure `relay.jwt.private-key` for stable production token signing.

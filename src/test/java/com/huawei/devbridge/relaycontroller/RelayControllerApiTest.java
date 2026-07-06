@@ -1,6 +1,5 @@
 package com.huawei.devbridge.relaycontroller;
 
-import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -12,43 +11,32 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.huawei.devbridge.relaycontroller.application.service.GridConfigAppService;
 import com.huawei.devbridge.relaycontroller.application.service.MeteringAppService;
-import com.huawei.devbridge.relaycontroller.application.service.NodeAppService;
 import com.huawei.devbridge.relaycontroller.application.service.RelayStatusAppService;
 import com.huawei.devbridge.relaycontroller.application.service.TokenAppService;
 import com.huawei.devbridge.relaycontroller.application.service.TunnelAppService;
 import com.huawei.devbridge.relaycontroller.application.service.TunnelPortAppService;
 import com.huawei.devbridge.relaycontroller.common.exception.GlobalExceptionHandler;
-import com.huawei.devbridge.relaycontroller.interfaces.controller.GridConfigController;
 import com.huawei.devbridge.relaycontroller.interfaces.controller.MeteringController;
-import com.huawei.devbridge.relaycontroller.interfaces.controller.NodeController;
 import com.huawei.devbridge.relaycontroller.interfaces.controller.RelayStatusController;
 import com.huawei.devbridge.relaycontroller.interfaces.controller.TokenController;
 import com.huawei.devbridge.relaycontroller.interfaces.controller.TunnelController;
 import com.huawei.devbridge.relaycontroller.interfaces.controller.TunnelPortController;
-import com.huawei.devbridge.relaycontroller.interfaces.request.CreateOttTokenRequest;
 import com.huawei.devbridge.relaycontroller.interfaces.request.CreateRtTokenRequest;
 import com.huawei.devbridge.relaycontroller.interfaces.request.CreateTunnelPortRequest;
 import com.huawei.devbridge.relaycontroller.interfaces.request.CreateTunnelRequest;
 import com.huawei.devbridge.relaycontroller.interfaces.request.MeteringReportRequest;
-import com.huawei.devbridge.relaycontroller.interfaces.request.RegisterNodeRequest;
 import com.huawei.devbridge.relaycontroller.interfaces.request.UpdateTunnelPortRequest;
 import com.huawei.devbridge.relaycontroller.interfaces.request.UpdateTunnelRequest;
-import com.huawei.devbridge.relaycontroller.interfaces.response.CreateOttTokenResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.CreateRtTokenResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.CreateTunnelResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.GatewayTunnelPortPolicyResponse;
-import com.huawei.devbridge.relaycontroller.interfaces.response.GridConfigResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.MeteringReportResponse;
-import com.huawei.devbridge.relaycontroller.interfaces.response.NodeInfoResponse;
-import com.huawei.devbridge.relaycontroller.interfaces.response.RegisterNodeResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.RelayStatusResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelDetailResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelListItemResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelPortResponse;
 import java.util.List;
-import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -70,10 +58,6 @@ class RelayControllerApiTest {
     @Mock
     private TunnelAppService tunnelAppService;
     @Mock
-    private NodeAppService nodeAppService;
-    @Mock
-    private GridConfigAppService gridConfigAppService;
-    @Mock
     private MeteringAppService meteringAppService;
     @Mock
     private RelayStatusAppService relayStatusAppService;
@@ -86,8 +70,6 @@ class RelayControllerApiTest {
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(
                         new TunnelController(tunnelAppService),
-                        new NodeController(nodeAppService),
-                        new GridConfigController(gridConfigAppService),
                         new MeteringController(meteringAppService),
                         new RelayStatusController(relayStatusAppService),
                         new TunnelPortController(tunnelPortAppService),
@@ -202,51 +184,6 @@ class RelayControllerApiTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(0))
                 .andExpect(jsonPath("$.data").value(true));
-    }
-
-    @Test
-    void registerNodeApi() throws Exception {
-        when(nodeAppService.registerNode(eq(GRID_NAME), any(RegisterNodeRequest.class))).thenReturn(
-                RegisterNodeResponse.builder()
-                        .nodeId("000f")
-                        .nodeList(List.of("10.0.1.23"))
-                        .build());
-
-        mockMvc.perform(post(BASE + "/grids/{gridName}/nodes/register", GRID_NAME)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                  "ip": "10.0.1.23"
-                                }
-                                """))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(0))
-                .andExpect(jsonPath("$.data.nodeId").value("000f"))
-                .andExpect(jsonPath("$.data.nodeList", contains("10.0.1.23")));
-    }
-
-    @Test
-    void getNodeApi() throws Exception {
-        when(nodeAppService.getNode(GRID_NAME, "000f"))
-                .thenReturn(NodeInfoResponse.builder().ip("10.0.1.23").build());
-
-        mockMvc.perform(get(BASE + "/grids/{gridName}/nodes", GRID_NAME)
-                        .param("node_id", "000f"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(0))
-                .andExpect(jsonPath("$.data.ip").value("10.0.1.23"));
-    }
-
-    @Test
-    void getGridConfigApi() throws Exception {
-        when(gridConfigAppService.getConfig(GRID_NAME)).thenReturn(GridConfigResponse.builder()
-                .jwtPublicKeys(Map.of("1", "public-key"))
-                .build());
-
-        mockMvc.perform(get(BASE + "/grids/{gridName}/config", GRID_NAME))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(0))
-                .andExpect(jsonPath("$.data.jwtPublicKeys.1").value("public-key"));
     }
 
     @Test
@@ -388,31 +325,8 @@ class RelayControllerApiTest {
     }
 
     @Test
-    void createOttTokenApi() throws Exception {
-        when(tokenAppService.createOtt(any(CreateOttTokenRequest.class))).thenReturn(CreateOttTokenResponse.builder()
-                .tokenType("OTT")
-                .token("ott-token")
-                .expiresIn(1800L)
-                .build());
-
-        mockMvc.perform(post(BASE + "/tokens/ott")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                  "tunnelId": "000001e240",
-                                  "gridname": "grid-a",
-                                  "connId": "conn-1"
-                                }
-                                """))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(0))
-                .andExpect(jsonPath("$.data.tokenType").value("OTT"))
-                .andExpect(jsonPath("$.data.expiresIn").value(1800));
-    }
-
-    @Test
     void createRtTokenApi() throws Exception {
-        when(tokenAppService.createRt(eq("Bearer ott-token"), eq(USER_ID), any(CreateRtTokenRequest.class)))
+        when(tokenAppService.createRt(eq(USER_ID), any(CreateRtTokenRequest.class)))
                 .thenReturn(CreateRtTokenResponse.builder()
                         .tokenType("RT")
                         .token("rt-token")
@@ -420,7 +334,6 @@ class RelayControllerApiTest {
                         .build());
 
         mockMvc.perform(post(BASE + "/tokens/rt")
-                        .header("X-Relay-Authorization", "Bearer ott-token")
                         .header("X-User-Id", USER_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""

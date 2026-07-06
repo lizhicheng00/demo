@@ -38,17 +38,13 @@ request "04 list tunnels" GET "$API_BASE/tunnels?gridName=$GRID_NAME" "" yes
 request "05 tunnel detail" GET "$API_BASE/tunnel?tunnelId=$TUNNEL_ID" "" yes
 request "06 update tunnel env" PUT "$API_BASE/tunnel" "{\"tunnelId\":\"$TUNNEL_ID\",\"type\":\"env\"}" yes
 request "07 delete tunnel" DELETE "$API_BASE/tunnel?tunnelId=$TUNNEL_ID" "" yes
-request "08 register node" POST "$API_BASE/grids/$GRID_NAME/nodes/register" "{\"ip\":\"10.0.1.23\"}"
-request "09 get node" GET "$API_BASE/grids/$GRID_NAME/nodes?node_id=000f"
-request "10 grid config" GET "$API_BASE/grids/$GRID_NAME/config"
-request "11 metering" POST "$API_BASE/grids/$GRID_NAME/metering" "{\"tunnelCode\":123456,\"tunnelId\":\"$TUNNEL_ID\",\"usage\":1024}"
-request "12 relay status" GET "$API_BASE/tunnel/status?tunnelId=$TUNNEL_ID" "" yes
-request "13 create port" POST "$API_BASE/tunnels/$TUNNEL_ID/ports" "{\"port\":8080,\"allowAnonymous\":false}" yes
-request "14 list ports" GET "$API_BASE/tunnels/$TUNNEL_ID/ports" "" yes
-request "15 get port" GET "$API_BASE/tunnels/$TUNNEL_ID/ports/8080" "" yes
-request "16 update port" PUT "$API_BASE/tunnels/$TUNNEL_ID/ports/8080" "{\"allowAnonymous\":true}" yes
-request "17 delete port" DELETE "$API_BASE/tunnels/$TUNNEL_ID/ports/8080" "" yes
-request "18 gateway port policy" GET "$API_BASE/grids/$GRID_NAME/tunnels/$TUNNEL_ID/ports/8080"
-request "19 create ott" POST "$API_BASE/tokens/ott" "{\"tunnelId\":\"$TUNNEL_ID\",\"gridname\":\"$GRID_NAME\"}"
-request "20 create rt direct" POST "$API_BASE/tokens/rt" "{\"tunnelId\":\"$TUNNEL_ID\"}" yes
-request "21 openapi yaml" GET "$BASE_URL/openapi.yaml"
+request "08 metering" POST "$API_BASE/grids/$GRID_NAME/metering" "{\"tunnelCode\":123456,\"tunnelId\":\"$TUNNEL_ID\",\"usage\":1024}"
+request "09 relay status" GET "$API_BASE/tunnel/status?tunnelId=$TUNNEL_ID" "" yes
+request "10 create port" POST "$API_BASE/tunnels/$TUNNEL_ID/ports" "{\"port\":8080,\"allowAnonymous\":false}" yes
+request "11 list ports" GET "$API_BASE/tunnels/$TUNNEL_ID/ports" "" yes
+request "12 get port" GET "$API_BASE/tunnels/$TUNNEL_ID/ports/8080" "" yes
+request "13 update port" PUT "$API_BASE/tunnels/$TUNNEL_ID/ports/8080" "{\"allowAnonymous\":true}" yes
+request "14 delete port" DELETE "$API_BASE/tunnels/$TUNNEL_ID/ports/8080" "" yes
+request "15 gateway port policy" GET "$API_BASE/grids/$GRID_NAME/tunnels/$TUNNEL_ID/ports/8080"
+request "16 create rt" POST "$API_BASE/tokens/rt" "{\"tunnelId\":\"$TUNNEL_ID\"}" yes
+request "17 openapi yaml" GET "$BASE_URL/openapi.yaml"

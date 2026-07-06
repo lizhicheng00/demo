@@ -33,18 +33,6 @@ CREATE TABLE IF NOT EXISTS tunnel (
     KEY idx_namespace_deleted (namespace, deleted)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Tunnel metadata';
 
-CREATE TABLE IF NOT EXISTS node_registry (
-    _id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'node primary key',
-    grid_name VARCHAR(128) NOT NULL COMMENT 'grid name',
-    ip VARCHAR(128) NOT NULL COMMENT 'gateway node ip',
-    register_time BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'last register unix seconds',
-    created_at BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'created unix seconds',
-    updated_at BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'updated unix seconds',
-    PRIMARY KEY (_id),
-    KEY idx_grid_name (grid_name),
-    KEY idx_grid_ip (grid_name, ip)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Gateway node registry';
-
 CREATE TABLE IF NOT EXISTS metering (
     _id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'primary key',
     grid_name VARCHAR(128) NOT NULL COMMENT 'grid name',
