@@ -24,6 +24,7 @@ import com.huawei.devbridge.relaycontroller.infrastructure.config.RelayPropertie
 import com.huawei.devbridge.relaycontroller.interfaces.request.CreateTunnelRequest;
 import com.huawei.devbridge.relaycontroller.interfaces.request.UpdateTunnelRequest;
 import com.huawei.devbridge.relaycontroller.interfaces.response.CreateTunnelResponse;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -163,6 +164,34 @@ class TunnelAppServiceTest {
         verify(tunnelRepository).softDelete(eq("000001e240"), anyLong());
         verify(jwtTokenService).evictToken("000001e240");
         verify(tunnelPortRepository).deleteByTunnelCode(123456L);
+    }
+
+    @Test
+    void deleteTunnelsCleansUserTunnels() {
+        TunnelAppService service = newService(new RelayProperties());
+        Tunnel first = Tunnel.builder()
+                .tunnelId("000001e240")
+                .tunnelCode(123456L)
+                .namespace("ns-user-001")
+                .deleted(0)
+                .build();
+        Tunnel second = Tunnel.builder()
+                .tunnelId("000001e241")
+                .tunnelCode(123457L)
+                .namespace("ns-user-001")
+                .deleted(0)
+                .build();
+
+        when(tunnelRepository.findByNamespace("ns-user-001", null)).thenReturn(List.of(first, second));
+
+        Boolean deleted = service.deleteTunnels("user-001");
+
+        assertThat(deleted).isTrue();
+        verify(tunnelRepository).softDeleteByNamespace(eq("ns-user-001"), anyLong());
+        verify(jwtTokenService).evictToken("000001e240");
+        verify(jwtTokenService).evictToken("000001e241");
+        verify(tunnelPortRepository).deleteByTunnelCode(123456L);
+        verify(tunnelPortRepository).deleteByTunnelCode(123457L);
     }
 
     private TunnelAppService newService(RelayProperties properties) {

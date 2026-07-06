@@ -18,5 +18,7 @@ public interface TunnelRepository {
 
     void softDelete(String tunnelId, long updatedAt);
 
+    void softDeleteByNamespace(String namespace, long updatedAt);
+
     void increaseBandwidthUsed(String tunnelId, long usageBytes, long updatedAt);
 }

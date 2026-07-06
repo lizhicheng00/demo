@@ -28,6 +28,11 @@ public class TunnelController implements TunnelApi {
     }
 
     @Override
+    public Result<Boolean> deleteTunnels(String xUserId) {
+        return Result.success(tunnelAppService.deleteTunnels(xUserId));
+    }
+
+    @Override
     public Result<TunnelDetailResponse> getTunnelDetail(String xUserId, String tunnelId) {
         return Result.success(tunnelAppService.getTunnelDetail(xUserId, tunnelId));
     }
@@ -38,7 +43,8 @@ public class TunnelController implements TunnelApi {
     }
 
     @Override
-    public Result<Boolean> updateTunnel(String xUserId, UpdateTunnelRequest request) {
+    public Result<Boolean> updateTunnel(String xUserId, String tunnelId, UpdateTunnelRequest request) {
+        request.setTunnelId(tunnelId);
         return Result.success(tunnelAppService.updateTunnel(xUserId, request));
     }
 }

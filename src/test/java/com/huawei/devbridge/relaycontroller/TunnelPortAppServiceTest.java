@@ -161,6 +161,18 @@ class TunnelPortAppServiceTest {
     }
 
     @Test
+    void deleteAllTunnelPortsRemovesPolicies() {
+        TunnelPortAppService service = newService();
+
+        when(tunnelRepository.findByTunnelId("000001e240")).thenReturn(tunnel("ns-user-001", "grid-a"));
+
+        Boolean deleted = service.deleteAll("user-001", "000001e240");
+
+        assertThat(deleted).isTrue();
+        verify(tunnelPortRepository).deleteByTunnelCode(123456L);
+    }
+
+    @Test
     void detailRejectsMissingPort() {
         TunnelPortAppService service = newService();
 

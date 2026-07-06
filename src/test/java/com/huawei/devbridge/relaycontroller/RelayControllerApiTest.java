@@ -83,7 +83,7 @@ class RelayControllerApiTest {
         when(tunnelAppService.createTunnel(eq(USER_ID), any(CreateTunnelRequest.class)))
                 .thenReturn(createTunnelResponse());
 
-        mockMvc.perform(post(BASE + "/tunnel")
+        mockMvc.perform(post(BASE + "/tunnels")
                         .header("X-User-Id", USER_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -102,7 +102,7 @@ class RelayControllerApiTest {
 
     @Test
     void createTunnelWithoutUserHeaderReturnsUnauthorized() throws Exception {
-        mockMvc.perform(post(BASE + "/tunnel")
+        mockMvc.perform(post(BASE + "/tunnels")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -147,9 +147,8 @@ class RelayControllerApiTest {
                 .type("bridge")
                 .build());
 
-        mockMvc.perform(get(BASE + "/tunnel")
-                        .header("X-User-Id", USER_ID)
-                        .param("tunnelId", TUNNEL_ID))
+        mockMvc.perform(get(BASE + "/tunnels/{tunnelId}", TUNNEL_ID)
+                        .header("X-User-Id", USER_ID))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(0))
                 .andExpect(jsonPath("$.data.id").value(TUNNEL_ID))
@@ -160,12 +159,11 @@ class RelayControllerApiTest {
     void updateTunnelApi() throws Exception {
         when(tunnelAppService.updateTunnel(eq(USER_ID), any(UpdateTunnelRequest.class))).thenReturn(true);
 
-        mockMvc.perform(put(BASE + "/tunnel")
+        mockMvc.perform(put(BASE + "/tunnels/{tunnelId}", TUNNEL_ID)
                         .header("X-User-Id", USER_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "tunnelId": "000001e240",
                                   "name": "dev-renamed"
                                 }
                                 """))
@@ -178,9 +176,19 @@ class RelayControllerApiTest {
     void deleteTunnelApi() throws Exception {
         when(tunnelAppService.deleteTunnel(USER_ID, TUNNEL_ID)).thenReturn(true);
 
-        mockMvc.perform(delete(BASE + "/tunnel")
-                        .header("X-User-Id", USER_ID)
-                        .param("tunnelId", TUNNEL_ID))
+        mockMvc.perform(delete(BASE + "/tunnels/{tunnelId}", TUNNEL_ID)
+                        .header("X-User-Id", USER_ID))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.data").value(true));
+    }
+
+    @Test
+    void deleteTunnelsApi() throws Exception {
+        when(tunnelAppService.deleteTunnels(USER_ID)).thenReturn(true);
+
+        mockMvc.perform(delete(BASE + "/tunnels")
+                        .header("X-User-Id", USER_ID))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(0))
                 .andExpect(jsonPath("$.data").value(true));
@@ -216,9 +224,8 @@ class RelayControllerApiTest {
                 .lastHeartbeat(1720000000L)
                 .build());
 
-        mockMvc.perform(get(BASE + "/tunnel/status")
-                        .header("X-User-Id", USER_ID)
-                        .param("tunnelId", TUNNEL_ID))
+        mockMvc.perform(get(BASE + "/tunnels/{tunnelId}/status", TUNNEL_ID)
+                        .header("X-User-Id", USER_ID))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(0))
                 .andExpect(jsonPath("$.data.status").value("ONLINE"))
@@ -300,6 +307,17 @@ class RelayControllerApiTest {
         when(tunnelPortAppService.delete(USER_ID, TUNNEL_ID, 8080L)).thenReturn(true);
 
         mockMvc.perform(delete(BASE + "/tunnels/{tunnelId}/ports/{port}", TUNNEL_ID, 8080)
+                        .header("X-User-Id", USER_ID))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.data").value(true));
+    }
+
+    @Test
+    void deleteTunnelPortsApi() throws Exception {
+        when(tunnelPortAppService.deleteAll(USER_ID, TUNNEL_ID)).thenReturn(true);
+
+        mockMvc.perform(delete(BASE + "/tunnels/{tunnelId}/ports", TUNNEL_ID)
                         .header("X-User-Id", USER_ID))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(0))

@@ -13,7 +13,7 @@ tags:
   - name: Tunnel Port
   - name: Gateway Tunnel Port
 paths:
-  /open-api-inner/v1/relay-controller/tunnel:
+  /open-api-inner/v1/relay-controller/tunnels:
     post:
       tags: [Tunnel]
       summary: Create tunnel
@@ -35,11 +35,43 @@ paths:
                 $ref: '#/components/schemas/CreateTunnelResult'
     get:
       tags: [Tunnel]
+      summary: List user tunnels
+      operationId: listTunnels
+      parameters:
+        - $ref: '#/components/parameters/UserIdHeader'
+        - name: gridName
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User tunnel list.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TunnelListResult'
+    delete:
+      tags: [Tunnel]
+      summary: Soft delete all user tunnels
+      operationId: deleteTunnels
+      parameters:
+        - $ref: '#/components/parameters/UserIdHeader'
+      responses:
+        '200':
+          description: Delete result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BooleanResult'
+  /open-api-inner/v1/relay-controller/tunnels/{tunnelId}:
+    get:
+      tags: [Tunnel]
       summary: Get tunnel detail
       operationId: getTunnelDetail
       parameters:
         - $ref: '#/components/parameters/UserIdHeader'
-        - $ref: '#/components/parameters/TunnelIdQuery'
+        - $ref: '#/components/parameters/TunnelIdPath'
       responses:
         '200':
           description: Tunnel metadata.
@@ -53,6 +85,7 @@ paths:
       operationId: updateTunnel
       parameters:
         - $ref: '#/components/parameters/UserIdHeader'
+        - $ref: '#/components/parameters/TunnelIdPath'
       requestBody:
         required: true
         content:
@@ -72,7 +105,7 @@ paths:
       operationId: deleteTunnel
       parameters:
         - $ref: '#/components/parameters/UserIdHeader'
-        - $ref: '#/components/parameters/TunnelIdQuery'
+        - $ref: '#/components/parameters/TunnelIdPath'
       responses:
         '200':
           description: Delete result.
@@ -80,25 +113,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BooleanResult'
-  /open-api-inner/v1/relay-controller/tunnels:
-    get:
-      tags: [Tunnel]
-      summary: List user tunnels
-      operationId: listTunnels
-      parameters:
-        - $ref: '#/components/parameters/UserIdHeader'
-        - name: gridName
-          in: query
-          required: false
-          schema:
-            type: string
-      responses:
-        '200':
-          description: User tunnel list.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TunnelListResult'
   /open-api-inner/v1/relay-controller/grids/{gridName}/metering:
     post:
       tags: [Metering]
@@ -119,14 +133,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MeteringReportResult'
-  /open-api-inner/v1/relay-controller/tunnel/status:
+  /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/status:
     get:
       tags: [Relay Status]
       summary: Get tunnel runtime relay status
       operationId: getRelayStatus
       parameters:
         - $ref: '#/components/parameters/UserIdHeader'
-        - $ref: '#/components/parameters/TunnelIdQuery'
+        - $ref: '#/components/parameters/TunnelIdPath'
       responses:
         '200':
           description: Relay runtime status.
@@ -169,6 +183,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TunnelPortListResult'
+    delete:
+      tags: [Tunnel Port]
+      summary: Delete all tunnel port policies
+      operationId: deleteTunnelPorts
+      parameters:
+        - $ref: '#/components/parameters/UserIdHeader'
+        - $ref: '#/components/parameters/TunnelIdPath'
+      responses:
+        '200':
+          description: Delete result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BooleanResult'
   /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports/{port}:
     get:
       tags: [Tunnel Port]
@@ -267,12 +295,6 @@ components:
     UserIdHeader:
       name: X-User-Id
       in: header
-      required: true
-      schema:
-        type: string
-    TunnelIdQuery:
-      name: tunnelId
-      in: query
       required: true
       schema:
         type: string
@@ -406,10 +428,11 @@ components:
           default: bridge
     UpdateTunnelRequest:
       type: object
-      required: [tunnelId]
       properties:
         tunnelId:
           type: string
+          deprecated: true
+          description: Deprecated. The tunnelId path parameter is the source of truth.
         name:
           type: string
           maxLength: 128

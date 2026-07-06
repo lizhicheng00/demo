@@ -19,17 +19,19 @@ This service does not implement WebSocket, WebTransport, TCP, or HTTP body forwa
 ## Implemented APIs
 
 ```text
-POST   /open-api-inner/v1/relay-controller/tunnel
+POST   /open-api-inner/v1/relay-controller/tunnels
 GET    /open-api-inner/v1/relay-controller/tunnels?gridName=
-GET    /open-api-inner/v1/relay-controller/tunnel?tunnelId=
-PUT    /open-api-inner/v1/relay-controller/tunnel
-DELETE /open-api-inner/v1/relay-controller/tunnel?tunnelId=
+DELETE /open-api-inner/v1/relay-controller/tunnels
+GET    /open-api-inner/v1/relay-controller/tunnels/{tunnelId}
+PUT    /open-api-inner/v1/relay-controller/tunnels/{tunnelId}
+DELETE /open-api-inner/v1/relay-controller/tunnels/{tunnelId}
 
 POST   /open-api-inner/v1/relay-controller/grids/{gridName}/metering
-GET    /open-api-inner/v1/relay-controller/tunnel/status?tunnelId=
+GET    /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/status
 
 POST   /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports
 GET    /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports
+DELETE /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports
 GET    /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports/{port}
 PUT    /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports/{port}
 DELETE /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports/{port}

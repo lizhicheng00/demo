@@ -84,6 +84,14 @@ public class TunnelPortAppService {
         return true;
     }
 
+    @Transactional
+    public Boolean deleteAll(String userId, String tunnelId) {
+        Tunnel tunnel = ownedTunnel(userId, tunnelId);
+        tunnelPortRepository.deleteByTunnelCode(tunnel.getTunnelCode());
+        log.info("Tunnel ports deleted: tunnelId={}, tunnelCode={}", tunnel.getTunnelId(), tunnel.getTunnelCode());
+        return true;
+    }
+
     public GatewayTunnelPortPolicyResponse getGatewayPortPolicy(String gridName, String tunnelId, Long port) {
         Tunnel tunnel = tunnelRepository.findByTunnelId(tunnelId);
         tunnelDomainService.assertInGrid(tunnel, gridName, ErrorCode.TUNNEL_PORT_ACCESS_DENIED);

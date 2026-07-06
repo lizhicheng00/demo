@@ -65,6 +65,16 @@ public class TunnelRepositoryImpl implements TunnelRepository {
     public void softDelete(String tunnelId, long updatedAt) {
         tunnelMapper.update(null, new LambdaUpdateWrapper<TunnelEntity>()
                 .eq(TunnelEntity::getTunnelId, tunnelId)
+                .eq(TunnelEntity::getDeleted, 0)
+                .set(TunnelEntity::getDeleted, 1)
+                .set(TunnelEntity::getUpdatedAt, updatedAt));
+    }
+
+    @Override
+    public void softDeleteByNamespace(String namespace, long updatedAt) {
+        tunnelMapper.update(null, new LambdaUpdateWrapper<TunnelEntity>()
+                .eq(TunnelEntity::getNamespace, namespace)
+                .eq(TunnelEntity::getDeleted, 0)
                 .set(TunnelEntity::getDeleted, 1)
                 .set(TunnelEntity::getUpdatedAt, updatedAt));
     }

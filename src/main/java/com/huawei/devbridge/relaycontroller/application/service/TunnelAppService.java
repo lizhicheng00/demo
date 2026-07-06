@@ -108,6 +108,20 @@ public class TunnelAppService {
         return true;
     }
 
+    @Transactional
+    public Boolean deleteTunnels(String userId) {
+        String namespace = namespaceService.resolveNamespace(userId);
+        List<Tunnel> tunnels = tunnelRepository.findByNamespace(namespace, null);
+        long now = TimeUtils.nowSeconds();
+        tunnelRepository.softDeleteByNamespace(namespace, now);
+        tunnels.forEach(tunnel -> {
+            jwtTokenService.evictToken(tunnel.getTunnelId());
+            tunnelPortRepository.deleteByTunnelCode(tunnel.getTunnelCode());
+        });
+        log.info("Tunnels deleted: namespace={}, count={}", namespace, tunnels.size());
+        return true;
+    }
+
     private boolean applyUpdates(Tunnel tunnel, UpdateTunnelRequest request) {
         boolean expirationChanged = false;
         if (request.getName() != null && !request.getName().isBlank()) {
