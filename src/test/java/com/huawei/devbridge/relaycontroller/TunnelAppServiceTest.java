@@ -58,6 +58,7 @@ class TunnelAppServiceTest {
         request.setName("dev");
         request.setGridName("grid-a");
         request.setCluster("cluster-a");
+        long before = TimeUtils.nowSeconds();
 
         when(gridRepository.findByGridName("grid-a"))
                 .thenReturn(Grid.builder().grid("grid-a").region("region-a").build());
@@ -66,20 +67,45 @@ class TunnelAppServiceTest {
         when(tunnelRepository.save(org.mockito.ArgumentMatchers.any(Tunnel.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         CreateTunnelResponse response = service.createTunnel("ns-user-001", request);
+        long after = TimeUtils.nowSeconds();
 
         assertThat(response.getTunnelId()).isEqualTo("000001e240");
         assertThat(response.getTunnelCode()).isEqualTo(123456L);
         assertThat(response.getUrl()).isEqualTo("000001e240.region-a.relayprovider.xxx.com");
         assertThat(response.getType()).isEqualTo("bridge");
+        assertThat(response.getExpiration())
+                .isBetween(Math.toIntExact(before + 72 * 3600L), Math.toIntExact(after + 72 * 3600L));
     }
 
     @Test
-    void createTunnelRejectsPastExpiration() {
+    void createTunnelUsesCustomExpirationHours() {
         TunnelAppService service = newService(new RelayProperties());
         CreateTunnelRequest request = new CreateTunnelRequest();
         request.setName("dev");
         request.setGridName("grid-a");
-        request.setExpiration(Math.toIntExact(TimeUtils.nowSeconds() - 1));
+        request.setExpiration(2);
+        long before = TimeUtils.nowSeconds();
+
+        when(gridRepository.findByGridName("grid-a"))
+                .thenReturn(Grid.builder().grid("grid-a").region("region-a").build());
+        when(tunnelRepository.existsByTunnelCode(123456L)).thenReturn(false);
+        when(tunnelRepository.existsByTunnelId("000001e240")).thenReturn(false);
+        when(tunnelRepository.save(org.mockito.ArgumentMatchers.any(Tunnel.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        CreateTunnelResponse response = service.createTunnel("ns-user-001", request);
+        long after = TimeUtils.nowSeconds();
+
+        assertThat(response.getExpiration())
+                .isBetween(Math.toIntExact(before + 2 * 3600L), Math.toIntExact(after + 2 * 3600L));
+    }
+
+    @Test
+    void createTunnelRejectsNonPositiveExpirationHours() {
+        TunnelAppService service = newService(new RelayProperties());
+        CreateTunnelRequest request = new CreateTunnelRequest();
+        request.setName("dev");
+        request.setGridName("grid-a");
+        request.setExpiration(0);
 
         when(gridRepository.findByGridName("grid-a"))
                 .thenReturn(Grid.builder().grid("grid-a").region("region-a").build());
@@ -87,7 +113,7 @@ class TunnelAppServiceTest {
         assertThatThrownBy(() -> service.createTunnel("ns-user-001", request))
                 .isInstanceOf(BizException.class)
                 .extracting("errorCode")
-                .isEqualTo(ErrorCode.TUNNEL_EXPIRED);
+                .isEqualTo(ErrorCode.PARAM_INVALID);
     }
 
     @Test
@@ -95,7 +121,7 @@ class TunnelAppServiceTest {
         TunnelAppService service = newService(new RelayProperties());
         UpdateTunnelRequest request = new UpdateTunnelRequest();
         request.setTunnelId("000001e240");
-        request.setExpiration(Math.toIntExact(TimeUtils.nowSeconds() + 3600));
+        request.setExpiration(1);
         Tunnel tunnel = Tunnel.builder()
                 .tunnelId("000001e240")
                 .namespace("ns-user-001")
@@ -105,9 +131,13 @@ class TunnelAppServiceTest {
 
         when(tunnelRepository.findByTunnelId("000001e240")).thenReturn(tunnel);
 
+        long before = TimeUtils.nowSeconds();
         Boolean updated = service.updateTunnel("ns-user-001", request);
+        long after = TimeUtils.nowSeconds();
 
         assertThat(updated).isTrue();
+        assertThat(tunnel.getExpiration())
+                .isBetween(Math.toIntExact(before + 3600L), Math.toIntExact(after + 3600L));
         verify(tunnelRepository).update(tunnel);
         verify(jwtTokenService).evictToken("000001e240");
     }

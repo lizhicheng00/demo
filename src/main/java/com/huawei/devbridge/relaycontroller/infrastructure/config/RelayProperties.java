@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "relay")
 public class RelayProperties {
     private String domain = "relayprovider.xxx.com";
-    private long defaultExpirationSeconds = 259200;
+    private int defaultExpirationHours = 72;
     private Jwt jwt = new Jwt();
 
     @Data

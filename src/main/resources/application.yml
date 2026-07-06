@@ -49,7 +49,7 @@ logging:
 
 relay:
   domain: relayprovider.xxx.com
-  default-expiration-seconds: 259200
+  default-expiration-hours: 72
   jwt:
     issuer: devbridge
     key-id: "1"

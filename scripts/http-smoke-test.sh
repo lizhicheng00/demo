@@ -33,7 +33,7 @@ request() {
 
 request "01 create missing namespace" POST "$API_BASE/tunnels" "{\"name\":\"dev\",\"gridname\":\"$GRID_NAME\",\"type\":\"bridge\"}"
 request "02 create invalid type" POST "$API_BASE/tunnels" "{\"name\":\"dev\",\"gridname\":\"$GRID_NAME\",\"type\":\"default\"}" yes
-request "03 create bridge" POST "$API_BASE/tunnels" "{\"name\":\"dev\",\"gridname\":\"$GRID_NAME\",\"type\":\"bridge\"}" yes
+request "03 create bridge" POST "$API_BASE/tunnels" "{\"name\":\"dev\",\"gridname\":\"$GRID_NAME\",\"expiration\":24,\"type\":\"bridge\"}" yes
 request "04 list tunnels" GET "$API_BASE/tunnels?gridName=$GRID_NAME" "" yes
 request "05 tunnel detail" GET "$API_BASE/tunnels/$TUNNEL_ID" "" yes
 request "06 update tunnel env" PUT "$API_BASE/tunnels/$TUNNEL_ID" "{\"type\":\"env\"}" yes

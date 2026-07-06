@@ -31,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class TunnelAppService {
     private static final int TUNNEL_CODE_MAX_RETRY = 5;
+    private static final int SECONDS_PER_HOUR = 3600;
     private final TunnelRepository tunnelRepository;
     private final GridRepository gridRepository;
     private final NamespaceService namespaceService;
@@ -135,8 +136,7 @@ public class TunnelAppService {
             tunnel.setCluster(request.getCluster());
         }
         if (request.getExpiration() != null) {
-            assertFutureExpiration(request.getExpiration(), TimeUtils.nowSeconds());
-            tunnel.setExpiration(request.getExpiration());
+            tunnel.setExpiration(resolveExpiration(request.getExpiration(), TimeUtils.nowSeconds()));
             expirationChanged = true;
         }
         if (request.getType() != null) {
@@ -171,10 +171,16 @@ public class TunnelAppService {
         return grid;
     }
 
-    private int resolveExpiration(Integer expiration, long now) {
-        return expiration == null
-                ? Math.toIntExact(now + relayProperties.getDefaultExpirationSeconds())
-                : expiration;
+    private int resolveExpiration(Integer expirationHours, long now) {
+        int hours = expirationHours == null ? relayProperties.getDefaultExpirationHours() : expirationHours;
+        if (hours <= 0) {
+            throw new BizException(ErrorCode.PARAM_INVALID, "expiration must be positive hours");
+        }
+        long expiresAt = now + (long) hours * SECONDS_PER_HOUR;
+        if (expiresAt > Integer.MAX_VALUE) {
+            throw new BizException(ErrorCode.PARAM_INVALID, "expiration is too large");
+        }
+        return Math.toIntExact(expiresAt);
     }
 
     private String buildTunnelUrl(String tunnelId, Grid grid) {

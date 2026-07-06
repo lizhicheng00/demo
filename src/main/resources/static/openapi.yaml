@@ -420,7 +420,8 @@ components:
         expiration:
           type: integer
           format: int32
-          description: Unix seconds.
+          minimum: 1
+          description: Expiration duration in hours. Defaults to 72 hours.
         type:
           type: string
           enum: [bridge, env]
@@ -443,6 +444,8 @@ components:
         expiration:
           type: integer
           format: int32
+          minimum: 1
+          description: Expiration duration in hours from update time.
         type:
           type: string
           enum: [bridge, env]
@@ -505,6 +508,7 @@ components:
         expiration:
           type: integer
           format: int32
+          description: Expiration Unix seconds.
         created:
           type: integer
           format: int64
