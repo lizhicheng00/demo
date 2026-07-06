@@ -18,10 +18,12 @@ import com.huawei.devbridge.relaycontroller.interfaces.request.CreateRtTokenRequ
 import com.huawei.devbridge.relaycontroller.interfaces.response.CreateOttTokenResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.CreateRtTokenResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class TokenAppService {
     private static final String BEARER_PREFIX = "Bearer ";
     private final TunnelRepository tunnelRepository;
@@ -42,6 +44,9 @@ public class TokenAppService {
                 .callbackUrl(request.getCallbackUrl())
                 .requestPort(request.getRequestPort())
                 .build());
+        log.info("OTT issued: tunnelId={}, gridName={}, connId={}, expiresIn={}",
+                tunnel.getTunnelId(), tunnel.getGridName(), request.getConnId(),
+                relayProperties.getJwt().getOtt().getTtlSeconds());
         return CreateOttTokenResponse.builder()
                 .tokenType("OTT")
                 .token(token)
@@ -61,7 +66,11 @@ public class TokenAppService {
         if (!StringUtils.isBlank(userId)) {
             tunnelDomainService.assertOwnedBy(tunnel, namespaceService.resolveNamespace(userId));
         }
-        return reusableTokenResponse(jwtTokenService.getOrCreateReusableToken(tunnel));
+        String token = jwtTokenService.getOrCreateReusableToken(tunnel);
+        log.info("RT issued: tunnelId={}, gridName={}, mode=direct, userIdPresent={}, expiresIn={}",
+                tunnel.getTunnelId(), tunnel.getGridName(), !StringUtils.isBlank(userId),
+                relayProperties.getJwt().getRt().getTtlSeconds());
+        return reusableTokenResponse(token);
     }
 
     private CreateRtTokenResponse createRtWithOtt(String relayAuthorization, CreateRtTokenRequest request) {
@@ -77,7 +86,10 @@ public class TokenAppService {
             throw new BizException(ErrorCode.PARAM_INVALID, "tunnelId does not match OTT");
         }
         Tunnel tunnel = findActiveTunnel(claims.getTunnelId());
-        return reusableTokenResponse(jwtTokenService.getOrCreateReusableToken(tunnel));
+        String token = jwtTokenService.getOrCreateReusableToken(tunnel);
+        log.info("RT issued: tunnelId={}, gridName={}, mode=ott, expiresIn={}",
+                tunnel.getTunnelId(), tunnel.getGridName(), relayProperties.getJwt().getRt().getTtlSeconds());
+        return reusableTokenResponse(token);
     }
 
     private CreateRtTokenResponse reusableTokenResponse(String token) {

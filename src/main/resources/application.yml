@@ -38,6 +38,7 @@ logging:
     root: WARN
     com.baomidou.mybatisplus.core.toolkit.Sequence: OFF
     com.huawei.devbridge.relaycontroller.RelayControllerApplication: INFO
+    com.huawei.devbridge.relaycontroller.application.service: INFO
 
 relay:
   domain: relayprovider.xxx.com

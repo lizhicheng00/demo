@@ -13,11 +13,13 @@ import com.huawei.devbridge.relaycontroller.interfaces.response.NodeInfoResponse
 import com.huawei.devbridge.relaycontroller.interfaces.response.RegisterNodeResponse;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class NodeAppService {
     private final GridRepository gridRepository;
     private final NodeRegistryRepository nodeRegistryRepository;
@@ -28,6 +30,7 @@ public class NodeAppService {
         ensureGridExists(gridName);
         long now = TimeUtils.nowSeconds();
         NodeRegistry nodeRegistry;
+        boolean created;
         if (StringUtils.isBlank(request.getNodeId())) {
             nodeRegistry = nodeRegistryRepository.save(NodeRegistry.builder()
                     .gridName(gridName)
@@ -36,6 +39,7 @@ public class NodeAppService {
                     .createdAt(now)
                     .updatedAt(now)
                     .build());
+            created = true;
         } else {
             Long id = nodeDomainService.parseNodeId(request.getNodeId());
             nodeRegistry = nodeRegistryRepository.findById(id);
@@ -49,10 +53,14 @@ public class NodeAppService {
             nodeRegistry.setRegisterTime(now);
             nodeRegistry.setUpdatedAt(now);
             nodeRegistryRepository.update(nodeRegistry);
+            created = false;
         }
         List<NodeRegistry> nodes = nodeRegistryRepository.findByGridName(gridName);
+        String nodeId = nodeDomainService.toNodeId(nodeRegistry.getId());
+        log.info("Gateway node registered: nodeId={}, gridName={}, ip={}, created={}, nodeCount={}",
+                nodeId, gridName, nodeRegistry.getIp(), created, nodes.size());
         return RegisterNodeResponse.builder()
-                .nodeId(nodeDomainService.toNodeId(nodeRegistry.getId()))
+                .nodeId(nodeId)
                 .nodeList(nodes.stream().map(NodeRegistry::getIp).toList())
                 .build();
     }

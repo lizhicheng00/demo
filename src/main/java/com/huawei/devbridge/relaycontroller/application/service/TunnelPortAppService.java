@@ -16,11 +16,13 @@ import com.huawei.devbridge.relaycontroller.interfaces.response.GatewayTunnelPor
 import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelPortResponse;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class TunnelPortAppService {
     private final TunnelRepository tunnelRepository;
     private final TunnelPortRepository tunnelPortRepository;
@@ -42,6 +44,8 @@ public class TunnelPortAppService {
                 .port(request.getPort())
                 .allowAnonymous(request.getAllowAnonymous())
                 .build());
+        log.info("Tunnel port created: tunnelId={}, tunnelCode={}, port={}, allowAnonymous={}",
+                tunnel.getTunnelId(), tunnel.getTunnelCode(), tunnelPort.getPort(), tunnelPort.getAllowAnonymous());
         return TunnelPortAssembler.toResponse(tunnel, tunnelPort);
     }
 
@@ -65,6 +69,8 @@ public class TunnelPortAppService {
         TunnelPort tunnelPort = findTunnelPort(tunnel.getTunnelCode(), port);
         tunnelPortRepository.updateAllowAnonymous(tunnel.getTunnelCode(), port, request.getAllowAnonymous());
         tunnelPort.setAllowAnonymous(request.getAllowAnonymous());
+        log.info("Tunnel port updated: tunnelId={}, tunnelCode={}, port={}, allowAnonymous={}",
+                tunnel.getTunnelId(), tunnel.getTunnelCode(), port, request.getAllowAnonymous());
         return TunnelPortAssembler.toResponse(tunnel, tunnelPort);
     }
 
@@ -73,6 +79,8 @@ public class TunnelPortAppService {
         Tunnel tunnel = ownedTunnel(userId, tunnelId);
         findTunnelPort(tunnel.getTunnelCode(), port);
         tunnelPortRepository.deleteByTunnelCodeAndPort(tunnel.getTunnelCode(), port);
+        log.info("Tunnel port deleted: tunnelId={}, tunnelCode={}, port={}",
+                tunnel.getTunnelId(), tunnel.getTunnelCode(), port);
         return true;
     }
 

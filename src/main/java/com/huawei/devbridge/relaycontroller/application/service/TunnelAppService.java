@@ -21,11 +21,13 @@ import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelDetailResp
 import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelListItemResponse;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class TunnelAppService {
     private static final int TUNNEL_CODE_MAX_RETRY = 5;
     private final TunnelRepository tunnelRepository;
@@ -62,6 +64,9 @@ public class TunnelAppService {
                 .updatedAt(now)
                 .build();
         tunnelRepository.save(tunnel);
+        log.info("Tunnel created: tunnelId={}, tunnelCode={}, namespace={}, gridName={}, type={}, expiration={}",
+                tunnel.getTunnelId(), tunnel.getTunnelCode(), tunnel.getNamespace(), tunnel.getGridName(),
+                tunnel.getType(), tunnel.getExpiration());
         return TunnelAssembler.toCreateResponse(tunnel);
     }
 
@@ -87,6 +92,8 @@ public class TunnelAppService {
         if (expirationChanged) {
             jwtTokenService.evictReusableToken(tunnel.getTunnelId());
         }
+        log.info("Tunnel updated: tunnelId={}, namespace={}, expirationChanged={}",
+                tunnel.getTunnelId(), tunnel.getNamespace(), expirationChanged);
         return true;
     }
 
@@ -96,6 +103,8 @@ public class TunnelAppService {
         tunnelRepository.softDelete(tunnelId, TimeUtils.nowSeconds());
         jwtTokenService.evictReusableToken(tunnelId);
         tunnelPortRepository.deleteByTunnelCode(tunnel.getTunnelCode());
+        log.info("Tunnel deleted: tunnelId={}, tunnelCode={}, namespace={}",
+                tunnel.getTunnelId(), tunnel.getTunnelCode(), tunnel.getNamespace());
         return true;
     }
 

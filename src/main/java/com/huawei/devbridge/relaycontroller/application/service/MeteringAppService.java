@@ -12,11 +12,13 @@ import com.huawei.devbridge.relaycontroller.domain.service.TunnelDomainService;
 import com.huawei.devbridge.relaycontroller.interfaces.request.MeteringReportRequest;
 import com.huawei.devbridge.relaycontroller.interfaces.response.MeteringReportResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class MeteringAppService {
     private final GridRepository gridRepository;
     private final TunnelRepository tunnelRepository;
@@ -41,6 +43,8 @@ public class MeteringAppService {
                 .createdAt(now)
                 .build());
         tunnelRepository.increaseBandwidthUsed(request.getTunnelId(), request.getUsage(), now);
+        log.info("Metering accepted: tunnelId={}, tunnelCode={}, gridName={}, usageBytes={}",
+                request.getTunnelId(), request.getTunnelCode(), gridName, request.getUsage());
         return MeteringReportResponse.builder().accepted(true).build();
     }
 
