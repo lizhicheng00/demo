@@ -75,12 +75,11 @@ public class TunnelAppService {
         String namespace = namespaceService.requireNamespace(rawNamespace);
         if (gridName != null && !gridName.isBlank()) {
             localGridService.requireLocalGrid(gridName);
-            return tunnelRepository.findByNamespace(namespace, gridName).stream()
+            return tunnelRepository.findByNamespaceAndRegion(namespace, gridName, relayProperties.getRegion()).stream()
                     .map(TunnelAssembler::toListItem)
                     .toList();
         }
-        return tunnelRepository.findByNamespace(namespace, gridName).stream()
-                .filter(tunnel -> localGridService.isLocalGrid(tunnel.getGridName()))
+        return tunnelRepository.findByNamespaceAndRegion(namespace, null, relayProperties.getRegion()).stream()
                 .map(TunnelAssembler::toListItem)
                 .toList();
     }
@@ -119,9 +118,7 @@ public class TunnelAppService {
     @Transactional
     public Boolean deleteTunnels(String rawNamespace) {
         String namespace = namespaceService.requireNamespace(rawNamespace);
-        List<Tunnel> tunnels = tunnelRepository.findByNamespace(namespace, null).stream()
-                .filter(tunnel -> localGridService.isLocalGrid(tunnel.getGridName()))
-                .toList();
+        List<Tunnel> tunnels = tunnelRepository.findByNamespaceAndRegion(namespace, null, relayProperties.getRegion());
         long now = TimeUtils.nowSeconds();
         tunnels.forEach(tunnel -> {
             tunnelRepository.softDelete(tunnel.getTunnelId(), now);
@@ -166,9 +163,8 @@ public class TunnelAppService {
 
     private Tunnel findOwnedTunnel(String rawNamespace, String tunnelId) {
         String namespace = namespaceService.requireNamespace(rawNamespace);
-        Tunnel tunnel = tunnelRepository.findByTunnelId(tunnelId);
+        Tunnel tunnel = tunnelRepository.findByTunnelIdAndRegion(tunnelId, relayProperties.getRegion());
         tunnelDomainService.assertOwnedBy(tunnel, namespace);
-        localGridService.requireLocalGrid(tunnel.getGridName());
         return tunnel;
     }
 

@@ -8,6 +8,7 @@ import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
 import com.huawei.devbridge.relaycontroller.domain.repository.MeteringRepository;
 import com.huawei.devbridge.relaycontroller.domain.repository.TunnelRepository;
 import com.huawei.devbridge.relaycontroller.domain.service.TunnelDomainService;
+import com.huawei.devbridge.relaycontroller.infrastructure.config.RelayProperties;
 import com.huawei.devbridge.relaycontroller.interfaces.request.MeteringReportRequest;
 import com.huawei.devbridge.relaycontroller.interfaces.response.MeteringReportResponse;
 import lombok.RequiredArgsConstructor;
@@ -23,11 +24,12 @@ public class MeteringAppService {
     private final TunnelRepository tunnelRepository;
     private final MeteringRepository meteringRepository;
     private final TunnelDomainService tunnelDomainService;
+    private final RelayProperties relayProperties;
 
     @Transactional
     public MeteringReportResponse report(String gridName, MeteringReportRequest request) {
         localGridService.requireLocalGrid(gridName);
-        Tunnel tunnel = tunnelRepository.findByTunnelId(request.getTunnelId());
+        Tunnel tunnel = tunnelRepository.findByTunnelIdAndRegion(request.getTunnelId(), relayProperties.getRegion());
         tunnelDomainService.assertInGrid(tunnel, gridName, ErrorCode.METERING_REPORT_FAILED);
         if (!request.getTunnelCode().equals(tunnel.getTunnelCode())) {
             throw new BizException(ErrorCode.METERING_REPORT_FAILED, "metering tunnel mismatch");

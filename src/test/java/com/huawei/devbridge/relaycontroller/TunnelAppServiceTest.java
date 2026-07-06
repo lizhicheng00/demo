@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -146,8 +145,7 @@ class TunnelAppServiceTest {
                 .expiration(Math.toIntExact(TimeUtils.nowSeconds() + 1800))
                 .build();
 
-        when(tunnelRepository.findByTunnelId("aaaadysa")).thenReturn(tunnel);
-        stubLocalGrid("grid-a");
+        when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel);
 
         long before = TimeUtils.nowSeconds();
         Boolean updated = service.updateTunnel("ns-user-001", request);
@@ -161,7 +159,7 @@ class TunnelAppServiceTest {
     }
 
     @Test
-    void listTunnelsReturnsLocalRegionTunnelsOnly() {
+    void listTunnelsQueriesLocalRegionOnly() {
         TunnelAppService service = newService(new RelayProperties());
         Tunnel local = Tunnel.builder()
                 .name("local")
@@ -170,16 +168,8 @@ class TunnelAppServiceTest {
                 .url("local.region-a.relayprovider.xxx.com")
                 .deleted(0)
                 .build();
-        Tunnel remote = Tunnel.builder()
-                .name("remote")
-                .namespace("ns-user-001")
-                .gridName("grid-b")
-                .url("remote.region-b.relayprovider.xxx.com")
-                .deleted(0)
-                .build();
 
-        when(tunnelRepository.findByNamespace("ns-user-001", null)).thenReturn(List.of(local, remote));
-        stubLocalGrid("grid-a");
+        when(tunnelRepository.findByNamespaceAndRegion("ns-user-001", null, "region-a")).thenReturn(List.of(local));
 
         List<TunnelListItemResponse> response = service.listTunnels("ns-user-001", null);
 
@@ -200,8 +190,7 @@ class TunnelAppServiceTest {
                 .type(TunnelType.BRIDGE)
                 .build();
 
-        when(tunnelRepository.findByTunnelId("aaaadysa")).thenReturn(tunnel);
-        stubLocalGrid("grid-a");
+        when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel);
 
         Boolean updated = service.updateTunnel("ns-user-001", request);
 
@@ -221,8 +210,7 @@ class TunnelAppServiceTest {
                 .deleted(0)
                 .build();
 
-        when(tunnelRepository.findByTunnelId("aaaadysa")).thenReturn(tunnel);
-        stubLocalGrid("grid-a");
+        when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel);
 
         Boolean deleted = service.deleteTunnel("ns-user-001", "aaaadysa");
 
@@ -242,25 +230,15 @@ class TunnelAppServiceTest {
                 .gridName("grid-a")
                 .deleted(0)
                 .build();
-        Tunnel second = Tunnel.builder()
-                .tunnelId("aaaadysb")
-                .tunnelCode(123457L)
-                .namespace("ns-user-001")
-                .gridName("grid-b")
-                .deleted(0)
-                .build();
 
-        when(tunnelRepository.findByNamespace("ns-user-001", null)).thenReturn(List.of(first, second));
-        stubLocalGrid("grid-a");
+        when(tunnelRepository.findByNamespaceAndRegion("ns-user-001", null, "region-a")).thenReturn(List.of(first));
 
         Boolean deleted = service.deleteTunnels("ns-user-001");
 
         assertThat(deleted).isTrue();
         verify(tunnelRepository).softDelete(eq("aaaadysa"), anyLong());
-        verify(tunnelRepository, never()).softDelete(eq("aaaadysb"), anyLong());
         verify(jwtTokenService).evictToken("aaaadysa");
         verify(tunnelPortRepository).deleteByTunnelCode(123456L);
-        verify(tunnelPortRepository, never()).deleteByTunnelCode(123457L);
     }
 
     private TunnelAppService newService(RelayProperties properties) {

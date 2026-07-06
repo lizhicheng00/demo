@@ -3,12 +3,9 @@ package com.huawei.devbridge.relaycontroller;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-import com.huawei.devbridge.relaycontroller.application.service.LocalGridService;
 import com.huawei.devbridge.relaycontroller.application.service.RelayStatusAppService;
-import com.huawei.devbridge.relaycontroller.domain.model.Grid;
 import com.huawei.devbridge.relaycontroller.domain.model.RelayStatus;
 import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
-import com.huawei.devbridge.relaycontroller.domain.repository.GridRepository;
 import com.huawei.devbridge.relaycontroller.domain.repository.RelayStatusRepository;
 import com.huawei.devbridge.relaycontroller.domain.repository.TunnelRepository;
 import com.huawei.devbridge.relaycontroller.domain.service.NamespaceService;
@@ -26,20 +23,16 @@ class RelayStatusAppServiceTest {
     private TunnelRepository tunnelRepository;
     @Mock
     private RelayStatusRepository relayStatusRepository;
-    @Mock
-    private GridRepository gridRepository;
 
     @Test
     void statusIsOfflineWithoutRuntimeRecordAndDoesNotFakeHeartbeat() {
         RelayStatusAppService service = newService();
-        when(tunnelRepository.findByTunnelId("aaaadysa")).thenReturn(Tunnel.builder()
+        when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(Tunnel.builder()
                 .tunnelId("aaaadysa")
                 .namespace("ns-user-001")
                 .gridName("grid-a")
                 .deleted(0)
                 .build());
-        when(gridRepository.findByGridNameAndRegion("grid-a", "region-a"))
-                .thenReturn(Grid.builder().grid("grid-a").region("region-a").build());
         when(relayStatusRepository.findByTunnelId("aaaadysa")).thenReturn(null);
 
         RelayStatusResponse response = service.getStatus("ns-user-001", "aaaadysa");
@@ -52,14 +45,12 @@ class RelayStatusAppServiceTest {
     @Test
     void statusIsOfflineWhenRuntimeGridDoesNotMatchTunnelGrid() {
         RelayStatusAppService service = newService();
-        when(tunnelRepository.findByTunnelId("aaaadysa")).thenReturn(Tunnel.builder()
+        when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(Tunnel.builder()
                 .tunnelId("aaaadysa")
                 .namespace("ns-user-001")
                 .gridName("grid-a")
                 .deleted(0)
                 .build());
-        when(gridRepository.findByGridNameAndRegion("grid-a", "region-a"))
-                .thenReturn(Grid.builder().grid("grid-a").region("region-a").build());
         when(relayStatusRepository.findByTunnelId("aaaadysa")).thenReturn(RelayStatus.builder()
                 .tunnelId("aaaadysa")
                 .gridName("grid-b")
@@ -79,8 +70,8 @@ class RelayStatusAppServiceTest {
         return new RelayStatusAppService(
                 tunnelRepository,
                 relayStatusRepository,
-                new LocalGridService(gridRepository, properties),
                 new NamespaceService(),
-                new TunnelDomainService());
+                new TunnelDomainService(),
+                properties);
     }
 }

@@ -10,6 +10,7 @@ import com.huawei.devbridge.relaycontroller.domain.repository.TunnelRepository;
 import com.huawei.devbridge.relaycontroller.domain.service.NamespaceService;
 import com.huawei.devbridge.relaycontroller.domain.service.TunnelDomainService;
 import com.huawei.devbridge.relaycontroller.domain.service.TunnelPortDomainService;
+import com.huawei.devbridge.relaycontroller.infrastructure.config.RelayProperties;
 import com.huawei.devbridge.relaycontroller.interfaces.request.CreateTunnelPortRequest;
 import com.huawei.devbridge.relaycontroller.interfaces.request.UpdateTunnelPortRequest;
 import com.huawei.devbridge.relaycontroller.interfaces.response.GatewayTunnelPortPolicyResponse;
@@ -30,6 +31,7 @@ public class TunnelPortAppService {
     private final NamespaceService namespaceService;
     private final TunnelDomainService tunnelDomainService;
     private final TunnelPortDomainService tunnelPortDomainService;
+    private final RelayProperties relayProperties;
 
     @Transactional
     public TunnelPortResponse create(String rawNamespace, String tunnelId, CreateTunnelPortRequest request) {
@@ -95,7 +97,7 @@ public class TunnelPortAppService {
 
     public GatewayTunnelPortPolicyResponse getGatewayPortPolicy(String gridName, String tunnelId, Long port) {
         localGridService.requireLocalGrid(gridName);
-        Tunnel tunnel = tunnelRepository.findByTunnelId(tunnelId);
+        Tunnel tunnel = tunnelRepository.findByTunnelIdAndRegion(tunnelId, relayProperties.getRegion());
         tunnelDomainService.assertInGrid(tunnel, gridName, ErrorCode.TUNNEL_PORT_ACCESS_DENIED);
         TunnelPort tunnelPort = findTunnelPort(tunnel.getTunnelCode(), port);
         return TunnelPortAssembler.toGatewayPolicy(tunnel, tunnelPort);
@@ -103,9 +105,8 @@ public class TunnelPortAppService {
 
     private Tunnel ownedTunnel(String rawNamespace, String tunnelId) {
         String namespace = namespaceService.requireNamespace(rawNamespace);
-        Tunnel tunnel = tunnelRepository.findByTunnelId(tunnelId);
+        Tunnel tunnel = tunnelRepository.findByTunnelIdAndRegion(tunnelId, relayProperties.getRegion());
         tunnelDomainService.assertOwnedBy(tunnel, namespace);
-        localGridService.requireLocalGrid(tunnel.getGridName());
         return tunnel;
     }
 

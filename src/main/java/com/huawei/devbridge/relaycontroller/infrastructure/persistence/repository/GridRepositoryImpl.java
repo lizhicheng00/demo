@@ -3,6 +3,7 @@ package com.huawei.devbridge.relaycontroller.infrastructure.persistence.reposito
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.huawei.devbridge.relaycontroller.domain.model.Grid;
 import com.huawei.devbridge.relaycontroller.domain.repository.GridRepository;
+import com.huawei.devbridge.relaycontroller.infrastructure.persistence.converter.PersistenceConverter;
 import com.huawei.devbridge.relaycontroller.infrastructure.persistence.entity.GridEntity;
 import com.huawei.devbridge.relaycontroller.infrastructure.persistence.mapper.GridMapper;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Repository;
 @RequiredArgsConstructor
 public class GridRepositoryImpl implements GridRepository {
     private final GridMapper gridMapper;
+    private final PersistenceConverter converter;
 
     @Override
     public Grid findByGridNameAndRegion(String gridName, String region) {
@@ -19,19 +21,6 @@ public class GridRepositoryImpl implements GridRepository {
                 .eq(GridEntity::getGrid, gridName)
                 .eq(GridEntity::getRegion, region)
                 .last("LIMIT 1"));
-        return toDomain(entity);
-    }
-
-    private Grid toDomain(GridEntity entity) {
-        if (entity == null) {
-            return null;
-        }
-        return Grid.builder()
-                .id(entity.getId())
-                .grid(entity.getGrid())
-                .region(entity.getRegion())
-                .createdAt(entity.getCreatedAt())
-                .updatedAt(entity.getUpdatedAt())
-                .build();
+        return converter.toDomain(entity);
     }
 }

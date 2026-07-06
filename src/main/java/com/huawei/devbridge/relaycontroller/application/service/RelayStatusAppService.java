@@ -6,6 +6,7 @@ import com.huawei.devbridge.relaycontroller.domain.repository.RelayStatusReposit
 import com.huawei.devbridge.relaycontroller.domain.repository.TunnelRepository;
 import com.huawei.devbridge.relaycontroller.domain.service.NamespaceService;
 import com.huawei.devbridge.relaycontroller.domain.service.TunnelDomainService;
+import com.huawei.devbridge.relaycontroller.infrastructure.config.RelayProperties;
 import com.huawei.devbridge.relaycontroller.interfaces.response.RelayStatusResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,15 +16,14 @@ import org.springframework.stereotype.Service;
 public class RelayStatusAppService {
     private final TunnelRepository tunnelRepository;
     private final RelayStatusRepository relayStatusRepository;
-    private final LocalGridService localGridService;
     private final NamespaceService namespaceService;
     private final TunnelDomainService tunnelDomainService;
+    private final RelayProperties relayProperties;
 
     public RelayStatusResponse getStatus(String rawNamespace, String tunnelId) {
         String namespace = namespaceService.requireNamespace(rawNamespace);
-        Tunnel tunnel = tunnelRepository.findByTunnelId(tunnelId);
+        Tunnel tunnel = tunnelRepository.findByTunnelIdAndRegion(tunnelId, relayProperties.getRegion());
         tunnelDomainService.assertOwnedBy(tunnel, namespace);
-        localGridService.requireLocalGrid(tunnel.getGridName());
         RelayStatus relayStatus = relayStatusRepository.findByTunnelId(tunnelId);
         if (relayStatus == null || !tunnel.getGridName().equals(relayStatus.getGridName())) {
             return offlineStatus(tunnelId, tunnel);

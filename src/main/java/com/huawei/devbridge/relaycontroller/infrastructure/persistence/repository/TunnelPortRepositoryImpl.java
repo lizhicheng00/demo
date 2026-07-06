@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.huawei.devbridge.relaycontroller.domain.model.TunnelPort;
 import com.huawei.devbridge.relaycontroller.domain.repository.TunnelPortRepository;
+import com.huawei.devbridge.relaycontroller.infrastructure.persistence.converter.PersistenceConverter;
 import com.huawei.devbridge.relaycontroller.infrastructure.persistence.entity.TunnelPortEntity;
 import com.huawei.devbridge.relaycontroller.infrastructure.persistence.mapper.TunnelPortMapper;
 import java.util.List;
@@ -14,10 +15,11 @@ import org.springframework.stereotype.Repository;
 @RequiredArgsConstructor
 public class TunnelPortRepositoryImpl implements TunnelPortRepository {
     private final TunnelPortMapper tunnelPortMapper;
+    private final PersistenceConverter converter;
 
     @Override
     public TunnelPort save(TunnelPort tunnelPort) {
-        TunnelPortEntity entity = toEntity(tunnelPort);
+        TunnelPortEntity entity = converter.toEntity(tunnelPort);
         tunnelPortMapper.insert(entity);
         tunnelPort.setId(entity.getId());
         return tunnelPort;
@@ -29,7 +31,7 @@ public class TunnelPortRepositoryImpl implements TunnelPortRepository {
                         .eq(TunnelPortEntity::getTunnelCode, tunnelCode)
                         .orderByAsc(TunnelPortEntity::getPort))
                 .stream()
-                .map(this::toDomain)
+                .map(converter::toDomain)
                 .toList();
     }
 
@@ -39,7 +41,7 @@ public class TunnelPortRepositoryImpl implements TunnelPortRepository {
                 .eq(TunnelPortEntity::getTunnelCode, tunnelCode)
                 .eq(TunnelPortEntity::getPort, port)
                 .last("LIMIT 1"));
-        return toDomain(entity);
+        return converter.toDomain(entity);
     }
 
     @Override
@@ -70,24 +72,4 @@ public class TunnelPortRepositoryImpl implements TunnelPortRepository {
                 .eq(TunnelPortEntity::getTunnelCode, tunnelCode));
     }
 
-    private TunnelPort toDomain(TunnelPortEntity entity) {
-        if (entity == null) {
-            return null;
-        }
-        return TunnelPort.builder()
-                .id(entity.getId())
-                .tunnelCode(entity.getTunnelCode())
-                .port(entity.getPort())
-                .allowAnonymous(entity.getAllowAnonymous())
-                .build();
-    }
-
-    private TunnelPortEntity toEntity(TunnelPort tunnelPort) {
-        TunnelPortEntity entity = new TunnelPortEntity();
-        entity.setId(tunnelPort.getId());
-        entity.setTunnelCode(tunnelPort.getTunnelCode());
-        entity.setPort(tunnelPort.getPort());
-        entity.setAllowAnonymous(tunnelPort.getAllowAnonymous());
-        return entity;
-    }
 }

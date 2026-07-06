@@ -43,7 +43,7 @@ class MeteringAppServiceTest {
 
         when(gridRepository.findByGridNameAndRegion("grid-a", "region-a"))
                 .thenReturn(Grid.builder().grid("grid-a").region("region-a").build());
-        when(tunnelRepository.findByTunnelId("aaaadysa")).thenReturn(Tunnel.builder()
+        when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(Tunnel.builder()
                 .tunnelId("aaaadysa")
                 .tunnelCode(123456L)
                 .gridName("grid-a")
@@ -77,6 +77,7 @@ class MeteringAppServiceTest {
                 new LocalGridService(gridRepository, properties),
                 tunnelRepository,
                 meteringRepository,
-                new TunnelDomainService());
+                new TunnelDomainService(),
+                properties);
     }
 }

@@ -4,13 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
-import com.huawei.devbridge.relaycontroller.application.service.LocalGridService;
 import com.huawei.devbridge.relaycontroller.application.service.TokenAppService;
 import com.huawei.devbridge.relaycontroller.common.exception.BizException;
 import com.huawei.devbridge.relaycontroller.common.exception.ErrorCode;
-import com.huawei.devbridge.relaycontroller.domain.model.Grid;
 import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
-import com.huawei.devbridge.relaycontroller.domain.repository.GridRepository;
 import com.huawei.devbridge.relaycontroller.domain.repository.TunnelRepository;
 import com.huawei.devbridge.relaycontroller.domain.service.JwtTokenService;
 import com.huawei.devbridge.relaycontroller.domain.service.NamespaceService;
@@ -30,18 +27,13 @@ class TokenAppServiceTest {
     private TunnelRepository tunnelRepository;
     @Mock
     private JwtTokenService jwtTokenService;
-    @Mock
-    private GridRepository gridRepository;
-
     @Test
     void createTokenChecksNamespaceWhenUserIdExists() {
         TokenAppService service = newService();
         CreateTokenRequest request = new CreateTokenRequest();
         request.setTunnelId("aaaadysa");
 
-        when(tunnelRepository.findByTunnelId("aaaadysa")).thenReturn(tunnel());
-        when(gridRepository.findByGridNameAndRegion("grid-a", "region-a"))
-                .thenReturn(Grid.builder().grid("grid-a").region("region-a").build());
+        when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel());
         when(jwtTokenService.getOrCreateToken(ArgumentMatchers.any(Tunnel.class))).thenReturn("token-token");
 
         CreateTokenResponse response = service.createToken("ns-user-001", request);
@@ -62,17 +54,15 @@ class TokenAppServiceTest {
     }
 
     @Test
-    void createTokenRejectsGridOutsideLocalRegion() {
+    void createTokenRejectsTunnelOutsideLocalRegion() {
         TokenAppService service = newService();
         CreateTokenRequest request = new CreateTokenRequest();
         request.setTunnelId("aaaadysa");
 
-        when(tunnelRepository.findByTunnelId("aaaadysa")).thenReturn(tunnel());
-
         assertThatThrownBy(() -> service.createToken("ns-user-001", request))
                 .isInstanceOf(BizException.class)
                 .extracting("errorCode")
-                .isEqualTo(ErrorCode.GRID_NOT_FOUND);
+                .isEqualTo(ErrorCode.TUNNEL_NOT_FOUND);
     }
 
     private TokenAppService newService() {
@@ -80,7 +70,6 @@ class TokenAppServiceTest {
         return new TokenAppService(
                 tunnelRepository,
                 jwtTokenService,
-                new LocalGridService(gridRepository, properties),
                 new NamespaceService(),
                 new TunnelDomainService(),
                 properties);

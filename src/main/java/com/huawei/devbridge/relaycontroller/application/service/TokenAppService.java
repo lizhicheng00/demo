@@ -21,7 +21,6 @@ import org.springframework.stereotype.Service;
 public class TokenAppService {
     private final TunnelRepository tunnelRepository;
     private final JwtTokenService jwtTokenService;
-    private final LocalGridService localGridService;
     private final NamespaceService namespaceService;
     private final TunnelDomainService tunnelDomainService;
     private final RelayProperties relayProperties;
@@ -51,9 +50,8 @@ public class TokenAppService {
     }
 
     private Tunnel findActiveTunnel(String tunnelId) {
-        Tunnel tunnel = tunnelRepository.findByTunnelId(tunnelId);
+        Tunnel tunnel = tunnelRepository.findByTunnelIdAndRegion(tunnelId, relayProperties.getRegion());
         tunnelDomainService.assertNotExpired(tunnel);
-        localGridService.requireLocalGrid(tunnel.getGridName());
         return tunnel;
     }
 }

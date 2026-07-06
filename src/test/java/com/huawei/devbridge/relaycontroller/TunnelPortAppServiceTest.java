@@ -52,7 +52,7 @@ class TunnelPortAppServiceTest {
         request.setPort(8080L);
         request.setAllowAnonymous(false);
 
-        when(tunnelRepository.findByTunnelId("aaaadysa")).thenReturn(tunnel("ns-user-001", "grid-a"));
+        when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel("ns-user-001", "grid-a"));
         when(tunnelPortRepository.existsByTunnelCodeAndPort(123456L, 8080L)).thenReturn(false);
         when(tunnelPortRepository.save(org.mockito.ArgumentMatchers.any(TunnelPort.class))).thenAnswer(invocation -> {
             TunnelPort tunnelPort = invocation.getArgument(0);
@@ -76,7 +76,7 @@ class TunnelPortAppServiceTest {
         request.setPort(8080L);
         request.setAllowAnonymous(false);
 
-        when(tunnelRepository.findByTunnelId("aaaadysa")).thenReturn(tunnel("ns-user-001", "grid-a"));
+        when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel("ns-user-001", "grid-a"));
         when(tunnelPortRepository.existsByTunnelCodeAndPort(123456L, 8080L)).thenReturn(true);
 
         assertThatThrownBy(() -> service.create("ns-user-001", "aaaadysa", request))
@@ -92,7 +92,7 @@ class TunnelPortAppServiceTest {
         request.setPort(65536L);
         request.setAllowAnonymous(false);
 
-        when(tunnelRepository.findByTunnelId("aaaadysa")).thenReturn(tunnel("ns-user-001", "grid-a"));
+        when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel("ns-user-001", "grid-a"));
 
         assertThatThrownBy(() -> service.create("ns-user-001", "aaaadysa", request))
                 .isInstanceOf(BizException.class)
@@ -106,7 +106,7 @@ class TunnelPortAppServiceTest {
         CreateTunnelPortRequest request = new CreateTunnelPortRequest();
         request.setAllowAnonymous(false);
 
-        when(tunnelRepository.findByTunnelId("aaaadysa")).thenReturn(tunnel("ns-user-001", "grid-a"));
+        when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel("ns-user-001", "grid-a"));
 
         assertThatThrownBy(() -> service.create("ns-user-001", "aaaadysa", request))
                 .isInstanceOf(BizException.class)
@@ -121,7 +121,7 @@ class TunnelPortAppServiceTest {
         request.setPort(8080L);
         request.setAllowAnonymous(false);
 
-        when(tunnelRepository.findByTunnelId("aaaadysa")).thenReturn(tunnel("ns-user-a", "grid-a"));
+        when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel("ns-user-a", "grid-a"));
 
         assertThatThrownBy(() -> service.create("ns-user-b", "aaaadysa", request))
                 .isInstanceOf(BizException.class)
@@ -133,7 +133,7 @@ class TunnelPortAppServiceTest {
     void listTunnelPortsReturnsPolicies() {
         TunnelPortAppService service = newService();
 
-        when(tunnelRepository.findByTunnelId("aaaadysa")).thenReturn(tunnel("ns-user-001", "grid-a"));
+        when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel("ns-user-001", "grid-a"));
         when(tunnelPortRepository.findByTunnelCode(123456L)).thenReturn(List.of(
                 TunnelPort.builder().id(1L).tunnelCode(123456L).port(8080L).allowAnonymous(false).build(),
                 TunnelPort.builder().id(2L).tunnelCode(123456L).port(8888L).allowAnonymous(true).build()));
@@ -149,7 +149,7 @@ class TunnelPortAppServiceTest {
         UpdateTunnelPortRequest request = new UpdateTunnelPortRequest();
         request.setAllowAnonymous(true);
 
-        when(tunnelRepository.findByTunnelId("aaaadysa")).thenReturn(tunnel("ns-user-001", "grid-a"));
+        when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel("ns-user-001", "grid-a"));
         when(tunnelPortRepository.findByTunnelCodeAndPort(123456L, 8080L))
                 .thenReturn(TunnelPort.builder().id(1L).tunnelCode(123456L).port(8080L).allowAnonymous(false).build());
 
@@ -163,7 +163,7 @@ class TunnelPortAppServiceTest {
     void deleteTunnelPortRemovesPolicy() {
         TunnelPortAppService service = newService();
 
-        when(tunnelRepository.findByTunnelId("aaaadysa")).thenReturn(tunnel("ns-user-001", "grid-a"));
+        when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel("ns-user-001", "grid-a"));
         when(tunnelPortRepository.findByTunnelCodeAndPort(123456L, 8080L))
                 .thenReturn(TunnelPort.builder().id(1L).tunnelCode(123456L).port(8080L).allowAnonymous(false).build());
 
@@ -177,7 +177,7 @@ class TunnelPortAppServiceTest {
     void deleteAllTunnelPortsRemovesPolicies() {
         TunnelPortAppService service = newService();
 
-        when(tunnelRepository.findByTunnelId("aaaadysa")).thenReturn(tunnel("ns-user-001", "grid-a"));
+        when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel("ns-user-001", "grid-a"));
 
         Boolean deleted = service.deleteAll("ns-user-001", "aaaadysa");
 
@@ -189,7 +189,7 @@ class TunnelPortAppServiceTest {
     void detailRejectsMissingPort() {
         TunnelPortAppService service = newService();
 
-        when(tunnelRepository.findByTunnelId("aaaadysa")).thenReturn(tunnel("ns-user-001", "grid-a"));
+        when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel("ns-user-001", "grid-a"));
         when(tunnelPortRepository.findByTunnelCodeAndPort(123456L, 8080L)).thenReturn(null);
 
         assertThatThrownBy(() -> service.detail("ns-user-001", "aaaadysa", 8080L))
@@ -202,7 +202,7 @@ class TunnelPortAppServiceTest {
     void gatewayPolicyChecksGridAndReturnsPolicy() {
         TunnelPortAppService service = newService();
 
-        when(tunnelRepository.findByTunnelId("aaaadysa")).thenReturn(tunnel("ns-user-001", "grid-a"));
+        when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel("ns-user-001", "grid-a"));
         when(tunnelPortRepository.findByTunnelCodeAndPort(123456L, 8080L))
                 .thenReturn(TunnelPort.builder().id(1L).tunnelCode(123456L).port(8080L).allowAnonymous(true).build());
 
@@ -217,7 +217,7 @@ class TunnelPortAppServiceTest {
         TunnelPortAppService service = newService();
 
         localGrid("grid-b");
-        when(tunnelRepository.findByTunnelId("aaaadysa")).thenReturn(tunnel("ns-user-001", "grid-a"));
+        when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel("ns-user-001", "grid-a"));
 
         assertThatThrownBy(() -> service.getGatewayPortPolicy("grid-b", "aaaadysa", 8080L))
                 .isInstanceOf(BizException.class)
@@ -243,7 +243,8 @@ class TunnelPortAppServiceTest {
                 new LocalGridService(gridRepository, properties),
                 new NamespaceService(),
                 new TunnelDomainService(),
-                new TunnelPortDomainService());
+                new TunnelPortDomainService(),
+                properties);
     }
 
     private Tunnel tunnel(String namespace, String gridName) {

@@ -4,9 +4,9 @@ import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
 import java.util.List;
 
 public interface TunnelRepository {
-    Tunnel findByTunnelId(String tunnelId);
+    Tunnel findByTunnelIdAndRegion(String tunnelId, String region);
 
-    List<Tunnel> findByNamespace(String namespace, String gridName);
+    List<Tunnel> findByNamespaceAndRegion(String namespace, String gridName, String region);
 
     boolean existsByTunnelId(String tunnelId);
 
