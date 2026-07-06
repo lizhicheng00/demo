@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS tunnel (
     cluster VARCHAR(128) DEFAULT NULL COMMENT 'cluster',
     bandwidth_used BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'used bytes',
     url VARCHAR(512) NOT NULL COMMENT 'public url',
-    type VARCHAR(64) NOT NULL DEFAULT 'default' COMMENT 'tunnel type',
+    type VARCHAR(64) NOT NULL DEFAULT 'bridge' COMMENT 'tunnel type: bridge/env',
     deleted TINYINT NOT NULL DEFAULT 0 COMMENT 'soft delete flag',
     created_at BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'created unix seconds',
     updated_at BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'updated unix seconds',

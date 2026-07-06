@@ -2,8 +2,10 @@ package com.huawei.devbridge.relaycontroller.domain.service;
 
 import com.huawei.devbridge.relaycontroller.common.exception.BizException;
 import com.huawei.devbridge.relaycontroller.common.exception.ErrorCode;
+import com.huawei.devbridge.relaycontroller.common.util.StringUtils;
 import com.huawei.devbridge.relaycontroller.common.util.TimeUtils;
 import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
+import com.huawei.devbridge.relaycontroller.domain.model.TunnelType;
 import java.util.Objects;
 import org.springframework.stereotype.Service;
 
@@ -35,5 +37,16 @@ public class TunnelDomainService {
         if (!Objects.equals(gridName, tunnel.getGridName())) {
             throw new BizException(mismatchErrorCode);
         }
+    }
+
+    public String normalizeType(String type) {
+        if (StringUtils.isBlank(type)) {
+            return TunnelType.BRIDGE.value();
+        }
+        String normalizedType = type.trim().toLowerCase();
+        if (!TunnelType.supports(normalizedType)) {
+            throw new BizException(ErrorCode.TUNNEL_TYPE_INVALID);
+        }
+        return normalizedType;
     }
 }

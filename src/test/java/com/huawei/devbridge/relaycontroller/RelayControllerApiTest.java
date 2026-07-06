@@ -108,13 +108,30 @@ class RelayControllerApiTest {
                                 {
                                   "name": "dev",
                                   "gridname": "grid-a",
-                                  "cluster": "cluster-a"
+                                  "cluster": "cluster-a",
+                                  "type": "bridge"
                                 }
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(0))
                 .andExpect(jsonPath("$.data.tunnelId").value(TUNNEL_ID))
                 .andExpect(jsonPath("$.data.gridname").value(GRID_NAME));
+    }
+
+    @Test
+    void createTunnelWithoutUserHeaderReturnsUnauthorized() throws Exception {
+        mockMvc.perform(post(BASE + "/tunnel")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name": "dev",
+                                  "gridname": "grid-a",
+                                  "type": "bridge"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(40100))
+                .andExpect(jsonPath("$.message").value("X-User-Id is required"));
     }
 
     @Test
@@ -145,7 +162,7 @@ class RelayControllerApiTest {
                 .tunnelCode(123456L)
                 .gridName(GRID_NAME)
                 .url("000001e240.region-a.relayprovider.xxx.com")
-                .type("default")
+                .type("bridge")
                 .build());
 
         mockMvc.perform(get(BASE + "/tunnel")
@@ -429,7 +446,7 @@ class RelayControllerApiTest {
                 .expiration(1720086400)
                 .created(1720000000L)
                 .url("000001e240.region-a.relayprovider.xxx.com")
-                .type("default")
+                .type("bridge")
                 .build();
     }
 

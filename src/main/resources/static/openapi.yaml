@@ -509,6 +509,8 @@ components:
           description: Unix seconds.
         type:
           type: string
+          enum: [bridge, env]
+          default: bridge
     UpdateTunnelRequest:
       type: object
       required: [tunnelId]
@@ -528,6 +530,7 @@ components:
           format: int32
         type:
           type: string
+          enum: [bridge, env]
     RegisterNodeRequest:
       type: object
       required: [ip]
@@ -618,6 +621,7 @@ components:
           type: string
         type:
           type: string
+          enum: [bridge, env]
     TunnelListItem:
       type: object
       properties:

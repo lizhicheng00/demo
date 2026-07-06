@@ -3,7 +3,6 @@ package com.huawei.devbridge.relaycontroller.application.service;
 import com.huawei.devbridge.relaycontroller.application.assembler.TunnelAssembler;
 import com.huawei.devbridge.relaycontroller.common.exception.BizException;
 import com.huawei.devbridge.relaycontroller.common.exception.ErrorCode;
-import com.huawei.devbridge.relaycontroller.common.util.StringUtils;
 import com.huawei.devbridge.relaycontroller.common.util.TimeUtils;
 import com.huawei.devbridge.relaycontroller.domain.model.Grid;
 import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
@@ -38,9 +37,9 @@ public class TunnelAppService {
     private final TunnelPortRepository tunnelPortRepository;
     private final RelayProperties relayProperties;
 
-    @Transactional
     public CreateTunnelResponse createTunnel(String userId, CreateTunnelRequest request) {
         String namespace = namespaceService.resolveNamespace(userId);
+        String type = tunnelDomainService.normalizeType(request.getType());
         Grid grid = findGrid(request.getGridName());
         long now = TimeUtils.nowSeconds();
         int expiration = resolveExpiration(request.getExpiration(), now);
@@ -57,7 +56,7 @@ public class TunnelAppService {
                 .cluster(request.getCluster())
                 .bandwidthUsed(0L)
                 .url(buildTunnelUrl(code.tunnelId(), grid))
-                .type(StringUtils.defaultIfBlank(request.getType(), "default"))
+                .type(type)
                 .deleted(0)
                 .createdAt(now)
                 .updatedAt(now)
@@ -102,7 +101,7 @@ public class TunnelAppService {
 
     private boolean applyUpdates(Tunnel tunnel, UpdateTunnelRequest request) {
         boolean expirationChanged = false;
-        if (!StringUtils.isBlank(request.getName())) {
+        if (request.getName() != null && !request.getName().isBlank()) {
             tunnel.setName(request.getName());
         }
         if (request.getDescription() != null) {
@@ -116,8 +115,8 @@ public class TunnelAppService {
             tunnel.setExpiration(request.getExpiration());
             expirationChanged = true;
         }
-        if (!StringUtils.isBlank(request.getType())) {
-            tunnel.setType(request.getType());
+        if (request.getType() != null) {
+            tunnel.setType(tunnelDomainService.normalizeType(request.getType()));
         }
         return expirationChanged;
     }

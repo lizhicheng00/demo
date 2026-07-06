@@ -44,6 +44,7 @@ POST   /open-api-inner/v1/relay-controller/tokens/rt
 ```
 
 User tunnel APIs read `X-User-Id` and resolve `namespace = ns-{userId}`.
+Tunnel `type` is restricted to `bridge` or `env`; blank create requests default to `bridge`.
 
 Token APIs are independent from tunnel resource paths. OTT is a 30-minute one-time token for RT exchange. RT is a 24-hour reusable token cached at `jwt:rt:{tunnelId}`. `POST /open-api-inner/v1/relay-controller/tokens/rt` accepts optional `X-Relay-Authorization` with either raw OTT or `Bearer <OTT>` format.
 
@@ -74,6 +75,12 @@ Configure MySQL and Redis in `src/main/resources/application.yml`, then run:
 
 ```bash
 mvn spring-boot:run
+```
+
+Run HTTP smoke tests against a running service:
+
+```bash
+bash scripts/http-smoke-test.sh
 ```
 
 Use JDK 17 for normal development and deployment. The project uses Jetty instead of Tomcat and Jedis instead of Lettuce/Netty to avoid JDK 26 startup warnings from Tomcat native loading and Netty `Unsafe` access. If Maven itself is run on JDK 26, Maven's own dependencies may still print JVM warnings before the application starts; those are not emitted by the Relay Controller runtime.

@@ -68,6 +68,7 @@ class TunnelAppServiceTest {
         assertThat(response.getTunnelId()).isEqualTo("000001e240");
         assertThat(response.getTunnelCode()).isEqualTo(123456L);
         assertThat(response.getUrl()).isEqualTo("000001e240.region-a.relayprovider.xxx.com");
+        assertThat(response.getType()).isEqualTo("bridge");
     }
 
     @Test
@@ -85,6 +86,20 @@ class TunnelAppServiceTest {
                 .isInstanceOf(BizException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.TUNNEL_EXPIRED);
+    }
+
+    @Test
+    void createTunnelRejectsInvalidType() {
+        TunnelAppService service = newService(new RelayProperties());
+        CreateTunnelRequest request = new CreateTunnelRequest();
+        request.setName("dev");
+        request.setGridName("grid-a");
+        request.setType("default");
+
+        assertThatThrownBy(() -> service.createTunnel("user-001", request))
+                .isInstanceOf(BizException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.TUNNEL_TYPE_INVALID);
     }
 
     @Test
@@ -107,6 +122,27 @@ class TunnelAppServiceTest {
         assertThat(updated).isTrue();
         verify(tunnelRepository).update(tunnel);
         verify(jwtTokenService).evictReusableToken("000001e240");
+    }
+
+    @Test
+    void updateTunnelRejectsInvalidType() {
+        TunnelAppService service = newService(new RelayProperties());
+        UpdateTunnelRequest request = new UpdateTunnelRequest();
+        request.setTunnelId("000001e240");
+        request.setType("default");
+        Tunnel tunnel = Tunnel.builder()
+                .tunnelId("000001e240")
+                .namespace("ns-user-001")
+                .deleted(0)
+                .type("bridge")
+                .build();
+
+        when(tunnelRepository.findByTunnelId("000001e240")).thenReturn(tunnel);
+
+        assertThatThrownBy(() -> service.updateTunnel("user-001", request))
+                .isInstanceOf(BizException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.TUNNEL_TYPE_INVALID);
     }
 
     @Test
