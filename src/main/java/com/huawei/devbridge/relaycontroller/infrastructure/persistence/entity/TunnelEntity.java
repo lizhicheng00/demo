@@ -3,6 +3,7 @@ package com.huawei.devbridge.relaycontroller.infrastructure.persistence.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.huawei.devbridge.relaycontroller.domain.model.TunnelType;
 import lombok.Data;
 
 @Data
@@ -20,7 +21,7 @@ public class TunnelEntity {
     private String cluster;
     private Long bandwidthUsed;
     private String url;
-    private String type;
+    private TunnelType type;
     private Integer deleted;
     private Long createdAt;
     private Long updatedAt;

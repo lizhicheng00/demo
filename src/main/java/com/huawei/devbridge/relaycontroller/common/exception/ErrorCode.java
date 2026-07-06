@@ -16,7 +16,6 @@ public enum ErrorCode {
     TUNNEL_ID_CONFLICT(10003, "tunnel id conflict"),
     TUNNEL_EXPIRED(10004, "tunnel expired"),
     TUNNEL_ACCESS_DENIED(10005, "tunnel access denied"),
-    TUNNEL_TYPE_INVALID(10006, "tunnel type invalid"),
     TUNNEL_PORT_INVALID(11001, "tunnel port invalid"),
     TUNNEL_PORT_ALREADY_EXISTS(11002, "tunnel port already exists"),
     TUNNEL_PORT_NOT_FOUND(11003, "tunnel port not found"),

@@ -1,5 +1,6 @@
 package com.huawei.devbridge.relaycontroller.interfaces.request;
 
+import com.huawei.devbridge.relaycontroller.domain.model.TunnelType;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
@@ -12,5 +13,5 @@ public class UpdateTunnelRequest {
     private String description;
     private String cluster;
     private Integer expiration;
-    private String type;
+    private TunnelType type;
 }

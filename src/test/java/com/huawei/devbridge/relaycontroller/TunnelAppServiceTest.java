@@ -13,6 +13,7 @@ import com.huawei.devbridge.relaycontroller.common.util.TimeUtils;
 import com.huawei.devbridge.relaycontroller.application.service.TunnelAppService;
 import com.huawei.devbridge.relaycontroller.domain.model.Grid;
 import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
+import com.huawei.devbridge.relaycontroller.domain.model.TunnelType;
 import com.huawei.devbridge.relaycontroller.domain.repository.GridRepository;
 import com.huawei.devbridge.relaycontroller.domain.repository.TunnelPortRepository;
 import com.huawei.devbridge.relaycontroller.domain.repository.TunnelRepository;
@@ -90,20 +91,6 @@ class TunnelAppServiceTest {
     }
 
     @Test
-    void createTunnelRejectsInvalidType() {
-        TunnelAppService service = newService(new RelayProperties());
-        CreateTunnelRequest request = new CreateTunnelRequest();
-        request.setName("dev");
-        request.setGridName("grid-a");
-        request.setType("default");
-
-        assertThatThrownBy(() -> service.createTunnel("user-001", request))
-                .isInstanceOf(BizException.class)
-                .extracting("errorCode")
-                .isEqualTo(ErrorCode.TUNNEL_TYPE_INVALID);
-    }
-
-    @Test
     void updateTunnelEvictsTokenWhenExpirationChanges() {
         TunnelAppService service = newService(new RelayProperties());
         UpdateTunnelRequest request = new UpdateTunnelRequest();
@@ -126,24 +113,25 @@ class TunnelAppServiceTest {
     }
 
     @Test
-    void updateTunnelRejectsInvalidType() {
+    void updateTunnelStoresEnumType() {
         TunnelAppService service = newService(new RelayProperties());
         UpdateTunnelRequest request = new UpdateTunnelRequest();
         request.setTunnelId("000001e240");
-        request.setType("default");
+        request.setType(TunnelType.ENV);
         Tunnel tunnel = Tunnel.builder()
                 .tunnelId("000001e240")
                 .namespace("ns-user-001")
                 .deleted(0)
-                .type("bridge")
+                .type(TunnelType.BRIDGE)
                 .build();
 
         when(tunnelRepository.findByTunnelId("000001e240")).thenReturn(tunnel);
 
-        assertThatThrownBy(() -> service.updateTunnel("user-001", request))
-                .isInstanceOf(BizException.class)
-                .extracting("errorCode")
-                .isEqualTo(ErrorCode.TUNNEL_TYPE_INVALID);
+        Boolean updated = service.updateTunnel("user-001", request);
+
+        assertThat(updated).isTrue();
+        assertThat(tunnel.getType()).isEqualTo(TunnelType.ENV);
+        verify(tunnelRepository).update(tunnel);
     }
 
     @Test

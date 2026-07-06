@@ -21,7 +21,7 @@ public class Tunnel {
     private String cluster;
     private Long bandwidthUsed;
     private String url;
-    private String type;
+    private TunnelType type;
     private Integer deleted;
     private Long createdAt;
     private Long updatedAt;

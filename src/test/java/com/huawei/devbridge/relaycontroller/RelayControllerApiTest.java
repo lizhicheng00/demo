@@ -117,6 +117,22 @@ class RelayControllerApiTest {
     }
 
     @Test
+    void createTunnelWithInvalidTypeReturnsParamInvalid() throws Exception {
+        mockMvc.perform(post(BASE + "/tunnels")
+                        .header("X-User-Id", USER_ID)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name": "dev",
+                                  "gridname": "grid-a",
+                                  "type": "default"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(40000));
+    }
+
+    @Test
     void listTunnelsApi() throws Exception {
         when(tunnelAppService.listTunnels(USER_ID, GRID_NAME)).thenReturn(List.of(
                 TunnelListItemResponse.builder()

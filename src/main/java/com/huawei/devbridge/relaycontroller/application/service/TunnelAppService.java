@@ -6,6 +6,7 @@ import com.huawei.devbridge.relaycontroller.common.exception.ErrorCode;
 import com.huawei.devbridge.relaycontroller.common.util.TimeUtils;
 import com.huawei.devbridge.relaycontroller.domain.model.Grid;
 import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
+import com.huawei.devbridge.relaycontroller.domain.model.TunnelType;
 import com.huawei.devbridge.relaycontroller.domain.repository.GridRepository;
 import com.huawei.devbridge.relaycontroller.domain.repository.TunnelPortRepository;
 import com.huawei.devbridge.relaycontroller.domain.repository.TunnelRepository;
@@ -41,7 +42,7 @@ public class TunnelAppService {
 
     public CreateTunnelResponse createTunnel(String userId, CreateTunnelRequest request) {
         String namespace = namespaceService.resolveNamespace(userId);
-        String type = tunnelDomainService.normalizeType(request.getType());
+        TunnelType type = request.getType() == null ? TunnelType.BRIDGE : request.getType();
         Grid grid = findGrid(request.getGridName());
         long now = TimeUtils.nowSeconds();
         int expiration = resolveExpiration(request.getExpiration(), now);
@@ -139,7 +140,7 @@ public class TunnelAppService {
             expirationChanged = true;
         }
         if (request.getType() != null) {
-            tunnel.setType(tunnelDomainService.normalizeType(request.getType()));
+            tunnel.setType(request.getType());
         }
         return expirationChanged;
     }
