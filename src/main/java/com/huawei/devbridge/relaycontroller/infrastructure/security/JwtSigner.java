@@ -22,13 +22,13 @@ public class JwtSigner {
     private final RelayProperties relayProperties;
     private final JwtKeyProvider jwtKeyProvider;
 
-    public String signReusableToken(Tunnel tunnel, String jti, long ttlSeconds) {
+    public String signToken(Tunnel tunnel, String jti, long ttlSeconds) {
         try {
             Instant now = Instant.now();
             Instant expiresAt = now.plusSeconds(ttlSeconds);
             JWTClaimsSet claims = new JWTClaimsSet.Builder()
                     .jwtID(jti)
-                    .claim("typ", "RT")
+                    .claim("typ", "TOKEN")
                     .issuer(relayProperties.getJwt().getIssuer())
                     .issueTime(Date.from(now))
                     .expirationTime(Date.from(expiresAt))

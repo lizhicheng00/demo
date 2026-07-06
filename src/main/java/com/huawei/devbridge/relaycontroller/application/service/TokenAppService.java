@@ -9,8 +9,8 @@ import com.huawei.devbridge.relaycontroller.domain.service.JwtTokenService;
 import com.huawei.devbridge.relaycontroller.domain.service.NamespaceService;
 import com.huawei.devbridge.relaycontroller.domain.service.TunnelDomainService;
 import com.huawei.devbridge.relaycontroller.infrastructure.config.RelayProperties;
-import com.huawei.devbridge.relaycontroller.interfaces.request.CreateRtTokenRequest;
-import com.huawei.devbridge.relaycontroller.interfaces.response.CreateRtTokenResponse;
+import com.huawei.devbridge.relaycontroller.interfaces.request.CreateTokenRequest;
+import com.huawei.devbridge.relaycontroller.interfaces.response.CreateTokenResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,7 +25,7 @@ public class TokenAppService {
     private final TunnelDomainService tunnelDomainService;
     private final RelayProperties relayProperties;
 
-    public CreateRtTokenResponse createRt(String userId, CreateRtTokenRequest request) {
+    public CreateTokenResponse createToken(String userId, CreateTokenRequest request) {
         String tunnelId = request == null ? null : request.getTunnelId();
         if (StringUtils.isBlank(tunnelId)) {
             throw new BizException(ErrorCode.PARAM_INVALID, "tunnelId is required");
@@ -34,18 +34,18 @@ public class TokenAppService {
         if (!StringUtils.isBlank(userId)) {
             tunnelDomainService.assertOwnedBy(tunnel, namespaceService.resolveNamespace(userId));
         }
-        String token = jwtTokenService.getOrCreateReusableToken(tunnel);
-        log.info("RT issued: tunnelId={}, gridName={}, mode=direct, userIdPresent={}, expiresIn={}",
+        String token = jwtTokenService.getOrCreateToken(tunnel);
+        log.info("Token issued: tunnelId={}, gridName={}, mode=direct, userIdPresent={}, expiresIn={}",
                 tunnel.getTunnelId(), tunnel.getGridName(), !StringUtils.isBlank(userId),
-                relayProperties.getJwt().getRt().getTtlSeconds());
-        return reusableTokenResponse(token);
+                relayProperties.getJwt().getToken().getTtlSeconds());
+        return tokenResponse(token);
     }
 
-    private CreateRtTokenResponse reusableTokenResponse(String token) {
-        return CreateRtTokenResponse.builder()
-                .tokenType("RT")
+    private CreateTokenResponse tokenResponse(String token) {
+        return CreateTokenResponse.builder()
+                .tokenType("TOKEN")
                 .token(token)
-                .expiresIn(relayProperties.getJwt().getRt().getTtlSeconds())
+                .expiresIn(relayProperties.getJwt().getToken().getTtlSeconds())
                 .build();
     }
 

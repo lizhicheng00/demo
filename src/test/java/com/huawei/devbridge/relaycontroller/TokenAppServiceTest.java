@@ -13,8 +13,8 @@ import com.huawei.devbridge.relaycontroller.domain.service.JwtTokenService;
 import com.huawei.devbridge.relaycontroller.domain.service.NamespaceService;
 import com.huawei.devbridge.relaycontroller.domain.service.TunnelDomainService;
 import com.huawei.devbridge.relaycontroller.infrastructure.config.RelayProperties;
-import com.huawei.devbridge.relaycontroller.interfaces.request.CreateRtTokenRequest;
-import com.huawei.devbridge.relaycontroller.interfaces.response.CreateRtTokenResponse;
+import com.huawei.devbridge.relaycontroller.interfaces.request.CreateTokenRequest;
+import com.huawei.devbridge.relaycontroller.interfaces.response.CreateTokenResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
@@ -29,26 +29,26 @@ class TokenAppServiceTest {
     private JwtTokenService jwtTokenService;
 
     @Test
-    void createRtDirectChecksNamespaceWhenUserIdExists() {
+    void createTokenChecksNamespaceWhenUserIdExists() {
         TokenAppService service = newService();
-        CreateRtTokenRequest request = new CreateRtTokenRequest();
+        CreateTokenRequest request = new CreateTokenRequest();
         request.setTunnelId("000001e240");
 
         when(tunnelRepository.findByTunnelId("000001e240")).thenReturn(tunnel());
-        when(jwtTokenService.getOrCreateReusableToken(ArgumentMatchers.any(Tunnel.class))).thenReturn("rt-token");
+        when(jwtTokenService.getOrCreateToken(ArgumentMatchers.any(Tunnel.class))).thenReturn("token-token");
 
-        CreateRtTokenResponse response = service.createRt("user-001", request);
+        CreateTokenResponse response = service.createToken("user-001", request);
 
-        assertThat(response.getTokenType()).isEqualTo("RT");
-        assertThat(response.getToken()).isEqualTo("rt-token");
+        assertThat(response.getTokenType()).isEqualTo("TOKEN");
+        assertThat(response.getToken()).isEqualTo("token-token");
         assertThat(response.getExpiresIn()).isEqualTo(86400L);
     }
 
     @Test
-    void createRtRejectsMissingTunnelId() {
+    void createTokenRejectsMissingTunnelId() {
         TokenAppService service = newService();
 
-        assertThatThrownBy(() -> service.createRt(null, new CreateRtTokenRequest()))
+        assertThatThrownBy(() -> service.createToken(null, new CreateTokenRequest()))
                 .isInstanceOf(BizException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.PARAM_INVALID);

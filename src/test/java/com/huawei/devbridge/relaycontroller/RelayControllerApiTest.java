@@ -22,13 +22,13 @@ import com.huawei.devbridge.relaycontroller.interfaces.controller.RelayStatusCon
 import com.huawei.devbridge.relaycontroller.interfaces.controller.TokenController;
 import com.huawei.devbridge.relaycontroller.interfaces.controller.TunnelController;
 import com.huawei.devbridge.relaycontroller.interfaces.controller.TunnelPortController;
-import com.huawei.devbridge.relaycontroller.interfaces.request.CreateRtTokenRequest;
+import com.huawei.devbridge.relaycontroller.interfaces.request.CreateTokenRequest;
 import com.huawei.devbridge.relaycontroller.interfaces.request.CreateTunnelPortRequest;
 import com.huawei.devbridge.relaycontroller.interfaces.request.CreateTunnelRequest;
 import com.huawei.devbridge.relaycontroller.interfaces.request.MeteringReportRequest;
 import com.huawei.devbridge.relaycontroller.interfaces.request.UpdateTunnelPortRequest;
 import com.huawei.devbridge.relaycontroller.interfaces.request.UpdateTunnelRequest;
-import com.huawei.devbridge.relaycontroller.interfaces.response.CreateRtTokenResponse;
+import com.huawei.devbridge.relaycontroller.interfaces.response.CreateTokenResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.CreateTunnelResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.GatewayTunnelPortPolicyResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.MeteringReportResponse;
@@ -326,10 +326,10 @@ class RelayControllerApiTest {
 
     @Test
     void createTokenApi() throws Exception {
-        when(tokenAppService.createRt(eq(USER_ID), any(CreateRtTokenRequest.class)))
-                .thenReturn(CreateRtTokenResponse.builder()
-                        .tokenType("RT")
-                        .token("rt-token")
+        when(tokenAppService.createToken(eq(USER_ID), any(CreateTokenRequest.class)))
+                .thenReturn(CreateTokenResponse.builder()
+                        .tokenType("TOKEN")
+                        .token("token-token")
                         .expiresIn(86400L)
                         .build());
 
@@ -343,7 +343,7 @@ class RelayControllerApiTest {
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(0))
-                .andExpect(jsonPath("$.data.tokenType").value("RT"))
+                .andExpect(jsonPath("$.data.tokenType").value("TOKEN"))
                 .andExpect(jsonPath("$.data.expiresIn").value(86400));
     }
 

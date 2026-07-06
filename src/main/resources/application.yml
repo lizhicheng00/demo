@@ -54,5 +54,5 @@ relay:
     issuer: devbridge
     key-id: "1"
     private-key:
-    rt:
+    token:
       ttl-seconds: 86400

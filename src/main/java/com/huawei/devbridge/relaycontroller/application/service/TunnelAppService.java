@@ -90,7 +90,7 @@ public class TunnelAppService {
         tunnel.setUpdatedAt(TimeUtils.nowSeconds());
         tunnelRepository.update(tunnel);
         if (expirationChanged) {
-            jwtTokenService.evictReusableToken(tunnel.getTunnelId());
+            jwtTokenService.evictToken(tunnel.getTunnelId());
         }
         log.info("Tunnel updated: tunnelId={}, namespace={}, expirationChanged={}",
                 tunnel.getTunnelId(), tunnel.getNamespace(), expirationChanged);
@@ -101,7 +101,7 @@ public class TunnelAppService {
     public Boolean deleteTunnel(String userId, String tunnelId) {
         Tunnel tunnel = findOwnedTunnel(userId, tunnelId);
         tunnelRepository.softDelete(tunnelId, TimeUtils.nowSeconds());
-        jwtTokenService.evictReusableToken(tunnelId);
+        jwtTokenService.evictToken(tunnelId);
         tunnelPortRepository.deleteByTunnelCode(tunnel.getTunnelCode());
         log.info("Tunnel deleted: tunnelId={}, tunnelCode={}, namespace={}",
                 tunnel.getTunnelId(), tunnel.getTunnelCode(), tunnel.getNamespace());

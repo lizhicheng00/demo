@@ -16,24 +16,24 @@ public class JwtTokenServiceImpl implements JwtTokenService {
     private final RelayProperties relayProperties;
 
     @Override
-    public String getOrCreateReusableToken(Tunnel tunnel) {
-        long ttlSeconds = relayProperties.getJwt().getRt().getTtlSeconds();
-        String cached = jwtTokenCache.getReusableToken(tunnel.getTunnelId());
+    public String getOrCreateToken(Tunnel tunnel) {
+        long ttlSeconds = relayProperties.getJwt().getToken().getTtlSeconds();
+        String cached = jwtTokenCache.getToken(tunnel.getTunnelId());
         if (cached != null && !cached.isBlank()) {
             return cached;
         }
-        String token = createReusableToken(tunnel);
-        jwtTokenCache.setReusableToken(tunnel.getTunnelId(), token, ttlSeconds);
+        String token = createToken(tunnel);
+        jwtTokenCache.setToken(tunnel.getTunnelId(), token, ttlSeconds);
         return token;
     }
 
     @Override
-    public String createReusableToken(Tunnel tunnel) {
-        return jwtSigner.signReusableToken(tunnel, "rt:" + tunnel.getTunnelId() + ":" + IdUtils.uuid(), relayProperties.getJwt().getRt().getTtlSeconds());
+    public String createToken(Tunnel tunnel) {
+        return jwtSigner.signToken(tunnel, "token:" + tunnel.getTunnelId() + ":" + IdUtils.uuid(), relayProperties.getJwt().getToken().getTtlSeconds());
     }
 
     @Override
-    public void evictReusableToken(String tunnelId) {
-        jwtTokenCache.deleteReusableToken(tunnelId);
+    public void evictToken(String tunnelId) {
+        jwtTokenCache.deleteToken(tunnelId);
     }
 }

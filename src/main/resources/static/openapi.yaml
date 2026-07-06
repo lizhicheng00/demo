@@ -254,14 +254,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateRtTokenRequest'
+              $ref: '#/components/schemas/CreateTokenRequest'
       responses:
         '200':
           description: Reusable token.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CreateRtTokenResult'
+                $ref: '#/components/schemas/CreateTokenResult'
 components:
   parameters:
     UserIdHeader:
@@ -351,7 +351,7 @@ components:
           properties:
             data:
               $ref: '#/components/schemas/RelayStatusResponse'
-    CreateRtTokenResult:
+    CreateTokenResult:
       allOf:
         - $ref: '#/components/schemas/ResultBase'
         - type: object
@@ -437,7 +437,7 @@ components:
           type: integer
           format: int64
           minimum: 0
-    CreateRtTokenRequest:
+    CreateTokenRequest:
       type: object
       properties:
         tunnelId:
@@ -529,7 +529,7 @@ components:
       properties:
         tokenType:
           type: string
-          enum: [RT]
+          enum: [TOKEN]
         token:
           type: string
         expiresIn:

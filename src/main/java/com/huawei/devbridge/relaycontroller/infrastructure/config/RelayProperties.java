@@ -17,7 +17,7 @@ public class RelayProperties {
         private String issuer = "devbridge";
         private String keyId = "1";
         private String privateKey;
-        private TokenTtl rt = new TokenTtl(86400);
+        private TokenTtl token = new TokenTtl(86400);
     }
 
     @Data

@@ -121,7 +121,7 @@ class TunnelAppServiceTest {
 
         assertThat(updated).isTrue();
         verify(tunnelRepository).update(tunnel);
-        verify(jwtTokenService).evictReusableToken("000001e240");
+        verify(jwtTokenService).evictToken("000001e240");
     }
 
     @Test
@@ -161,7 +161,7 @@ class TunnelAppServiceTest {
 
         assertThat(deleted).isTrue();
         verify(tunnelRepository).softDelete(eq("000001e240"), anyLong());
-        verify(jwtTokenService).evictReusableToken("000001e240");
+        verify(jwtTokenService).evictToken("000001e240");
         verify(tunnelPortRepository).deleteByTunnelCode(123456L);
     }
 

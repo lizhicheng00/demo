@@ -41,7 +41,7 @@ POST   /open-api-inner/v1/relay-controller/tokens
 User tunnel APIs read `X-User-Id` and resolve `namespace = ns-{userId}`.
 Tunnel `type` is restricted to `bridge` or `env`; blank create requests default to `bridge`.
 
-Token APIs are independent from tunnel resource paths. RT is a 24-hour reusable token cached at `jwt:rt:{tunnelId}`.
+Token APIs are independent from tunnel resource paths. Tokens are reusable for 24 hours and cached at `jwt:token:{tunnelId}`.
 
 Tunnel port APIs manage the explicit per-port allow list for a tunnel. Unconfigured ports are denied by default. `allowAnonymous` only controls sending-side access to that port; listening-side gateway connection still requires token authentication.
 

@@ -24,33 +24,33 @@ class JwtTokenServiceTest {
     private JwtSigner jwtSigner;
 
     @Test
-    void getOrCreateReusableTokenReturnsCachedValue() {
+    void getOrCreateTokenReturnsCachedValue() {
         RelayProperties properties = new RelayProperties();
         JwtTokenServiceImpl service = new JwtTokenServiceImpl(jwtTokenCache, jwtSigner, properties);
         Tunnel tunnel = Tunnel.builder().tunnelId("000001e240").build();
 
-        when(jwtTokenCache.getReusableToken("000001e240")).thenReturn("cached-token");
+        when(jwtTokenCache.getToken("000001e240")).thenReturn("cached-token");
 
-        String token = service.getOrCreateReusableToken(tunnel);
+        String token = service.getOrCreateToken(tunnel);
 
         assertThat(token).isEqualTo("cached-token");
-        verify(jwtSigner, never()).signReusableToken(eq(tunnel), org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyLong());
+        verify(jwtSigner, never()).signToken(eq(tunnel), org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyLong());
     }
 
     @Test
-    void getOrCreateReusableTokenCreatesAndCachesRt() {
+    void getOrCreateTokenCreatesAndCachesToken() {
         RelayProperties properties = new RelayProperties();
-        properties.getJwt().getRt().setTtlSeconds(86400);
+        properties.getJwt().getToken().setTtlSeconds(86400);
         JwtTokenServiceImpl service = new JwtTokenServiceImpl(jwtTokenCache, jwtSigner, properties);
         Tunnel tunnel = Tunnel.builder().tunnelId("000001e240").build();
 
-        when(jwtTokenCache.getReusableToken("000001e240")).thenReturn(null);
-        when(jwtSigner.signReusableToken(eq(tunnel), org.mockito.ArgumentMatchers.startsWith("rt:000001e240:"), eq(86400L)))
+        when(jwtTokenCache.getToken("000001e240")).thenReturn(null);
+        when(jwtSigner.signToken(eq(tunnel), org.mockito.ArgumentMatchers.startsWith("token:000001e240:"), eq(86400L)))
                 .thenReturn("new-token");
 
-        String token = service.getOrCreateReusableToken(tunnel);
+        String token = service.getOrCreateToken(tunnel);
 
         assertThat(token).isEqualTo("new-token");
-        verify(jwtTokenCache).setReusableToken("000001e240", "new-token", 86400L);
+        verify(jwtTokenCache).setToken("000001e240", "new-token", 86400L);
     }
 }

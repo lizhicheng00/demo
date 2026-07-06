@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class CreateRtTokenResponse {
+public class CreateTokenResponse {
     private String tokenType;
     private String token;
     private Long expiresIn;
