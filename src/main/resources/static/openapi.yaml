@@ -320,13 +320,12 @@ components:
   schemas:
     ResultBase:
       type: object
-      required: [code, message]
+      required: [error_code, error_message]
       properties:
-        code:
-          type: integer
-          format: int32
-          example: 0
-        message:
+        error_code:
+          type: string
+          example: "0000"
+        error_message:
           type: string
           example: success
     BooleanResult:

@@ -1,5 +1,6 @@
 package com.huawei.devbridge.relaycontroller.common.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.huawei.devbridge.relaycontroller.common.exception.ErrorCode;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,8 +10,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Result<T> {
-    private int code;
-    private String message;
+    @JsonProperty("error_code")
+    private String errorCode;
+    @JsonProperty("error_message")
+    private String errorMessage;
     private T data;
 
     public static <T> Result<T> success(T data) {
