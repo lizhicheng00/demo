@@ -35,7 +35,7 @@ public class JwtSigner {
                     .claim("tunnelId", tunnel.getTunnelId())
                     .claim("tunnelCode", tunnel.getTunnelCode())
                     .claim("namespace", tunnel.getNamespace())
-                    .claim("gridname", tunnel.getGridName())
+                    .claim("gridName", tunnel.getGridName())
                     .build();
             return sign(claims);
         } catch (Exception exception) {

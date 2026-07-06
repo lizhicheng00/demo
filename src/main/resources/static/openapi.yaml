@@ -406,7 +406,7 @@ components:
               $ref: '#/components/schemas/GatewayTunnelPortPolicyResponse'
     CreateTunnelRequest:
       type: object
-      required: [name, gridname]
+      required: [name, gridName]
       properties:
         name:
           type: string
@@ -414,9 +414,9 @@ components:
         description:
           type: string
           maxLength: 512
-        gridname:
+        gridName:
           type: string
-          description: Grid name. JSON also accepts gridName.
+          description: Grid name. Legacy JSON field gridname is still accepted.
         cluster:
           type: string
         expiration:
@@ -502,7 +502,7 @@ components:
         tunnelCode:
           type: integer
           format: int64
-        gridname:
+        gridName:
           type: string
         cluster:
           type: string
@@ -548,7 +548,7 @@ components:
           pattern: '^[a-z2-7]{8}$'
         status:
           type: string
-        gridname:
+        gridName:
           type: string
         nodeId:
           type: string
@@ -594,7 +594,7 @@ components:
         tunnelCode:
           type: integer
           format: int64
-        gridname:
+        gridName:
           type: string
         port:
           type: integer

@@ -178,7 +178,7 @@
                             <generateSupportingFiles>false</generateSupportingFiles>
                             <skipIfSpecIsUnchanged>false</skipIfSpecIsUnchanged>
                             <globalProperties>
-                                <apis></apis>
+                                <apis/>
                                 <models>false</models>
                                 <supportingFiles>false</supportingFiles>
                             </globalProperties>

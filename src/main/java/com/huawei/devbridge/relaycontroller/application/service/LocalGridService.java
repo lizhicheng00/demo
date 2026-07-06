@@ -22,10 +22,6 @@ public class LocalGridService {
         return grid;
     }
 
-    public boolean isLocalGrid(String gridName) {
-        return findLocalGrid(gridName) != null;
-    }
-
     private Grid findLocalGrid(String gridName) {
         return gridRepository.findByGridNameAndRegion(gridName, relayProperties.getRegion());
     }

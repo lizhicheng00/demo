@@ -1,7 +1,6 @@
 package com.huawei.devbridge.relaycontroller.interfaces.request;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.huawei.devbridge.relaycontroller.domain.model.TunnelType;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -16,8 +15,7 @@ public class CreateTunnelRequest {
     @Size(max = 512)
     private String description;
     @NotBlank
-    @JsonProperty("gridname")
-    @JsonAlias("gridName")
+    @JsonAlias("gridname")
     private String gridName;
     private String cluster;
     @Min(1)

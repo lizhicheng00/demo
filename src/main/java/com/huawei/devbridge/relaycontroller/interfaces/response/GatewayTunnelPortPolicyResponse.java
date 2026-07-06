@@ -1,6 +1,5 @@
 package com.huawei.devbridge.relaycontroller.interfaces.response;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
 
@@ -9,7 +8,6 @@ import lombok.Data;
 public class GatewayTunnelPortPolicyResponse {
     private String tunnelId;
     private Long tunnelCode;
-    @JsonProperty("gridname")
     private String gridName;
     private Long port;
     private Boolean allowAnonymous;

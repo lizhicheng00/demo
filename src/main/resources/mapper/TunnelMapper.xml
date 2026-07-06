@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huawei.devbridge.relaycontroller.infrastructure.persistence.mapper.TunnelMapper">
+    <select id="selectByTunnelIdAndRegion"
+            resultType="com.huawei.devbridge.relaycontroller.infrastructure.persistence.entity.TunnelEntity">
+        SELECT t.*
+        FROM tunnel t
+        INNER JOIN grid g ON g.grid = t.grid_name
+        WHERE t.tunnel_id = #{tunnelId}
+          AND g.region = #{region}
+          AND t.deleted = 0
+        LIMIT 1
+    </select>
+
+    <select id="selectByNamespaceAndRegion"
+            resultType="com.huawei.devbridge.relaycontroller.infrastructure.persistence.entity.TunnelEntity">
+        SELECT t.*
+        FROM tunnel t
+        INNER JOIN grid g ON g.grid = t.grid_name
+        WHERE t.namespace = #{namespace}
+          AND g.region = #{region}
+          AND t.deleted = 0
+        <if test="gridName != null and gridName != ''">
+          AND t.grid_name = #{gridName}
+        </if>
+        ORDER BY t.created_at DESC
+    </select>
+
+    <update id="increaseBandwidthUsed">
+        UPDATE tunnel
+        SET bandwidth_used = bandwidth_used + #{usageBytes},
+            updated_at = #{updatedAt}
+        WHERE tunnel_id = #{tunnelId}
+          AND deleted = 0
+    </update>
+</mapper>
