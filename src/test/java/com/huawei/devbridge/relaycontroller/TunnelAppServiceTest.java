@@ -4,9 +4,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.huawei.devbridge.relaycontroller.application.service.LocalGridService;
 import com.huawei.devbridge.relaycontroller.common.exception.BizException;
 import com.huawei.devbridge.relaycontroller.common.exception.ErrorCode;
 import com.huawei.devbridge.relaycontroller.common.util.TimeUtils;
@@ -25,6 +27,7 @@ import com.huawei.devbridge.relaycontroller.infrastructure.config.RelayPropertie
 import com.huawei.devbridge.relaycontroller.interfaces.request.CreateTunnelRequest;
 import com.huawei.devbridge.relaycontroller.interfaces.request.UpdateTunnelRequest;
 import com.huawei.devbridge.relaycontroller.interfaces.response.CreateTunnelResponse;
+import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelListItemResponse;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,7 +50,7 @@ class TunnelAppServiceTest {
         RelayProperties properties = new RelayProperties();
         TunnelAppService service = new TunnelAppService(
                 tunnelRepository,
-                gridRepository,
+                new LocalGridService(gridRepository, properties),
                 new NamespaceService(),
                 new FixedTunnelCodeGenerator(),
                 jwtTokenService,
@@ -60,7 +63,7 @@ class TunnelAppServiceTest {
         request.setCluster("cluster-a");
         long before = TimeUtils.nowSeconds();
 
-        when(gridRepository.findByGridName("grid-a"))
+        when(gridRepository.findByGridNameAndRegion("grid-a", "region-a"))
                 .thenReturn(Grid.builder().grid("grid-a").region("region-a").build());
         when(tunnelRepository.existsByTunnelCode(123456L)).thenReturn(false);
         when(tunnelRepository.existsByTunnelId("000001e240")).thenReturn(false);
@@ -78,6 +81,19 @@ class TunnelAppServiceTest {
     }
 
     @Test
+    void createTunnelRejectsGridOutsideLocalRegion() {
+        TunnelAppService service = newService(new RelayProperties());
+        CreateTunnelRequest request = new CreateTunnelRequest();
+        request.setName("dev");
+        request.setGridName("grid-b");
+
+        assertThatThrownBy(() -> service.createTunnel("ns-user-001", request))
+                .isInstanceOf(BizException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.GRID_NOT_FOUND);
+    }
+
+    @Test
     void createTunnelUsesCustomExpirationHours() {
         TunnelAppService service = newService(new RelayProperties());
         CreateTunnelRequest request = new CreateTunnelRequest();
@@ -86,7 +102,7 @@ class TunnelAppServiceTest {
         request.setExpiration(2);
         long before = TimeUtils.nowSeconds();
 
-        when(gridRepository.findByGridName("grid-a"))
+        when(gridRepository.findByGridNameAndRegion("grid-a", "region-a"))
                 .thenReturn(Grid.builder().grid("grid-a").region("region-a").build());
         when(tunnelRepository.existsByTunnelCode(123456L)).thenReturn(false);
         when(tunnelRepository.existsByTunnelId("000001e240")).thenReturn(false);
@@ -107,7 +123,7 @@ class TunnelAppServiceTest {
         request.setGridName("grid-a");
         request.setExpiration(0);
 
-        when(gridRepository.findByGridName("grid-a"))
+        when(gridRepository.findByGridNameAndRegion("grid-a", "region-a"))
                 .thenReturn(Grid.builder().grid("grid-a").region("region-a").build());
 
         assertThatThrownBy(() -> service.createTunnel("ns-user-001", request))
@@ -125,11 +141,13 @@ class TunnelAppServiceTest {
         Tunnel tunnel = Tunnel.builder()
                 .tunnelId("000001e240")
                 .namespace("ns-user-001")
+                .gridName("grid-a")
                 .deleted(0)
                 .expiration(Math.toIntExact(TimeUtils.nowSeconds() + 1800))
                 .build();
 
         when(tunnelRepository.findByTunnelId("000001e240")).thenReturn(tunnel);
+        stubLocalGrid("grid-a");
 
         long before = TimeUtils.nowSeconds();
         Boolean updated = service.updateTunnel("ns-user-001", request);
@@ -143,6 +161,32 @@ class TunnelAppServiceTest {
     }
 
     @Test
+    void listTunnelsReturnsLocalRegionTunnelsOnly() {
+        TunnelAppService service = newService(new RelayProperties());
+        Tunnel local = Tunnel.builder()
+                .name("local")
+                .namespace("ns-user-001")
+                .gridName("grid-a")
+                .url("local.region-a.relayprovider.xxx.com")
+                .deleted(0)
+                .build();
+        Tunnel remote = Tunnel.builder()
+                .name("remote")
+                .namespace("ns-user-001")
+                .gridName("grid-b")
+                .url("remote.region-b.relayprovider.xxx.com")
+                .deleted(0)
+                .build();
+
+        when(tunnelRepository.findByNamespace("ns-user-001", null)).thenReturn(List.of(local, remote));
+        stubLocalGrid("grid-a");
+
+        List<TunnelListItemResponse> response = service.listTunnels("ns-user-001", null);
+
+        assertThat(response).extracting(TunnelListItemResponse::getName).containsExactly("local");
+    }
+
+    @Test
     void updateTunnelStoresEnumType() {
         TunnelAppService service = newService(new RelayProperties());
         UpdateTunnelRequest request = new UpdateTunnelRequest();
@@ -151,11 +195,13 @@ class TunnelAppServiceTest {
         Tunnel tunnel = Tunnel.builder()
                 .tunnelId("000001e240")
                 .namespace("ns-user-001")
+                .gridName("grid-a")
                 .deleted(0)
                 .type(TunnelType.BRIDGE)
                 .build();
 
         when(tunnelRepository.findByTunnelId("000001e240")).thenReturn(tunnel);
+        stubLocalGrid("grid-a");
 
         Boolean updated = service.updateTunnel("ns-user-001", request);
 
@@ -171,10 +217,12 @@ class TunnelAppServiceTest {
                 .tunnelId("000001e240")
                 .tunnelCode(123456L)
                 .namespace("ns-user-001")
+                .gridName("grid-a")
                 .deleted(0)
                 .build();
 
         when(tunnelRepository.findByTunnelId("000001e240")).thenReturn(tunnel);
+        stubLocalGrid("grid-a");
 
         Boolean deleted = service.deleteTunnel("ns-user-001", "000001e240");
 
@@ -185,43 +233,51 @@ class TunnelAppServiceTest {
     }
 
     @Test
-    void deleteTunnelsCleansUserTunnels() {
+    void deleteTunnelsCleansLocalRegionTunnelsOnly() {
         TunnelAppService service = newService(new RelayProperties());
         Tunnel first = Tunnel.builder()
                 .tunnelId("000001e240")
                 .tunnelCode(123456L)
                 .namespace("ns-user-001")
+                .gridName("grid-a")
                 .deleted(0)
                 .build();
         Tunnel second = Tunnel.builder()
                 .tunnelId("000001e241")
                 .tunnelCode(123457L)
                 .namespace("ns-user-001")
+                .gridName("grid-b")
                 .deleted(0)
                 .build();
 
         when(tunnelRepository.findByNamespace("ns-user-001", null)).thenReturn(List.of(first, second));
+        stubLocalGrid("grid-a");
 
         Boolean deleted = service.deleteTunnels("ns-user-001");
 
         assertThat(deleted).isTrue();
-        verify(tunnelRepository).softDeleteByNamespace(eq("ns-user-001"), anyLong());
+        verify(tunnelRepository).softDelete(eq("000001e240"), anyLong());
+        verify(tunnelRepository, never()).softDelete(eq("000001e241"), anyLong());
         verify(jwtTokenService).evictToken("000001e240");
-        verify(jwtTokenService).evictToken("000001e241");
         verify(tunnelPortRepository).deleteByTunnelCode(123456L);
-        verify(tunnelPortRepository).deleteByTunnelCode(123457L);
+        verify(tunnelPortRepository, never()).deleteByTunnelCode(123457L);
     }
 
     private TunnelAppService newService(RelayProperties properties) {
         return new TunnelAppService(
                 tunnelRepository,
-                gridRepository,
+                new LocalGridService(gridRepository, properties),
                 new NamespaceService(),
                 new FixedTunnelCodeGenerator(),
                 jwtTokenService,
                 new TunnelDomainService(),
                 tunnelPortRepository,
                 properties);
+    }
+
+    private void stubLocalGrid(String gridName) {
+        when(gridRepository.findByGridNameAndRegion(gridName, "region-a"))
+                .thenReturn(Grid.builder().grid(gridName).region("region-a").build());
     }
 
     private static class FixedTunnelCodeGenerator extends TunnelCodeGenerator {

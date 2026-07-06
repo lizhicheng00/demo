@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "relay")
 public class RelayProperties {
     private String domain = "relayprovider.xxx.com";
+    private String region = "region-a";
     private int defaultExpirationHours = 72;
     private Jwt jwt = new Jwt();
 

@@ -49,6 +49,7 @@ logging:
 
 relay:
   domain: relayprovider.xxx.com
+  region: region-a
   default-expiration-hours: 72
   jwt:
     issuer: devbridge

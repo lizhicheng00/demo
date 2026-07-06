@@ -2,14 +2,18 @@ package com.huawei.devbridge.relaycontroller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.huawei.devbridge.relaycontroller.application.service.LocalGridService;
 import com.huawei.devbridge.relaycontroller.application.service.TunnelPortAppService;
 import com.huawei.devbridge.relaycontroller.common.exception.BizException;
 import com.huawei.devbridge.relaycontroller.common.exception.ErrorCode;
+import com.huawei.devbridge.relaycontroller.domain.model.Grid;
 import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
 import com.huawei.devbridge.relaycontroller.domain.model.TunnelPort;
+import com.huawei.devbridge.relaycontroller.domain.repository.GridRepository;
 import com.huawei.devbridge.relaycontroller.domain.repository.TunnelPortRepository;
 import com.huawei.devbridge.relaycontroller.domain.repository.TunnelRepository;
 import com.huawei.devbridge.relaycontroller.domain.service.NamespaceService;
@@ -19,7 +23,9 @@ import com.huawei.devbridge.relaycontroller.interfaces.request.CreateTunnelPortR
 import com.huawei.devbridge.relaycontroller.interfaces.request.UpdateTunnelPortRequest;
 import com.huawei.devbridge.relaycontroller.interfaces.response.GatewayTunnelPortPolicyResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelPortResponse;
+import com.huawei.devbridge.relaycontroller.infrastructure.config.RelayProperties;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -31,6 +37,13 @@ class TunnelPortAppServiceTest {
     private TunnelRepository tunnelRepository;
     @Mock
     private TunnelPortRepository tunnelPortRepository;
+    @Mock
+    private GridRepository gridRepository;
+
+    @BeforeEach
+    void setUp() {
+        localGrid("grid-a");
+    }
 
     @Test
     void createTunnelPortWritesPolicy() {
@@ -203,6 +216,7 @@ class TunnelPortAppServiceTest {
     void gatewayPolicyRejectsGridMismatch() {
         TunnelPortAppService service = newService();
 
+        localGrid("grid-b");
         when(tunnelRepository.findByTunnelId("000001e240")).thenReturn(tunnel("ns-user-001", "grid-a"));
 
         assertThatThrownBy(() -> service.getGatewayPortPolicy("grid-b", "000001e240", 8080L))
@@ -211,10 +225,22 @@ class TunnelPortAppServiceTest {
                 .isEqualTo(ErrorCode.TUNNEL_PORT_ACCESS_DENIED);
     }
 
+    @Test
+    void gatewayPolicyRejectsGridOutsideLocalRegion() {
+        TunnelPortAppService service = newService();
+
+        assertThatThrownBy(() -> service.getGatewayPortPolicy("grid-b", "000001e240", 8080L))
+                .isInstanceOf(BizException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.GRID_NOT_FOUND);
+    }
+
     private TunnelPortAppService newService() {
+        RelayProperties properties = new RelayProperties();
         return new TunnelPortAppService(
                 tunnelRepository,
                 tunnelPortRepository,
+                new LocalGridService(gridRepository, properties),
                 new NamespaceService(),
                 new TunnelDomainService(),
                 new TunnelPortDomainService());
@@ -228,5 +254,10 @@ class TunnelPortAppServiceTest {
                 .gridName(gridName)
                 .deleted(0)
                 .build();
+    }
+
+    private void localGrid(String gridName) {
+        lenient().when(gridRepository.findByGridNameAndRegion(gridName, "region-a"))
+                .thenReturn(Grid.builder().grid(gridName).region("region-a").build());
     }
 }

@@ -5,7 +5,6 @@ import com.huawei.devbridge.relaycontroller.common.exception.ErrorCode;
 import com.huawei.devbridge.relaycontroller.common.util.TimeUtils;
 import com.huawei.devbridge.relaycontroller.domain.model.Metering;
 import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
-import com.huawei.devbridge.relaycontroller.domain.repository.GridRepository;
 import com.huawei.devbridge.relaycontroller.domain.repository.MeteringRepository;
 import com.huawei.devbridge.relaycontroller.domain.repository.TunnelRepository;
 import com.huawei.devbridge.relaycontroller.domain.service.TunnelDomainService;
@@ -20,14 +19,14 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Slf4j
 public class MeteringAppService {
-    private final GridRepository gridRepository;
+    private final LocalGridService localGridService;
     private final TunnelRepository tunnelRepository;
     private final MeteringRepository meteringRepository;
     private final TunnelDomainService tunnelDomainService;
 
     @Transactional
     public MeteringReportResponse report(String gridName, MeteringReportRequest request) {
-        ensureGridExists(gridName);
+        localGridService.requireLocalGrid(gridName);
         Tunnel tunnel = tunnelRepository.findByTunnelId(request.getTunnelId());
         tunnelDomainService.assertInGrid(tunnel, gridName, ErrorCode.METERING_REPORT_FAILED);
         if (!request.getTunnelCode().equals(tunnel.getTunnelCode())) {
@@ -46,11 +45,5 @@ public class MeteringAppService {
         log.info("Metering accepted: tunnelId={}, tunnelCode={}, gridName={}, usageBytes={}",
                 request.getTunnelId(), request.getTunnelCode(), gridName, request.getUsage());
         return MeteringReportResponse.builder().accepted(true).build();
-    }
-
-    private void ensureGridExists(String gridName) {
-        if (!gridRepository.existsByGridName(gridName)) {
-            throw new BizException(ErrorCode.GRID_NOT_FOUND);
-        }
     }
 }

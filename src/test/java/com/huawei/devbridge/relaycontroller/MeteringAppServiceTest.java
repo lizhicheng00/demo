@@ -1,15 +1,21 @@
 package com.huawei.devbridge.relaycontroller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.huawei.devbridge.relaycontroller.application.service.LocalGridService;
 import com.huawei.devbridge.relaycontroller.application.service.MeteringAppService;
+import com.huawei.devbridge.relaycontroller.common.exception.BizException;
+import com.huawei.devbridge.relaycontroller.common.exception.ErrorCode;
+import com.huawei.devbridge.relaycontroller.domain.model.Grid;
 import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
 import com.huawei.devbridge.relaycontroller.domain.repository.GridRepository;
 import com.huawei.devbridge.relaycontroller.domain.repository.MeteringRepository;
 import com.huawei.devbridge.relaycontroller.domain.repository.TunnelRepository;
 import com.huawei.devbridge.relaycontroller.domain.service.TunnelDomainService;
+import com.huawei.devbridge.relaycontroller.infrastructure.config.RelayProperties;
 import com.huawei.devbridge.relaycontroller.interfaces.request.MeteringReportRequest;
 import com.huawei.devbridge.relaycontroller.interfaces.response.MeteringReportResponse;
 import org.junit.jupiter.api.Test;
@@ -29,17 +35,14 @@ class MeteringAppServiceTest {
 
     @Test
     void reportWritesMeteringAndIncreasesTunnelBandwidth() {
-        MeteringAppService service = new MeteringAppService(
-                gridRepository,
-                tunnelRepository,
-                meteringRepository,
-                new TunnelDomainService());
+        MeteringAppService service = newService();
         MeteringReportRequest request = new MeteringReportRequest();
         request.setTunnelId("000001e240");
         request.setTunnelCode(123456L);
         request.setUsage(1024L);
 
-        when(gridRepository.existsByGridName("grid-a")).thenReturn(true);
+        when(gridRepository.findByGridNameAndRegion("grid-a", "region-a"))
+                .thenReturn(Grid.builder().grid("grid-a").region("region-a").build());
         when(tunnelRepository.findByTunnelId("000001e240")).thenReturn(Tunnel.builder()
                 .tunnelId("000001e240")
                 .tunnelCode(123456L)
@@ -52,5 +55,28 @@ class MeteringAppServiceTest {
         assertThat(response.getAccepted()).isTrue();
         verify(meteringRepository).save(ArgumentMatchers.argThat(metering -> metering.getUsageBytes().equals(1024L)));
         verify(tunnelRepository).increaseBandwidthUsed(ArgumentMatchers.eq("000001e240"), ArgumentMatchers.eq(1024L), ArgumentMatchers.anyLong());
+    }
+
+    @Test
+    void reportRejectsGridOutsideLocalRegion() {
+        MeteringAppService service = newService();
+        MeteringReportRequest request = new MeteringReportRequest();
+        request.setTunnelId("000001e240");
+        request.setTunnelCode(123456L);
+        request.setUsage(1024L);
+
+        assertThatThrownBy(() -> service.report("grid-b", request))
+                .isInstanceOf(BizException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.GRID_NOT_FOUND);
+    }
+
+    private MeteringAppService newService() {
+        RelayProperties properties = new RelayProperties();
+        return new MeteringAppService(
+                new LocalGridService(gridRepository, properties),
+                tunnelRepository,
+                meteringRepository,
+                new TunnelDomainService());
     }
 }

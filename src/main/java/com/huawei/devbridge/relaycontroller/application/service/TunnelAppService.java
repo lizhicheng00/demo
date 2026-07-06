@@ -7,7 +7,6 @@ import com.huawei.devbridge.relaycontroller.common.util.TimeUtils;
 import com.huawei.devbridge.relaycontroller.domain.model.Grid;
 import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
 import com.huawei.devbridge.relaycontroller.domain.model.TunnelType;
-import com.huawei.devbridge.relaycontroller.domain.repository.GridRepository;
 import com.huawei.devbridge.relaycontroller.domain.repository.TunnelPortRepository;
 import com.huawei.devbridge.relaycontroller.domain.repository.TunnelRepository;
 import com.huawei.devbridge.relaycontroller.domain.service.JwtTokenService;
@@ -33,7 +32,7 @@ public class TunnelAppService {
     private static final int TUNNEL_CODE_MAX_RETRY = 5;
     private static final int SECONDS_PER_HOUR = 3600;
     private final TunnelRepository tunnelRepository;
-    private final GridRepository gridRepository;
+    private final LocalGridService localGridService;
     private final NamespaceService namespaceService;
     private final TunnelCodeGenerator tunnelCodeGenerator;
     private final JwtTokenService jwtTokenService;
@@ -74,7 +73,14 @@ public class TunnelAppService {
 
     public List<TunnelListItemResponse> listTunnels(String rawNamespace, String gridName) {
         String namespace = namespaceService.requireNamespace(rawNamespace);
+        if (gridName != null && !gridName.isBlank()) {
+            localGridService.requireLocalGrid(gridName);
+            return tunnelRepository.findByNamespace(namespace, gridName).stream()
+                    .map(TunnelAssembler::toListItem)
+                    .toList();
+        }
         return tunnelRepository.findByNamespace(namespace, gridName).stream()
+                .filter(tunnel -> localGridService.isLocalGrid(tunnel.getGridName()))
                 .map(TunnelAssembler::toListItem)
                 .toList();
     }
@@ -113,10 +119,12 @@ public class TunnelAppService {
     @Transactional
     public Boolean deleteTunnels(String rawNamespace) {
         String namespace = namespaceService.requireNamespace(rawNamespace);
-        List<Tunnel> tunnels = tunnelRepository.findByNamespace(namespace, null);
+        List<Tunnel> tunnels = tunnelRepository.findByNamespace(namespace, null).stream()
+                .filter(tunnel -> localGridService.isLocalGrid(tunnel.getGridName()))
+                .toList();
         long now = TimeUtils.nowSeconds();
-        tunnelRepository.softDeleteByNamespace(namespace, now);
         tunnels.forEach(tunnel -> {
+            tunnelRepository.softDelete(tunnel.getTunnelId(), now);
             jwtTokenService.evictToken(tunnel.getTunnelId());
             tunnelPortRepository.deleteByTunnelCode(tunnel.getTunnelCode());
         });
@@ -160,15 +168,12 @@ public class TunnelAppService {
         String namespace = namespaceService.requireNamespace(rawNamespace);
         Tunnel tunnel = tunnelRepository.findByTunnelId(tunnelId);
         tunnelDomainService.assertOwnedBy(tunnel, namespace);
+        localGridService.requireLocalGrid(tunnel.getGridName());
         return tunnel;
     }
 
     private Grid findGrid(String gridName) {
-        Grid grid = gridRepository.findByGridName(gridName);
-        if (grid == null) {
-            throw new BizException(ErrorCode.GRID_NOT_FOUND);
-        }
-        return grid;
+        return localGridService.requireLocalGrid(gridName);
     }
 
     private int resolveExpiration(Integer expirationHours, long now) {

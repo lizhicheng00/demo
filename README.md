@@ -41,6 +41,7 @@ POST   /open-api-inner/v1/relay-controller/tokens
 ```
 
 Namespace-scoped APIs read `X-Namespace` directly and store it as the tunnel namespace.
+Each Relay Controller instance owns one configured region. Configure `relay.region`; tunnel, port, token, metering, and status operations only accept grids found under that local region.
 Tunnel `type` is restricted to `bridge` or `env`; blank create requests default to `bridge`.
 Tunnel `expiration` in create and update requests is a duration in hours. Blank create requests default to 72 hours. Responses still return expiration as Unix seconds.
 

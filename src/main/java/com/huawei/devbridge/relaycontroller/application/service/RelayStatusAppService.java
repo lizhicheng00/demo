@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 public class RelayStatusAppService {
     private final TunnelRepository tunnelRepository;
     private final RelayStatusRepository relayStatusRepository;
+    private final LocalGridService localGridService;
     private final NamespaceService namespaceService;
     private final TunnelDomainService tunnelDomainService;
 
@@ -22,6 +23,7 @@ public class RelayStatusAppService {
         String namespace = namespaceService.requireNamespace(rawNamespace);
         Tunnel tunnel = tunnelRepository.findByTunnelId(tunnelId);
         tunnelDomainService.assertOwnedBy(tunnel, namespace);
+        localGridService.requireLocalGrid(tunnel.getGridName());
         RelayStatus relayStatus = relayStatusRepository.findByTunnelId(tunnelId);
         if (relayStatus == null || !tunnel.getGridName().equals(relayStatus.getGridName())) {
             return offlineStatus(tunnelId, tunnel);

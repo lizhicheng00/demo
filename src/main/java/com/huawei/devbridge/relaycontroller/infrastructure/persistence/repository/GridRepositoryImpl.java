@@ -14,17 +14,12 @@ public class GridRepositoryImpl implements GridRepository {
     private final GridMapper gridMapper;
 
     @Override
-    public Grid findByGridName(String gridName) {
+    public Grid findByGridNameAndRegion(String gridName, String region) {
         GridEntity entity = gridMapper.selectOne(new LambdaQueryWrapper<GridEntity>()
                 .eq(GridEntity::getGrid, gridName)
+                .eq(GridEntity::getRegion, region)
                 .last("LIMIT 1"));
         return toDomain(entity);
-    }
-
-    @Override
-    public boolean existsByGridName(String gridName) {
-        return gridMapper.exists(new LambdaQueryWrapper<GridEntity>()
-                .eq(GridEntity::getGrid, gridName));
     }
 
     private Grid toDomain(GridEntity entity) {
