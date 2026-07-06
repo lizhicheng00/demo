@@ -325,7 +325,7 @@ class RelayControllerApiTest {
     }
 
     @Test
-    void createRtTokenApi() throws Exception {
+    void createTokenApi() throws Exception {
         when(tokenAppService.createRt(eq(USER_ID), any(CreateRtTokenRequest.class)))
                 .thenReturn(CreateRtTokenResponse.builder()
                         .tokenType("RT")
@@ -333,7 +333,7 @@ class RelayControllerApiTest {
                         .expiresIn(86400L)
                         .build());
 
-        mockMvc.perform(post(BASE + "/tokens/rt")
+        mockMvc.perform(post(BASE + "/tokens")
                         .header("X-User-Id", USER_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""

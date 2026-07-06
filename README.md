@@ -35,7 +35,7 @@ PUT    /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports/{port}
 DELETE /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports/{port}
 GET    /open-api-inner/v1/relay-controller/grids/{gridName}/tunnels/{tunnelId}/ports/{port}
 
-POST   /open-api-inner/v1/relay-controller/tokens/rt
+POST   /open-api-inner/v1/relay-controller/tokens
 ```
 
 User tunnel APIs read `X-User-Id` and resolve `namespace = ns-{userId}`.

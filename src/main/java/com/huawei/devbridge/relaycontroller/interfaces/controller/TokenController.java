@@ -14,7 +14,7 @@ public class TokenController implements TokenApi {
     private final TokenAppService tokenAppService;
 
     @Override
-    public Result<CreateRtTokenResponse> createRtToken(String xUserId, CreateRtTokenRequest request) {
+    public Result<CreateRtTokenResponse> createToken(String xUserId, CreateRtTokenRequest request) {
         return Result.success(tokenAppService.createRt(xUserId, request));
     }
 }

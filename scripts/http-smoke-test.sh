@@ -46,5 +46,5 @@ request "12 get port" GET "$API_BASE/tunnels/$TUNNEL_ID/ports/8080" "" yes
 request "13 update port" PUT "$API_BASE/tunnels/$TUNNEL_ID/ports/8080" "{\"allowAnonymous\":true}" yes
 request "14 delete port" DELETE "$API_BASE/tunnels/$TUNNEL_ID/ports/8080" "" yes
 request "15 gateway port policy" GET "$API_BASE/grids/$GRID_NAME/tunnels/$TUNNEL_ID/ports/8080"
-request "16 create rt" POST "$API_BASE/tokens/rt" "{\"tunnelId\":\"$TUNNEL_ID\"}" yes
+request "16 create token" POST "$API_BASE/tokens" "{\"tunnelId\":\"$TUNNEL_ID\"}" yes
 request "17 openapi yaml" GET "$BASE_URL/openapi.yaml"

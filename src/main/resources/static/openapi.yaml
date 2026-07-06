@@ -237,12 +237,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GatewayTunnelPortPolicyResult'
-  /open-api-inner/v1/relay-controller/tokens/rt:
+  /open-api-inner/v1/relay-controller/tokens:
     post:
       tags: [Token]
-      summary: Create reusable token
-      description: Creates or reuses RT by tunnelId and optionally checks X-User-Id namespace.
-      operationId: createRtToken
+      summary: Create token
+      description: Creates or reuses a tunnel token by tunnelId and optionally checks X-User-Id namespace.
+      operationId: createToken
       parameters:
         - name: X-User-Id
           in: header
