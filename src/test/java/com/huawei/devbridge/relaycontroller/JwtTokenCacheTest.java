@@ -7,7 +7,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.huawei.devbridge.relaycontroller.domain.model.JwtToken;
-import com.huawei.devbridge.relaycontroller.infrastructure.config.RelayProperties;
 import com.huawei.devbridge.relaycontroller.infrastructure.redis.JwtTokenCache;
 import com.huawei.devbridge.relaycontroller.infrastructure.security.SccCrypto;
 import java.time.Duration;
@@ -20,24 +19,21 @@ import org.springframework.data.redis.core.ValueOperations;
 class JwtTokenCacheTest {
 
     @Test
-    void shouldStoreEncryptedTokenAndReadPlainToken() {
+    void shouldStoreAndReadTokenThroughSccCrypto() {
         StringRedisTemplate redisTemplate = mock(StringRedisTemplate.class);
         ValueOperations<String, String> valueOperations = mock(ValueOperations.class);
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
 
-        RelayProperties properties = new RelayProperties();
-        properties.getCrypto().setKey("test-key");
-        SccCrypto crypto = new SccCrypto(properties);
+        SccCrypto crypto = new SccCrypto();
         JwtTokenCache cache = new JwtTokenCache(redisTemplate, crypto);
 
         cache.setToken("aaaadysa", "jwt-token", 60);
 
         ArgumentCaptor<String> valueCaptor = ArgumentCaptor.forClass(String.class);
         verify(valueOperations).set(eq("jwt:token:aaaadysa"), valueCaptor.capture(), eq(Duration.ofSeconds(60)));
-        String encrypted = valueCaptor.getValue();
-        assertThat(encrypted).startsWith("{scc}");
+        assertThat(valueCaptor.getValue()).isEqualTo("jwt-token");
 
-        when(valueOperations.get("jwt:token:aaaadysa")).thenReturn(encrypted);
+        when(valueOperations.get("jwt:token:aaaadysa")).thenReturn("{scc}jwt-token");
         when(redisTemplate.getExpire("jwt:token:aaaadysa", TimeUnit.SECONDS)).thenReturn(60L);
 
         JwtToken token = cache.getToken("aaaadysa");

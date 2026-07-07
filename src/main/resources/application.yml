@@ -49,8 +49,6 @@ relay:
   domain: myhuaweicloud.com
   region: region-a
   default-expiration-hours: 72
-  crypto:
-    key: ${RELAY_CRYPTO_KEY:}
   jwt:
     issuer: devbridge
     key-id: "1"
