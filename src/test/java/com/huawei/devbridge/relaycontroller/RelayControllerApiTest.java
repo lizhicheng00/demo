@@ -13,23 +13,20 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.huawei.devbridge.relaycontroller.application.service.MeteringAppService;
-import com.huawei.devbridge.relaycontroller.application.service.TokenAppService;
 import com.huawei.devbridge.relaycontroller.application.service.TunnelAppService;
 import com.huawei.devbridge.relaycontroller.application.service.TunnelPortAppService;
 import com.huawei.devbridge.relaycontroller.common.exception.GlobalExceptionHandler;
 import com.huawei.devbridge.relaycontroller.interfaces.controller.MeteringController;
-import com.huawei.devbridge.relaycontroller.interfaces.controller.TokenController;
 import com.huawei.devbridge.relaycontroller.interfaces.controller.TunnelController;
 import com.huawei.devbridge.relaycontroller.interfaces.controller.TunnelPortController;
-import com.huawei.devbridge.relaycontroller.interfaces.request.CreateTokenRequest;
 import com.huawei.devbridge.relaycontroller.interfaces.request.CreateTunnelPortRequest;
 import com.huawei.devbridge.relaycontroller.interfaces.request.CreateTunnelRequest;
 import com.huawei.devbridge.relaycontroller.interfaces.request.MeteringReportRequest;
 import com.huawei.devbridge.relaycontroller.interfaces.request.UpdateTunnelPortRequest;
 import com.huawei.devbridge.relaycontroller.interfaces.request.UpdateTunnelRequest;
-import com.huawei.devbridge.relaycontroller.interfaces.response.CreateTokenResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.CreateTunnelResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.GatewayTunnelPortPolicyResponse;
+import com.huawei.devbridge.relaycontroller.interfaces.response.JwtResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.MeteringReportResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelDetailResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelListItemResponse;
@@ -59,16 +56,13 @@ class RelayControllerApiTest {
     private MeteringAppService meteringAppService;
     @Mock
     private TunnelPortAppService tunnelPortAppService;
-    @Mock
-    private TokenAppService tokenAppService;
 
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(
                         new TunnelController(tunnelAppService),
                         new MeteringController(meteringAppService),
-                        new TunnelPortController(tunnelPortAppService),
-                        new TokenController(tokenAppService))
+                        new TunnelPortController(tunnelPortAppService))
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
     }
@@ -161,7 +155,7 @@ class RelayControllerApiTest {
                 .gridName(GRID_NAME)
                 .url("aaaadysa-grid-a-myhuaweicloud.com")
                 .type("bridge")
-                .jwt(CreateTokenResponse.builder()
+                .jwt(JwtResponse.builder()
                         .tokenType("TOKEN")
                         .token("token-token")
                         .expiresIn(86400L)
@@ -243,7 +237,23 @@ class RelayControllerApiTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error_code").value("40400"));
 
-        verifyNoInteractions(tunnelAppService, tunnelPortAppService, tokenAppService, meteringAppService);
+        verifyNoInteractions(tunnelAppService, tunnelPortAppService, meteringAppService);
+    }
+
+    @Test
+    void tokenApiIsRemoved() throws Exception {
+        mockMvc.perform(post(BASE + "/tokens")
+                        .header("X-Namespace", NAMESPACE)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "tunnelId": "aaaadysa"
+                                }
+                                """))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error_code").value("40400"));
+
+        verifyNoInteractions(tunnelAppService, tunnelPortAppService, meteringAppService);
     }
 
     @Test
@@ -354,29 +364,6 @@ class RelayControllerApiTest {
                 .andExpect(jsonPath("$.error_code").value("0000"))
                 .andExpect(jsonPath("$.data.gridName").value(GRID_NAME))
                 .andExpect(jsonPath("$.data.allowAnonymous").value(false));
-    }
-
-    @Test
-    void createTokenApi() throws Exception {
-        when(tokenAppService.createToken(eq(NAMESPACE), any(CreateTokenRequest.class)))
-                .thenReturn(CreateTokenResponse.builder()
-                        .tokenType("TOKEN")
-                        .token("token-token")
-                        .expiresIn(86400L)
-                        .build());
-
-        mockMvc.perform(post(BASE + "/tokens")
-                        .header("X-Namespace", NAMESPACE)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                  "tunnelId": "aaaadysa"
-                                }
-                                """))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.error_code").value("0000"))
-                .andExpect(jsonPath("$.data.tokenType").value("TOKEN"))
-                .andExpect(jsonPath("$.data.expiresIn").value(86400));
     }
 
     private CreateTunnelResponse createTunnelResponse() {

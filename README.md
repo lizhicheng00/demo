@@ -36,20 +36,18 @@ GET    /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports/{port}
 PUT    /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports/{port}
 DELETE /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports/{port}
 GET    /open-api-inner/v1/relay-controller/grids/{gridName}/tunnels/{tunnelId}/ports/{port}
-
-POST   /open-api-inner/v1/relay-controller/tokens
 ```
 
 Namespace-scoped APIs read `X-Namespace` directly and store it as the tunnel namespace.
-Each Relay Controller instance owns one configured region. Configure `relay.region`; tunnel, port, token, and metering operations only accept grids found under that local region.
+Each Relay Controller instance owns one configured region. Configure `relay.region`; tunnel, port, and metering operations only accept grids found under that local region.
 Tunnel `type` is restricted to `bridge` or `env`; blank create requests default to `bridge`.
 Tunnel `expiration` in create and update requests is a duration in hours. Blank create requests default to 72 hours. Responses still return expiration as Unix seconds.
 Tunnel `tunnelCode` is a 40-bit `long`; `tunnelId` is the fixed 8-character lowercase base32 encoding of that 40-bit value.
 Tunnel URL format is `{tunnelId}-{gridName}-{relay.domain}`.
-Deleted tunnels are soft-deleted to preserve historical identifiers and metering references. List APIs return only active, non-expired tunnels. Detail, update, token, port, and metering operations reject expired tunnels; delete APIs can still delete expired tunnels.
+Deleted tunnels are soft-deleted to preserve historical identifiers and metering references. List APIs return only active, non-expired tunnels. Detail, update, port, and metering operations reject expired tunnels; delete APIs can still delete expired tunnels.
 Tunnel list responses expose stable metadata only: `tunnelId`, `tunnelCode`, `gridName`, `description`, `expiration`, `created`, and `url`. Runtime counters such as host/client connections or current upload/download rate require Gateway reporting and are intentionally not modeled here yet. Port policies remain available through the tunnel port APIs instead of being embedded into every list response.
 
-Tunnel detail returns a `jwt` object so callers can get tunnel metadata and connection credentials in one request. Token APIs remain available as a compatibility endpoint. `X-Namespace` is optional there; when present, it enforces namespace ownership before issuing a token. Tokens are cached at `jwt:token:{tunnelId}` and expire at the earlier of `relay.jwt.token.ttl-seconds` or the tunnel expiration.
+Tunnel detail returns a `jwt` object so callers can get tunnel metadata and connection credentials in one request. Tokens are cached at `jwt:token:{tunnelId}` and expire at the earlier of `relay.jwt.token.ttl-seconds` or the tunnel expiration.
 
 Tunnel port APIs manage the explicit per-port allow list for a tunnel. Unconfigured ports are denied by default. `allowAnonymous` only controls sending-side access to that port; listening-side gateway connection still requires token authentication.
 The gateway port policy API keeps `gridName` in the path intentionally. Gateway callers use it as their grid scope, and Relay Controller verifies the tunnel belongs to that grid before returning the port policy.

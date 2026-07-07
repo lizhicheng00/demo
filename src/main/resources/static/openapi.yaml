@@ -7,7 +7,6 @@ servers:
   - url: http://localhost:8080
 tags:
   - name: Tunnel
-  - name: Token
   - name: Metering
   - name: Tunnel Port
   - name: Gateway Tunnel Port
@@ -249,31 +248,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GatewayTunnelPortPolicyResult'
-  /open-api-inner/v1/relay-controller/tokens:
-    post:
-      tags: [Token]
-      summary: Create token
-      description: Creates or reuses a tunnel token by tunnelId and optionally checks X-Namespace ownership.
-      operationId: createToken
-      parameters:
-        - name: X-Namespace
-          in: header
-          required: false
-          schema:
-            type: string
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateTokenRequest'
-      responses:
-        '200':
-          description: Reusable token.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CreateTokenResult'
 components:
   parameters:
     NamespaceHeader:
@@ -351,13 +325,6 @@ components:
           properties:
             data:
               $ref: '#/components/schemas/MeteringReportResponse'
-    CreateTokenResult:
-      allOf:
-        - $ref: '#/components/schemas/ResultBase'
-        - type: object
-          properties:
-            data:
-              $ref: '#/components/schemas/TokenResponse'
     TunnelPortResult:
       allOf:
         - $ref: '#/components/schemas/ResultBase'
@@ -443,12 +410,6 @@ components:
           type: integer
           format: int64
           minimum: 0
-    CreateTokenRequest:
-      type: object
-      properties:
-        tunnelId:
-          type: string
-          pattern: '^[a-z2-7]{8}$'
     CreateTunnelPortRequest:
       type: object
       required: [port, allowAnonymous]
@@ -499,7 +460,7 @@ components:
           type: string
           enum: [bridge, env]
         jwt:
-          $ref: '#/components/schemas/TokenResponse'
+          $ref: '#/components/schemas/JwtResponse'
     TunnelListItem:
       type: object
       properties:
@@ -529,7 +490,7 @@ components:
       properties:
         accepted:
           type: boolean
-    TokenResponse:
+    JwtResponse:
       type: object
       properties:
         tokenType:

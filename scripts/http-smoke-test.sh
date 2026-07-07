@@ -43,9 +43,8 @@ request "09 list ports" GET "$API_BASE/tunnels/$TUNNEL_ID/ports" "" yes
 request "10 get port" GET "$API_BASE/tunnels/$TUNNEL_ID/ports/8080" "" yes
 request "11 update port" PUT "$API_BASE/tunnels/$TUNNEL_ID/ports/8080" "{\"allowAnonymous\":true}" yes
 request "12 gateway port policy" GET "$API_BASE/grids/$GRID_NAME/tunnels/$TUNNEL_ID/ports/8080"
-request "13 create token" POST "$API_BASE/tokens" "{\"tunnelId\":\"$TUNNEL_ID\"}" yes
-request "14 delete port" DELETE "$API_BASE/tunnels/$TUNNEL_ID/ports/8080" "" yes
-request "15 delete ports" DELETE "$API_BASE/tunnels/$TUNNEL_ID/ports" "" yes
-request "16 delete tunnel" DELETE "$API_BASE/tunnels/$TUNNEL_ID" "" yes
-request "17 delete tunnels" DELETE "$API_BASE/tunnels" "" yes
-request "18 openapi yaml" GET "$BASE_URL/openapi.yaml"
+request "13 delete port" DELETE "$API_BASE/tunnels/$TUNNEL_ID/ports/8080" "" yes
+request "14 delete ports" DELETE "$API_BASE/tunnels/$TUNNEL_ID/ports" "" yes
+request "15 delete tunnel" DELETE "$API_BASE/tunnels/$TUNNEL_ID" "" yes
+request "16 delete tunnels" DELETE "$API_BASE/tunnels" "" yes
+request "17 openapi yaml" GET "$BASE_URL/openapi.yaml"

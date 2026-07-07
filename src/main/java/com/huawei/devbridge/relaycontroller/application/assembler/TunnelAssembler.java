@@ -2,8 +2,8 @@ package com.huawei.devbridge.relaycontroller.application.assembler;
 
 import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
 import com.huawei.devbridge.relaycontroller.domain.model.TunnelType;
-import com.huawei.devbridge.relaycontroller.interfaces.response.CreateTokenResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.CreateTunnelResponse;
+import com.huawei.devbridge.relaycontroller.interfaces.response.JwtResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelDetailResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelListItemResponse;
 
@@ -62,8 +62,8 @@ public final class TunnelAssembler {
         return type == null ? null : type.value();
     }
 
-    private static CreateTokenResponse jwtResponse(String token, long expiresIn) {
-        return CreateTokenResponse.builder()
+    private static JwtResponse jwtResponse(String token, long expiresIn) {
+        return JwtResponse.builder()
                 .tokenType("TOKEN")
                 .token(token)
                 .expiresIn(expiresIn)
