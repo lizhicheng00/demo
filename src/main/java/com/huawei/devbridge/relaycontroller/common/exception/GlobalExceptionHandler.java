@@ -4,7 +4,6 @@ import com.huawei.devbridge.relaycontroller.common.model.Result;
 import jakarta.validation.ConstraintViolationException;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.NestedExceptionUtils;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.MissingRequestHeaderException;
@@ -24,7 +23,12 @@ public class GlobalExceptionHandler {
         return Result.failure(exception.getErrorCode(), exception.getMessage());
     }
 
-    @ExceptionHandler({MethodArgumentNotValidException.class, BindException.class})
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public Result<Void> handleMethodArgumentNotValid(MethodArgumentNotValidException exception) {
+        return handleBindException(exception);
+    }
+
+    @ExceptionHandler(BindException.class)
     public Result<Void> handleBindException(BindException exception) {
         String message = exception.getBindingResult().getFieldErrors().stream()
                 .map(error -> error.getField() + " " + error.getDefaultMessage())
@@ -67,9 +71,17 @@ public class GlobalExceptionHandler {
         return Result.failure(ErrorCode.INTERNAL_ERROR);
     }
 
-    private String messageOf(Exception exception, ErrorCode fallback) {
-        Throwable cause = NestedExceptionUtils.getMostSpecificCause(exception);
-        String message = cause == null ? exception.getMessage() : cause.getMessage();
+    private static String messageOf(Throwable exception, ErrorCode fallback) {
+        Throwable cause = rootCause(exception);
+        String message = cause.getMessage();
         return message == null ? fallback.getMessage() : message;
+    }
+
+    private static Throwable rootCause(Throwable exception) {
+        Throwable cause = exception;
+        while (cause.getCause() != null) {
+            cause = cause.getCause();
+        }
+        return cause;
     }
 }

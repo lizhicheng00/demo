@@ -5,6 +5,7 @@ import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -14,6 +15,7 @@ public class JwtTokenCache {
 
     private final StringRedisTemplate stringRedisTemplate;
 
+    @Nullable
     public JwtToken getToken(String tunnelId) {
         try {
             String key = TOKEN_KEY_PREFIX + tunnelId;
@@ -26,7 +28,7 @@ public class JwtTokenCache {
                 return null;
             }
             return new JwtToken(token, ttlSeconds);
-        } catch (RuntimeException exception) {
+        } catch (RuntimeException ignored) {
             return null;
         }
     }
