@@ -23,7 +23,7 @@ public class JwtTokenCache {
             if (token == null || token.isBlank()) {
                 return null;
             }
-            Long ttlSeconds = stringRedisTemplate.getExpire(key, TimeUnit.SECONDS);
+            long ttlSeconds = stringRedisTemplate.getExpire(key, TimeUnit.SECONDS);
             if (ttlSeconds <= 0) {
                 return null;
             }
