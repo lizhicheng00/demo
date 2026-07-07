@@ -4,6 +4,8 @@ Relay Controller is the DevBridge / Relay Tunnel control plane service. It manag
 
 This service does not implement WebSocket, WebTransport, TCP, or HTTP body forwarding. Real traffic bridging belongs to Relay Gateway.
 
+Detailed business and code summary: [docs/relay-controller-business-code-summary.md](docs/relay-controller-business-code-summary.md)
+
 ## Stack
 
 - Java 17
