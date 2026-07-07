@@ -7,3 +7,5 @@ logging:
   level:
     root: WARN
     com.huawei.devbridge.relaycontroller: WARN
+    com.huawei.devbridge.relaycontroller.RelayControllerApplication: INFO
+    com.huawei.devbridge.relaycontroller.common.exception: WARN

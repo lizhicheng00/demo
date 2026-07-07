@@ -44,6 +44,8 @@ logging:
   level:
     root: WARN
     com.baomidou.mybatisplus.core.toolkit.Sequence: OFF
+    org.flywaydb.core.internal.database.base.Database: ERROR
+    org.springdoc.core.events.SpringDocAppInitializer: ERROR
     com.huawei.devbridge.relaycontroller.RelayControllerApplication: INFO
     com.huawei.devbridge.relaycontroller.application.service: INFO
     com.huawei.devbridge.relaycontroller.common.exception: WARN
