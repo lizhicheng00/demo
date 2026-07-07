@@ -30,6 +30,13 @@ public class TunnelRepositoryImpl implements TunnelRepository {
     }
 
     @Override
+    public List<Tunnel> findActiveByNamespaceAndRegion(String namespace, String gridName, String region, long now) {
+        return tunnelMapper.selectActiveByNamespaceAndRegion(namespace, gridName, region, now).stream()
+                .map(converter::toDomain)
+                .toList();
+    }
+
+    @Override
     public boolean existsByTunnelId(String tunnelId) {
         return tunnelMapper.exists(new LambdaQueryWrapper<TunnelEntity>()
                 .eq(TunnelEntity::getTunnelId, tunnelId));

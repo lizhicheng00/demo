@@ -23,6 +23,11 @@ public class TunnelDomainService {
         }
     }
 
+    public void assertOwnedAndNotExpired(Tunnel tunnel, String namespace) {
+        assertOwnedBy(tunnel, namespace);
+        assertNotExpired(tunnel);
+    }
+
     public void assertNotExpired(Tunnel tunnel) {
         assertActive(tunnel);
         if (tunnel.getExpiration() != null && tunnel.getExpiration() <= TimeUtils.nowSeconds()) {
@@ -35,5 +40,10 @@ public class TunnelDomainService {
         if (!Objects.equals(gridName, tunnel.getGridName())) {
             throw new BizException(mismatchErrorCode);
         }
+    }
+
+    public void assertInGridAndNotExpired(Tunnel tunnel, String gridName, ErrorCode mismatchErrorCode) {
+        assertInGrid(tunnel, gridName, mismatchErrorCode);
+        assertNotExpired(tunnel);
     }
 }

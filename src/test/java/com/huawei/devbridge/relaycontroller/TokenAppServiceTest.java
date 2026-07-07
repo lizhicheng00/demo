@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 import com.huawei.devbridge.relaycontroller.application.service.TokenAppService;
 import com.huawei.devbridge.relaycontroller.common.exception.BizException;
 import com.huawei.devbridge.relaycontroller.common.exception.ErrorCode;
+import com.huawei.devbridge.relaycontroller.common.util.TimeUtils;
 import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
 import com.huawei.devbridge.relaycontroller.domain.repository.TunnelRepository;
 import com.huawei.devbridge.relaycontroller.domain.service.JwtTokenService;
@@ -63,6 +64,22 @@ class TokenAppServiceTest {
                 .isInstanceOf(BizException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.TUNNEL_NOT_FOUND);
+    }
+
+    @Test
+    void createTokenCapsExpiresInByTunnelExpiration() {
+        TokenAppService service = newService();
+        CreateTokenRequest request = new CreateTokenRequest();
+        request.setTunnelId("aaaadysa");
+        Tunnel tunnel = tunnel();
+        tunnel.setExpiration(Math.toIntExact(TimeUtils.nowSeconds() + 60));
+
+        when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel);
+        when(jwtTokenService.getOrCreateToken(ArgumentMatchers.any(Tunnel.class))).thenReturn("token-token");
+
+        CreateTokenResponse response = service.createToken("ns-user-001", request);
+
+        assertThat(response.getExpiresIn()).isBetween(1L, 60L);
     }
 
     private TokenAppService newService() {

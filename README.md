@@ -44,8 +44,10 @@ Each Relay Controller instance owns one configured region. Configure `relay.regi
 Tunnel `type` is restricted to `bridge` or `env`; blank create requests default to `bridge`.
 Tunnel `expiration` in create and update requests is a duration in hours. Blank create requests default to 72 hours. Responses still return expiration as Unix seconds.
 Tunnel `tunnelCode` is a 40-bit `long`; `tunnelId` is the fixed 8-character lowercase base32 encoding of that 40-bit value.
+Tunnel URL format is `{tunnelId}-{gridName}-{relay.domain}`.
+Deleted tunnels are soft-deleted to preserve historical identifiers and metering references. List APIs return only active, non-expired tunnels. Detail, update, token, port, status, and metering operations reject expired tunnels; delete APIs can still delete expired tunnels.
 
-Token APIs are independent from tunnel resource paths. Tokens are reusable for 24 hours and cached at `jwt:token:{tunnelId}`.
+Token APIs are independent from tunnel resource paths. `X-Namespace` is optional; when present, it enforces namespace ownership before issuing a token. Tokens are cached at `jwt:token:{tunnelId}` and expire at the earlier of `relay.jwt.token.ttl-seconds` or the tunnel expiration.
 
 Tunnel port APIs manage the explicit per-port allow list for a tunnel. Unconfigured ports are denied by default. `allowAnonymous` only controls sending-side access to that port; listening-side gateway connection still requires token authentication.
 

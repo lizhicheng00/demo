@@ -6,6 +6,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.huawei.devbridge.relaycontroller.common.util.TimeUtils;
 import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
 import com.huawei.devbridge.relaycontroller.infrastructure.config.RelayProperties;
 import com.huawei.devbridge.relaycontroller.infrastructure.redis.JwtTokenCache;
@@ -52,5 +53,27 @@ class JwtTokenServiceTest {
 
         assertThat(token).isEqualTo("new-token");
         verify(jwtTokenCache).setToken("aaaadysa", "new-token", 86400L);
+    }
+
+    @Test
+    void getOrCreateTokenCapsTtlByTunnelExpiration() {
+        RelayProperties properties = new RelayProperties();
+        properties.getJwt().getToken().setTtlSeconds(86400);
+        JwtTokenServiceImpl service = new JwtTokenServiceImpl(jwtTokenCache, jwtSigner, properties);
+        Tunnel tunnel = Tunnel.builder()
+                .tunnelId("aaaadysa")
+                .expiration(Math.toIntExact(TimeUtils.nowSeconds() + 60))
+                .build();
+
+        when(jwtTokenCache.getToken("aaaadysa")).thenReturn(null);
+        when(jwtSigner.signToken(eq(tunnel), org.mockito.ArgumentMatchers.startsWith("token:aaaadysa:"),
+                org.mockito.ArgumentMatchers.longThat(ttl -> ttl > 0 && ttl <= 60)))
+                .thenReturn("new-token");
+
+        String token = service.getOrCreateToken(tunnel);
+
+        assertThat(token).isEqualTo("new-token");
+        verify(jwtTokenCache).setToken(eq("aaaadysa"), eq("new-token"),
+                org.mockito.ArgumentMatchers.longThat(ttl -> ttl > 0 && ttl <= 60));
     }
 }

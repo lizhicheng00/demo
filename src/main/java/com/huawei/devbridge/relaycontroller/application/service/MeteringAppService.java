@@ -30,7 +30,7 @@ public class MeteringAppService {
     public MeteringReportResponse report(String gridName, MeteringReportRequest request) {
         localGridService.requireLocalGrid(gridName);
         Tunnel tunnel = tunnelRepository.findByTunnelIdAndRegion(request.getTunnelId(), relayProperties.getRegion());
-        tunnelDomainService.assertInGrid(tunnel, gridName, ErrorCode.METERING_REPORT_FAILED);
+        tunnelDomainService.assertInGridAndNotExpired(tunnel, gridName, ErrorCode.METERING_REPORT_FAILED);
         if (!request.getTunnelCode().equals(tunnel.getTunnelCode())) {
             throw new BizException(ErrorCode.METERING_REPORT_FAILED, "metering tunnel mismatch");
         }

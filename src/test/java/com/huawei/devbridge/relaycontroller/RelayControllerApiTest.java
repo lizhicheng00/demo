@@ -139,7 +139,7 @@ class RelayControllerApiTest {
                         .name("dev")
                         .description("dev tunnel")
                         .created(1720000000L)
-                        .url("aaaadysa.region-a.relayprovider.xxx.com")
+                        .url("aaaadysa-grid-a-relayprovider.xxx.com")
                         .build()));
 
         mockMvc.perform(get(BASE + "/tunnels")
@@ -159,7 +159,7 @@ class RelayControllerApiTest {
                 .tunnelId(TUNNEL_ID)
                 .tunnelCode(123456L)
                 .gridName(GRID_NAME)
-                .url("aaaadysa.region-a.relayprovider.xxx.com")
+                .url("aaaadysa-grid-a-relayprovider.xxx.com")
                 .type("bridge")
                 .build());
 
@@ -392,7 +392,7 @@ class RelayControllerApiTest {
                 .bandwidthUsed(0L)
                 .expiration(1720086400)
                 .created(1720000000L)
-                .url("aaaadysa.region-a.relayprovider.xxx.com")
+                .url("aaaadysa-grid-a-relayprovider.xxx.com")
                 .type("bridge")
                 .build();
     }

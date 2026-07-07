@@ -46,7 +46,6 @@ public class TunnelAppService {
         Grid grid = findGrid(request.getGridName());
         long now = TimeUtils.nowSeconds();
         int expiration = resolveExpiration(request.getExpiration(), now);
-        assertFutureExpiration(expiration, now);
         TunnelCode code = allocateTunnelCode();
         Tunnel tunnel = Tunnel.builder()
                 .name(request.getName())
@@ -73,13 +72,14 @@ public class TunnelAppService {
 
     public List<TunnelListItemResponse> listTunnels(String rawNamespace, String gridName) {
         String namespace = namespaceService.requireNamespace(rawNamespace);
+        long now = TimeUtils.nowSeconds();
         if (gridName != null && !gridName.isBlank()) {
             localGridService.requireLocalGrid(gridName);
-            return tunnelRepository.findByNamespaceAndRegion(namespace, gridName, relayProperties.getRegion()).stream()
+            return tunnelRepository.findActiveByNamespaceAndRegion(namespace, gridName, relayProperties.getRegion(), now).stream()
                     .map(TunnelAssembler::toListItem)
                     .toList();
         }
-        return tunnelRepository.findByNamespaceAndRegion(namespace, null, relayProperties.getRegion()).stream()
+        return tunnelRepository.findActiveByNamespaceAndRegion(namespace, null, relayProperties.getRegion(), now).stream()
                 .map(TunnelAssembler::toListItem)
                 .toList();
     }
@@ -92,7 +92,7 @@ public class TunnelAppService {
 
     @Transactional
     public Boolean updateTunnel(String rawNamespace, UpdateTunnelRequest request) {
-        Tunnel tunnel = findOwnedTunnel(rawNamespace, request.getTunnelId());
+        Tunnel tunnel = findOwnedActiveTunnel(rawNamespace, request.getTunnelId());
         boolean expirationChanged = applyUpdates(tunnel, request);
         tunnel.setUpdatedAt(TimeUtils.nowSeconds());
         tunnelRepository.update(tunnel);
@@ -168,6 +168,13 @@ public class TunnelAppService {
         return tunnel;
     }
 
+    private Tunnel findOwnedActiveTunnel(String rawNamespace, String tunnelId) {
+        String namespace = namespaceService.requireNamespace(rawNamespace);
+        Tunnel tunnel = tunnelRepository.findByTunnelIdAndRegion(tunnelId, relayProperties.getRegion());
+        tunnelDomainService.assertOwnedAndNotExpired(tunnel, namespace);
+        return tunnel;
+    }
+
     private Grid findGrid(String gridName) {
         return localGridService.requireLocalGrid(gridName);
     }
@@ -185,13 +192,7 @@ public class TunnelAppService {
     }
 
     private String buildTunnelUrl(String tunnelId, Grid grid) {
-        return tunnelId + "." + grid.getRegion() + "." + relayProperties.getDomain();
-    }
-
-    private void assertFutureExpiration(int expiration, long now) {
-        if (expiration <= now) {
-            throw new BizException(ErrorCode.TUNNEL_EXPIRED);
-        }
+        return tunnelId + "-" + grid.getGrid() + "-" + relayProperties.getDomain();
     }
 
     private record TunnelCode(long tunnelCode, String tunnelId) {

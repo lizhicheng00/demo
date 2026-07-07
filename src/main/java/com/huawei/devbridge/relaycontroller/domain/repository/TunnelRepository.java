@@ -8,6 +8,8 @@ public interface TunnelRepository {
 
     List<Tunnel> findByNamespaceAndRegion(String namespace, String gridName, String region);
 
+    List<Tunnel> findActiveByNamespaceAndRegion(String namespace, String gridName, String region, long now);
+
     boolean existsByTunnelId(String tunnelId);
 
     boolean existsByTunnelCode(Long tunnelCode);

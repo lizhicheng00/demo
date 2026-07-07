@@ -23,7 +23,7 @@ public class RelayStatusAppService {
     public RelayStatusResponse getStatus(String rawNamespace, String tunnelId) {
         String namespace = namespaceService.requireNamespace(rawNamespace);
         Tunnel tunnel = tunnelRepository.findByTunnelIdAndRegion(tunnelId, relayProperties.getRegion());
-        tunnelDomainService.assertOwnedBy(tunnel, namespace);
+        tunnelDomainService.assertOwnedAndNotExpired(tunnel, namespace);
         RelayStatus relayStatus = relayStatusRepository.findByTunnelId(tunnelId);
         if (relayStatus == null || !tunnel.getGridName().equals(relayStatus.getGridName())) {
             return offlineStatus(tunnelId, tunnel);

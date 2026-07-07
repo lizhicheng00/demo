@@ -98,7 +98,7 @@ public class TunnelPortAppService {
     public GatewayTunnelPortPolicyResponse getGatewayPortPolicy(String gridName, String tunnelId, Long port) {
         localGridService.requireLocalGrid(gridName);
         Tunnel tunnel = tunnelRepository.findByTunnelIdAndRegion(tunnelId, relayProperties.getRegion());
-        tunnelDomainService.assertInGrid(tunnel, gridName, ErrorCode.TUNNEL_PORT_ACCESS_DENIED);
+        tunnelDomainService.assertInGridAndNotExpired(tunnel, gridName, ErrorCode.TUNNEL_PORT_ACCESS_DENIED);
         TunnelPort tunnelPort = findTunnelPort(tunnel.getTunnelCode(), port);
         return TunnelPortAssembler.toGatewayPolicy(tunnel, tunnelPort);
     }
@@ -106,7 +106,7 @@ public class TunnelPortAppService {
     private Tunnel ownedTunnel(String rawNamespace, String tunnelId) {
         String namespace = namespaceService.requireNamespace(rawNamespace);
         Tunnel tunnel = tunnelRepository.findByTunnelIdAndRegion(tunnelId, relayProperties.getRegion());
-        tunnelDomainService.assertOwnedBy(tunnel, namespace);
+        tunnelDomainService.assertOwnedAndNotExpired(tunnel, namespace);
         return tunnel;
     }
 

@@ -73,7 +73,7 @@ class TunnelAppServiceTest {
 
         assertThat(response.getTunnelId()).isEqualTo("aaaadysa");
         assertThat(response.getTunnelCode()).isEqualTo(123456L);
-        assertThat(response.getUrl()).isEqualTo("aaaadysa.region-a.relayprovider.xxx.com");
+        assertThat(response.getUrl()).isEqualTo("aaaadysa-grid-a-relayprovider.xxx.com");
         assertThat(response.getType()).isEqualTo("bridge");
         assertThat(response.getExpiration())
                 .isBetween(Math.toIntExact(before + 72 * 3600L), Math.toIntExact(after + 72 * 3600L));
@@ -165,15 +165,30 @@ class TunnelAppServiceTest {
                 .name("local")
                 .namespace("ns-user-001")
                 .gridName("grid-a")
-                .url("local.region-a.relayprovider.xxx.com")
+                .url("local-grid-a-relayprovider.xxx.com")
                 .deleted(0)
                 .build();
 
-        when(tunnelRepository.findByNamespaceAndRegion("ns-user-001", null, "region-a")).thenReturn(List.of(local));
+        when(tunnelRepository.findActiveByNamespaceAndRegion(
+                eq("ns-user-001"), eq(null), eq("region-a"), anyLong()))
+                .thenReturn(List.of(local));
 
         List<TunnelListItemResponse> response = service.listTunnels("ns-user-001", null);
 
         assertThat(response).extracting(TunnelListItemResponse::getName).containsExactly("local");
+    }
+
+    @Test
+    void listTunnelsQueriesActiveTunnelsOnly() {
+        TunnelAppService service = newService(new RelayProperties());
+
+        when(tunnelRepository.findActiveByNamespaceAndRegion(
+                eq("ns-user-001"), eq(null), eq("region-a"), anyLong()))
+                .thenReturn(List.of());
+
+        List<TunnelListItemResponse> response = service.listTunnels("ns-user-001", null);
+
+        assertThat(response).isEmpty();
     }
 
     @Test

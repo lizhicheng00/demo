@@ -27,6 +27,21 @@
         ORDER BY t.created_at DESC
     </select>
 
+    <select id="selectActiveByNamespaceAndRegion"
+            resultType="com.huawei.devbridge.relaycontroller.infrastructure.persistence.entity.TunnelEntity">
+        SELECT t.*
+        FROM tunnel t
+        INNER JOIN grid g ON g.grid = t.grid_name
+        WHERE t.namespace = #{namespace}
+          AND g.region = #{region}
+          AND t.deleted = 0
+          AND t.expiration &gt; #{now}
+        <if test="gridName != null and gridName != ''">
+          AND t.grid_name = #{gridName}
+        </if>
+        ORDER BY t.created_at DESC
+    </select>
+
     <update id="increaseBandwidthUsed">
         UPDATE tunnel
         SET bandwidth_used = bandwidth_used + #{usageBytes},

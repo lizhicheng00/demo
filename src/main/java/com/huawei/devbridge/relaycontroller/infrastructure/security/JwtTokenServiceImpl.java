@@ -1,6 +1,9 @@
 package com.huawei.devbridge.relaycontroller.infrastructure.security;
 
+import com.huawei.devbridge.relaycontroller.common.exception.BizException;
+import com.huawei.devbridge.relaycontroller.common.exception.ErrorCode;
 import com.huawei.devbridge.relaycontroller.common.util.IdUtils;
+import com.huawei.devbridge.relaycontroller.common.util.TimeUtils;
 import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
 import com.huawei.devbridge.relaycontroller.domain.service.JwtTokenService;
 import com.huawei.devbridge.relaycontroller.infrastructure.config.RelayProperties;
@@ -17,7 +20,7 @@ public class JwtTokenServiceImpl implements JwtTokenService {
 
     @Override
     public String getOrCreateToken(Tunnel tunnel) {
-        long ttlSeconds = relayProperties.getJwt().getToken().getTtlSeconds();
+        long ttlSeconds = resolveTokenTtlSeconds(tunnel);
         String cached = jwtTokenCache.getToken(tunnel.getTunnelId());
         if (cached != null && !cached.isBlank()) {
             return cached;
@@ -29,11 +32,24 @@ public class JwtTokenServiceImpl implements JwtTokenService {
 
     @Override
     public String createToken(Tunnel tunnel) {
-        return jwtSigner.signToken(tunnel, "token:" + tunnel.getTunnelId() + ":" + IdUtils.uuid(), relayProperties.getJwt().getToken().getTtlSeconds());
+        return jwtSigner.signToken(tunnel, "token:" + tunnel.getTunnelId() + ":" + IdUtils.uuid(),
+                resolveTokenTtlSeconds(tunnel));
     }
 
     @Override
     public void evictToken(String tunnelId) {
         jwtTokenCache.deleteToken(tunnelId);
+    }
+
+    private long resolveTokenTtlSeconds(Tunnel tunnel) {
+        long configuredTtl = relayProperties.getJwt().getToken().getTtlSeconds();
+        if (tunnel.getExpiration() == null) {
+            return configuredTtl;
+        }
+        long remainingSeconds = tunnel.getExpiration() - TimeUtils.nowSeconds();
+        if (remainingSeconds <= 0) {
+            throw new BizException(ErrorCode.TUNNEL_EXPIRED);
+        }
+        return Math.min(configuredTtl, remainingSeconds);
     }
 }
