@@ -11,7 +11,13 @@ public class RelayProperties {
     private String domain = "myhuaweicloud.com";
     private String region = "region-a";
     private int defaultExpirationHours = 72;
+    private Crypto crypto = new Crypto();
     private Jwt jwt = new Jwt();
+
+    @Data
+    public static class Crypto {
+        private String key;
+    }
 
     @Data
     public static class Jwt {

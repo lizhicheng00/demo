@@ -90,6 +90,8 @@ export SPRING_DATASOURCE_PASSWORD='root'
 mvn spring-boot:run
 ```
 
+Set `RELAY_CRYPTO_KEY` to enable SCC encryption for cached JWT tokens. Datasource passwords can also use the `{scc}` prefix; when `SPRING_DATASOURCE_PASSWORD` starts with `{scc}`, the application decrypts it with the same `RELAY_CRYPTO_KEY` before creating the datasource.
+
 The project uses the official MySQL driver `com.mysql.cj.jdbc.Driver` with `mysql-connector-j`.
 Do not set `SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.mariadb.jdbc.Driver` when using a `jdbc:mysql://` URL. If startup says the MariaDB driver cannot be loaded, remove that environment variable or external config override. Also make sure the JDBC URL uses the normal ASCII colon `jdbc:mysql://`, not the full-width Chinese colon `jdbc：mysql://`.
 

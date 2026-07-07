@@ -1,6 +1,7 @@
 package com.huawei.devbridge.relaycontroller.infrastructure.redis;
 
 import com.huawei.devbridge.relaycontroller.domain.model.JwtToken;
+import com.huawei.devbridge.relaycontroller.infrastructure.security.SccCrypto;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,7 @@ public class JwtTokenCache {
     private static final String TOKEN_KEY_PREFIX = "jwt:token:";
 
     private final StringRedisTemplate stringRedisTemplate;
+    private final SccCrypto sccCrypto;
 
     @Nullable
     public JwtToken getToken(String tunnelId) {
@@ -27,7 +29,7 @@ public class JwtTokenCache {
             if (ttlSeconds <= 0) {
                 return null;
             }
-            return new JwtToken(token, ttlSeconds);
+            return new JwtToken(sccCrypto.decrypt(token), ttlSeconds);
         } catch (RuntimeException ignored) {
             return null;
         }
@@ -35,7 +37,8 @@ public class JwtTokenCache {
 
     public void setToken(String tunnelId, String token, long ttlSeconds) {
         try {
-            stringRedisTemplate.opsForValue().set(TOKEN_KEY_PREFIX + tunnelId, token, Duration.ofSeconds(ttlSeconds));
+            stringRedisTemplate.opsForValue().set(TOKEN_KEY_PREFIX + tunnelId,
+                    sccCrypto.encrypt(token), Duration.ofSeconds(ttlSeconds));
         } catch (RuntimeException ignored) {
             // Redis is a cache here; token generation remains functional if Redis is unavailable.
         }
