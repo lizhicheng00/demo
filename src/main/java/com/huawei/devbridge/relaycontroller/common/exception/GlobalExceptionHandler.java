@@ -5,13 +5,16 @@ import jakarta.validation.ConstraintViolationException;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.NestedExceptionUtils;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @RestControllerAdvice
 @Slf4j
@@ -59,6 +62,13 @@ public class GlobalExceptionHandler {
         String message = messageOf(exception, ErrorCode.PARAM_INVALID);
         log.warn("Request body not readable: {}", message);
         return Result.failure(ErrorCode.PARAM_INVALID, message);
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public Result<Void> handleNoResourceFound(NoResourceFoundException exception) {
+        log.debug("Resource not found: {}", exception.getResourcePath());
+        return Result.failure(ErrorCode.NOT_FOUND);
     }
 
     @ExceptionHandler(Exception.class)

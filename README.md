@@ -13,7 +13,6 @@ This service does not implement WebSocket, WebTransport, TCP, or HTTP body forwa
 - MySQL
 - Redis with Jedis client
 - MyBatis Plus
-- Springdoc OpenAPI
 - Nimbus JOSE JWT
 
 ## Implemented APIs
@@ -51,11 +50,9 @@ Token APIs are independent from tunnel resource paths. Tokens are reusable for 2
 Tunnel port APIs manage the explicit per-port allow list for a tunnel. Unconfigured ports are denied by default. `allowAnonymous` only controls sending-side access to that port; listening-side gateway connection still requires token authentication.
 
 OpenAPI is maintained as YAML at `src/main/resources/static/openapi.yaml`. Maven uses this YAML during `generate-sources` to generate Spring API interfaces under `target/generated-sources/openapi`; controllers implement those generated interfaces and do not declare request mappings by hand.
-
-Swagger UI also loads the same YAML directly:
+The same YAML is served directly as a static resource:
 
 ```text
-GET /swagger-ui/index.html
 GET /openapi.yaml
 ```
 

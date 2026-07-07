@@ -28,10 +28,6 @@ spring:
       database: 0
       timeout: 3000ms
 
-springdoc:
-  swagger-ui:
-    url: /openapi.yaml
-
 mybatis-plus:
   mapper-locations: classpath*:mapper/**/*.xml
   type-aliases-package: com.huawei.devbridge.relaycontroller.infrastructure.persistence.entity
@@ -45,7 +41,6 @@ logging:
     root: WARN
     com.baomidou.mybatisplus.core.toolkit.Sequence: OFF
     org.flywaydb.core.internal.database.base.Database: ERROR
-    org.springdoc.core.events.SpringDocAppInitializer: ERROR
     com.huawei.devbridge.relaycontroller.RelayControllerApplication: INFO
     com.huawei.devbridge.relaycontroller.application.service: INFO
     com.huawei.devbridge.relaycontroller.common.exception: WARN
