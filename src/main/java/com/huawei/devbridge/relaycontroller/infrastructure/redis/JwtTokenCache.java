@@ -24,7 +24,7 @@ public class JwtTokenCache {
                 return null;
             }
             Long ttlSeconds = stringRedisTemplate.getExpire(key, TimeUnit.SECONDS);
-            if (ttlSeconds == null || ttlSeconds <= 0) {
+            if (ttlSeconds <= 0) {
                 return null;
             }
             return new JwtToken(token, ttlSeconds);

@@ -60,7 +60,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public Result<Void> handleMessageNotReadable(HttpMessageNotReadableException exception) {
-        String message = messageOf(exception, ErrorCode.PARAM_INVALID);
+        String message = messageOf(exception);
         log.warn("Request body not readable: {}", message);
         return Result.failure(ErrorCode.PARAM_INVALID, message);
     }
@@ -71,10 +71,10 @@ public class GlobalExceptionHandler {
         return Result.failure(ErrorCode.INTERNAL_ERROR);
     }
 
-    private static String messageOf(Throwable exception, ErrorCode fallback) {
+    private static String messageOf(Throwable exception) {
         Throwable cause = rootCause(exception);
         String message = cause.getMessage();
-        return message == null ? fallback.getMessage() : message;
+        return message == null ? ErrorCode.PARAM_INVALID.getMessage() : message;
     }
 
     private static Throwable rootCause(Throwable exception) {
