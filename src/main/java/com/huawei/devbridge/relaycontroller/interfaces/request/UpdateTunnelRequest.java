@@ -7,7 +7,6 @@ import lombok.Data;
 
 @Data
 public class UpdateTunnelRequest {
-    private String tunnelId;
     @Size(max = 128)
     private String name;
     @Size(max = 512)

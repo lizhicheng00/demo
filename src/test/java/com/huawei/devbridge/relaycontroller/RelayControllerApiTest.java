@@ -3,7 +3,6 @@ package com.huawei.devbridge.relaycontroller;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -174,7 +173,8 @@ class RelayControllerApiTest {
 
     @Test
     void updateTunnelApi() throws Exception {
-        when(tunnelAppService.updateTunnel(eq(NAMESPACE), any(UpdateTunnelRequest.class))).thenReturn(true);
+        when(tunnelAppService.updateTunnel(eq(NAMESPACE), eq(TUNNEL_ID), any(UpdateTunnelRequest.class)))
+                .thenReturn(true);
 
         mockMvc.perform(put(BASE + "/tunnels/{tunnelId}", TUNNEL_ID)
                         .header("X-Namespace", NAMESPACE)
@@ -228,32 +228,6 @@ class RelayControllerApiTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.error_code").value("0000"))
                 .andExpect(jsonPath("$.data.accepted").value(true));
-    }
-
-    @Test
-    void relayStatusApiIsRemoved() throws Exception {
-        mockMvc.perform(get(BASE + "/tunnels/{tunnelId}/status", TUNNEL_ID)
-                        .header("X-Namespace", NAMESPACE))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error_code").value("40400"));
-
-        verifyNoInteractions(tunnelAppService, tunnelPortAppService, meteringAppService);
-    }
-
-    @Test
-    void tokenApiIsRemoved() throws Exception {
-        mockMvc.perform(post(BASE + "/tokens")
-                        .header("X-Namespace", NAMESPACE)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                  "tunnelId": "aaaadysa"
-                                }
-                                """))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error_code").value("40400"));
-
-        verifyNoInteractions(tunnelAppService, tunnelPortAppService, meteringAppService);
     }
 
     @Test

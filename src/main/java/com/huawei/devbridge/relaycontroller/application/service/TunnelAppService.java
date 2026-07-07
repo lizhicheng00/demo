@@ -93,8 +93,8 @@ public class TunnelAppService {
     }
 
     @Transactional
-    public Boolean updateTunnel(String rawNamespace, UpdateTunnelRequest request) {
-        Tunnel tunnel = findOwnedActiveTunnel(rawNamespace, request.getTunnelId());
+    public Boolean updateTunnel(String rawNamespace, String tunnelId, UpdateTunnelRequest request) {
+        Tunnel tunnel = findOwnedActiveTunnel(rawNamespace, tunnelId);
         boolean expirationChanged = applyUpdates(tunnel, request);
         tunnel.setUpdatedAt(TimeUtils.nowSeconds());
         tunnelRepository.update(tunnel);

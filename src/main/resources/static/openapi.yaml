@@ -360,7 +360,7 @@ components:
           maxLength: 512
         gridName:
           type: string
-          description: Grid name. Legacy JSON field gridname is still accepted.
+          description: Grid name.
         cluster:
           type: string
         expiration:
@@ -375,11 +375,6 @@ components:
     UpdateTunnelRequest:
       type: object
       properties:
-        tunnelId:
-          type: string
-          pattern: '^[a-z2-7]{8}$'
-          deprecated: true
-          description: Deprecated. The tunnelId path parameter is the source of truth.
         name:
           type: string
           maxLength: 128

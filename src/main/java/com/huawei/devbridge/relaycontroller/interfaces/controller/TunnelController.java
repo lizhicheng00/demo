@@ -44,7 +44,6 @@ public class TunnelController implements TunnelApi {
 
     @Override
     public Result<Boolean> updateTunnel(String xNamespace, String tunnelId, UpdateTunnelRequest request) {
-        request.setTunnelId(tunnelId);
-        return Result.success(tunnelAppService.updateTunnel(xNamespace, request));
+        return Result.success(tunnelAppService.updateTunnel(xNamespace, tunnelId, request));
     }
 }

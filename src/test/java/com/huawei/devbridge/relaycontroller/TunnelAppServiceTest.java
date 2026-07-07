@@ -135,7 +135,6 @@ class TunnelAppServiceTest {
     void updateTunnelEvictsTokenWhenExpirationChanges() {
         TunnelAppService service = newService(new RelayProperties());
         UpdateTunnelRequest request = new UpdateTunnelRequest();
-        request.setTunnelId("aaaadysa");
         request.setExpiration(1);
         Tunnel tunnel = Tunnel.builder()
                 .tunnelId("aaaadysa")
@@ -148,7 +147,7 @@ class TunnelAppServiceTest {
         when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel);
 
         long before = TimeUtils.nowSeconds();
-        Boolean updated = service.updateTunnel("ns-user-001", request);
+        Boolean updated = service.updateTunnel("ns-user-001", "aaaadysa", request);
         long after = TimeUtils.nowSeconds();
 
         assertThat(updated).isTrue();
@@ -195,7 +194,6 @@ class TunnelAppServiceTest {
     void updateTunnelStoresEnumType() {
         TunnelAppService service = newService(new RelayProperties());
         UpdateTunnelRequest request = new UpdateTunnelRequest();
-        request.setTunnelId("aaaadysa");
         request.setType(TunnelType.ENV);
         Tunnel tunnel = Tunnel.builder()
                 .tunnelId("aaaadysa")
@@ -207,7 +205,7 @@ class TunnelAppServiceTest {
 
         when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel);
 
-        Boolean updated = service.updateTunnel("ns-user-001", request);
+        Boolean updated = service.updateTunnel("ns-user-001", "aaaadysa", request);
 
         assertThat(updated).isTrue();
         assertThat(tunnel.getType()).isEqualTo(TunnelType.ENV);
