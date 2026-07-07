@@ -5,12 +5,14 @@ import com.huawei.devbridge.relaycontroller.infrastructure.security.SccCrypto;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class JwtTokenCache {
     private static final String TOKEN_KEY_PREFIX = "jwt:token:";
 
@@ -47,7 +49,8 @@ public class JwtTokenCache {
     public void deleteToken(String tunnelId) {
         try {
             stringRedisTemplate.delete(TOKEN_KEY_PREFIX + tunnelId);
-        } catch (RuntimeException ignored) {
+        } catch (RuntimeException exception) {
+            log.warn("Failed to delete jwt token cache: tunnelId={}", tunnelId, exception);
         }
     }
 }
