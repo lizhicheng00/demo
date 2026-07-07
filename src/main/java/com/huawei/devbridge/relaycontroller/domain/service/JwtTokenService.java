@@ -7,5 +7,7 @@ public interface JwtTokenService {
 
     String createToken(Tunnel tunnel);
 
+    long getTokenTtlSeconds(Tunnel tunnel);
+
     void evictToken(String tunnelId);
 }

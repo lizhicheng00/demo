@@ -9,7 +9,6 @@ tags:
   - name: Tunnel
   - name: Token
   - name: Metering
-  - name: Relay Status
   - name: Tunnel Port
   - name: Gateway Tunnel Port
 paths:
@@ -133,21 +132,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MeteringReportResult'
-  /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/status:
-    get:
-      tags: [Relay Status]
-      summary: Get tunnel runtime relay status
-      operationId: getRelayStatus
-      parameters:
-        - $ref: '#/components/parameters/NamespaceHeader'
-        - $ref: '#/components/parameters/TunnelIdPath'
-      responses:
-        '200':
-          description: Relay runtime status.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RelayStatusResult'
   /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports:
     post:
       tags: [Tunnel Port]
@@ -367,13 +351,6 @@ components:
           properties:
             data:
               $ref: '#/components/schemas/MeteringReportResponse'
-    RelayStatusResult:
-      allOf:
-        - $ref: '#/components/schemas/ResultBase'
-        - type: object
-          properties:
-            data:
-              $ref: '#/components/schemas/RelayStatusResponse'
     CreateTokenResult:
       allOf:
         - $ref: '#/components/schemas/ResultBase'
@@ -521,13 +498,27 @@ components:
         type:
           type: string
           enum: [bridge, env]
+        jwt:
+          $ref: '#/components/schemas/TokenResponse'
     TunnelListItem:
       type: object
       properties:
+        tunnelId:
+          type: string
+          pattern: '^[a-z2-7]{8}$'
+        tunnelCode:
+          type: integer
+          format: int64
+        gridName:
+          type: string
         name:
           type: string
         description:
           type: string
+        expiration:
+          type: integer
+          format: int32
+          description: Expiration Unix seconds.
         created:
           type: integer
           format: int64
@@ -538,23 +529,6 @@ components:
       properties:
         accepted:
           type: boolean
-    RelayStatusResponse:
-      type: object
-      properties:
-        tunnelId:
-          type: string
-          pattern: '^[a-z2-7]{8}$'
-        status:
-          type: string
-        gridName:
-          type: string
-        nodeId:
-          type: string
-        gatewayIp:
-          type: string
-        lastHeartbeat:
-          type: integer
-          format: int64
     TokenResponse:
       type: object
       properties:

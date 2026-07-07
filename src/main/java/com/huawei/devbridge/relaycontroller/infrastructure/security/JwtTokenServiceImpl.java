@@ -37,6 +37,11 @@ public class JwtTokenServiceImpl implements JwtTokenService {
     }
 
     @Override
+    public long getTokenTtlSeconds(Tunnel tunnel) {
+        return resolveTokenTtlSeconds(tunnel);
+    }
+
+    @Override
     public void evictToken(String tunnelId) {
         jwtTokenCache.deleteToken(tunnelId);
     }

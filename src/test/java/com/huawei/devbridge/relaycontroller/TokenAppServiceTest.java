@@ -35,6 +35,7 @@ class TokenAppServiceTest {
         request.setTunnelId("aaaadysa");
 
         when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel());
+        when(jwtTokenService.getTokenTtlSeconds(ArgumentMatchers.any(Tunnel.class))).thenReturn(86400L);
         when(jwtTokenService.getOrCreateToken(ArgumentMatchers.any(Tunnel.class))).thenReturn("token-token");
 
         CreateTokenResponse response = service.createToken("ns-user-001", request);
@@ -75,11 +76,12 @@ class TokenAppServiceTest {
         tunnel.setExpiration(Math.toIntExact(TimeUtils.nowSeconds() + 60));
 
         when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel);
+        when(jwtTokenService.getTokenTtlSeconds(ArgumentMatchers.any(Tunnel.class))).thenReturn(60L);
         when(jwtTokenService.getOrCreateToken(ArgumentMatchers.any(Tunnel.class))).thenReturn("token-token");
 
         CreateTokenResponse response = service.createToken("ns-user-001", request);
 
-        assertThat(response.getExpiresIn()).isBetween(1L, 60L);
+        assertThat(response.getExpiresIn()).isEqualTo(60L);
     }
 
     private TokenAppService newService() {

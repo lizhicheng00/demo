@@ -3,6 +3,7 @@ package com.huawei.devbridge.relaycontroller;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -12,13 +13,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.huawei.devbridge.relaycontroller.application.service.MeteringAppService;
-import com.huawei.devbridge.relaycontroller.application.service.RelayStatusAppService;
 import com.huawei.devbridge.relaycontroller.application.service.TokenAppService;
 import com.huawei.devbridge.relaycontroller.application.service.TunnelAppService;
 import com.huawei.devbridge.relaycontroller.application.service.TunnelPortAppService;
 import com.huawei.devbridge.relaycontroller.common.exception.GlobalExceptionHandler;
 import com.huawei.devbridge.relaycontroller.interfaces.controller.MeteringController;
-import com.huawei.devbridge.relaycontroller.interfaces.controller.RelayStatusController;
 import com.huawei.devbridge.relaycontroller.interfaces.controller.TokenController;
 import com.huawei.devbridge.relaycontroller.interfaces.controller.TunnelController;
 import com.huawei.devbridge.relaycontroller.interfaces.controller.TunnelPortController;
@@ -32,7 +31,6 @@ import com.huawei.devbridge.relaycontroller.interfaces.response.CreateTokenRespo
 import com.huawei.devbridge.relaycontroller.interfaces.response.CreateTunnelResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.GatewayTunnelPortPolicyResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.MeteringReportResponse;
-import com.huawei.devbridge.relaycontroller.interfaces.response.RelayStatusResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelDetailResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelListItemResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelPortResponse;
@@ -60,8 +58,6 @@ class RelayControllerApiTest {
     @Mock
     private MeteringAppService meteringAppService;
     @Mock
-    private RelayStatusAppService relayStatusAppService;
-    @Mock
     private TunnelPortAppService tunnelPortAppService;
     @Mock
     private TokenAppService tokenAppService;
@@ -71,7 +67,6 @@ class RelayControllerApiTest {
         mockMvc = MockMvcBuilders.standaloneSetup(
                         new TunnelController(tunnelAppService),
                         new MeteringController(meteringAppService),
-                        new RelayStatusController(relayStatusAppService),
                         new TunnelPortController(tunnelPortAppService),
                         new TokenController(tokenAppService))
                 .setControllerAdvice(new GlobalExceptionHandler())
@@ -136,8 +131,12 @@ class RelayControllerApiTest {
     void listTunnelsApi() throws Exception {
         when(tunnelAppService.listTunnels(NAMESPACE, GRID_NAME)).thenReturn(List.of(
                 TunnelListItemResponse.builder()
+                        .tunnelId(TUNNEL_ID)
+                        .tunnelCode(123456L)
+                        .gridName(GRID_NAME)
                         .name("dev")
                         .description("dev tunnel")
+                        .expiration(1720086400)
                         .created(1720000000L)
                         .url("aaaadysa-grid-a-myhuaweicloud.com")
                         .build()));
@@ -148,6 +147,8 @@ class RelayControllerApiTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.error_code").value("0000"))
                 .andExpect(jsonPath("$.data", hasSize(1)))
+                .andExpect(jsonPath("$.data[0].tunnelId").value(TUNNEL_ID))
+                .andExpect(jsonPath("$.data[0].gridName").value(GRID_NAME))
                 .andExpect(jsonPath("$.data[0].name").value("dev"));
     }
 
@@ -160,6 +161,11 @@ class RelayControllerApiTest {
                 .gridName(GRID_NAME)
                 .url("aaaadysa-grid-a-myhuaweicloud.com")
                 .type("bridge")
+                .jwt(CreateTokenResponse.builder()
+                        .tokenType("TOKEN")
+                        .token("token-token")
+                        .expiresIn(86400L)
+                        .build())
                 .build());
 
         mockMvc.perform(get(BASE + "/tunnels/{tunnelId}", TUNNEL_ID)
@@ -167,7 +173,9 @@ class RelayControllerApiTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.error_code").value("0000"))
                 .andExpect(jsonPath("$.data.tunnelId").value(TUNNEL_ID))
-                .andExpect(jsonPath("$.data.gridName").value(GRID_NAME));
+                .andExpect(jsonPath("$.data.gridName").value(GRID_NAME))
+                .andExpect(jsonPath("$.data.jwt.tokenType").value("TOKEN"))
+                .andExpect(jsonPath("$.data.jwt.expiresIn").value(86400));
     }
 
     @Test
@@ -229,22 +237,13 @@ class RelayControllerApiTest {
     }
 
     @Test
-    void getRelayStatusApi() throws Exception {
-        when(relayStatusAppService.getStatus(NAMESPACE, TUNNEL_ID)).thenReturn(RelayStatusResponse.builder()
-                .tunnelId(TUNNEL_ID)
-                .status("ONLINE")
-                .gridName(GRID_NAME)
-                .nodeId("000f")
-                .gatewayIp("10.0.1.23")
-                .lastHeartbeat(1720000000L)
-                .build());
-
+    void relayStatusApiIsRemoved() throws Exception {
         mockMvc.perform(get(BASE + "/tunnels/{tunnelId}/status", TUNNEL_ID)
                         .header("X-Namespace", NAMESPACE))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.error_code").value("0000"))
-                .andExpect(jsonPath("$.data.status").value("ONLINE"))
-                .andExpect(jsonPath("$.data.gridName").value(GRID_NAME));
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error_code").value("40400"));
+
+        verifyNoInteractions(tunnelAppService, tunnelPortAppService, tokenAppService, meteringAppService);
     }
 
     @Test

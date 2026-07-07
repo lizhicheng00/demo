@@ -3,7 +3,6 @@ package com.huawei.devbridge.relaycontroller.application.service;
 import com.huawei.devbridge.relaycontroller.common.exception.BizException;
 import com.huawei.devbridge.relaycontroller.common.exception.ErrorCode;
 import com.huawei.devbridge.relaycontroller.common.util.StringUtils;
-import com.huawei.devbridge.relaycontroller.common.util.TimeUtils;
 import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
 import com.huawei.devbridge.relaycontroller.domain.repository.TunnelRepository;
 import com.huawei.devbridge.relaycontroller.domain.service.JwtTokenService;
@@ -35,7 +34,7 @@ public class TokenAppService {
         if (!StringUtils.isBlank(namespace)) {
             tunnelDomainService.assertOwnedBy(tunnel, namespaceService.requireNamespace(namespace));
         }
-        long expiresIn = resolveExpiresIn(tunnel);
+        long expiresIn = jwtTokenService.getTokenTtlSeconds(tunnel);
         String token = jwtTokenService.getOrCreateToken(tunnel);
         log.info("Token issued: tunnelId={}, gridName={}, namespaceChecked={}, expiresIn={}",
                 tunnel.getTunnelId(), tunnel.getGridName(), !StringUtils.isBlank(namespace), expiresIn);
@@ -54,17 +53,5 @@ public class TokenAppService {
         Tunnel tunnel = tunnelRepository.findByTunnelIdAndRegion(tunnelId, relayProperties.getRegion());
         tunnelDomainService.assertNotExpired(tunnel);
         return tunnel;
-    }
-
-    private long resolveExpiresIn(Tunnel tunnel) {
-        long configuredTtl = relayProperties.getJwt().getToken().getTtlSeconds();
-        if (tunnel.getExpiration() == null) {
-            return configuredTtl;
-        }
-        long remainingSeconds = tunnel.getExpiration() - TimeUtils.nowSeconds();
-        if (remainingSeconds <= 0) {
-            throw new BizException(ErrorCode.TUNNEL_EXPIRED);
-        }
-        return Math.min(configuredTtl, remainingSeconds);
     }
 }

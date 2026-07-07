@@ -227,7 +227,6 @@
                                 <importMapping>TunnelDetailResult=com.huawei.devbridge.relaycontroller.common.model.Result</importMapping>
                                 <importMapping>TunnelListResult=com.huawei.devbridge.relaycontroller.common.model.Result</importMapping>
                                 <importMapping>MeteringReportResult=com.huawei.devbridge.relaycontroller.common.model.Result</importMapping>
-                                <importMapping>RelayStatusResult=com.huawei.devbridge.relaycontroller.common.model.Result</importMapping>
                                 <importMapping>CreateTokenResult=com.huawei.devbridge.relaycontroller.common.model.Result</importMapping>
                                 <importMapping>TunnelPortResult=com.huawei.devbridge.relaycontroller.common.model.Result</importMapping>
                                 <importMapping>TunnelPortListResult=com.huawei.devbridge.relaycontroller.common.model.Result</importMapping>
@@ -245,7 +244,6 @@
                                 <schemaMapping>TunnelDetailResult=com.huawei.devbridge.relaycontroller.common.model.Result</schemaMapping>
                                 <schemaMapping>TunnelListResult=com.huawei.devbridge.relaycontroller.common.model.Result</schemaMapping>
                                 <schemaMapping>MeteringReportResult=com.huawei.devbridge.relaycontroller.common.model.Result</schemaMapping>
-                                <schemaMapping>RelayStatusResult=com.huawei.devbridge.relaycontroller.common.model.Result</schemaMapping>
                                 <schemaMapping>CreateTokenResult=com.huawei.devbridge.relaycontroller.common.model.Result</schemaMapping>
                                 <schemaMapping>TunnelPortResult=com.huawei.devbridge.relaycontroller.common.model.Result</schemaMapping>
                                 <schemaMapping>TunnelPortListResult=com.huawei.devbridge.relaycontroller.common.model.Result</schemaMapping>

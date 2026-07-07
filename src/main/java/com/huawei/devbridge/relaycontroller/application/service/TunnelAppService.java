@@ -87,7 +87,9 @@ public class TunnelAppService {
     public TunnelDetailResponse getTunnelDetail(String rawNamespace, String tunnelId) {
         Tunnel tunnel = findOwnedTunnel(rawNamespace, tunnelId);
         tunnelDomainService.assertNotExpired(tunnel);
-        return TunnelAssembler.toDetailResponse(tunnel);
+        long expiresIn = jwtTokenService.getTokenTtlSeconds(tunnel);
+        String token = jwtTokenService.getOrCreateToken(tunnel);
+        return TunnelAssembler.toDetailResponse(tunnel, token, expiresIn);
     }
 
     @Transactional

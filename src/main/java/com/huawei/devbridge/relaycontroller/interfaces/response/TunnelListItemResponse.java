@@ -6,8 +6,12 @@ import lombok.Data;
 @Data
 @Builder
 public class TunnelListItemResponse {
+    private String tunnelId;
+    private Long tunnelCode;
+    private String gridName;
     private String name;
     private String description;
+    private Integer expiration;
     private Long created;
     private String url;
 }
