@@ -50,6 +50,7 @@ Deleted tunnels are soft-deleted to preserve historical identifiers and metering
 Token APIs are independent from tunnel resource paths. `X-Namespace` is optional; when present, it enforces namespace ownership before issuing a token. Tokens are cached at `jwt:token:{tunnelId}` and expire at the earlier of `relay.jwt.token.ttl-seconds` or the tunnel expiration.
 
 Tunnel port APIs manage the explicit per-port allow list for a tunnel. Unconfigured ports are denied by default. `allowAnonymous` only controls sending-side access to that port; listening-side gateway connection still requires token authentication.
+The gateway port policy API keeps `gridName` in the path intentionally. Gateway callers use it as their grid scope, and Relay Controller verifies the tunnel belongs to that grid before returning the port policy.
 
 OpenAPI is maintained as YAML at `src/main/resources/static/openapi.yaml`. Maven uses this YAML during `generate-sources` to generate Spring API interfaces under `target/generated-sources/openapi`; controllers implement those generated interfaces and do not declare request mappings by hand.
 The same YAML is served directly as a static resource:

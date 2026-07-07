@@ -13,7 +13,6 @@ public final class TunnelAssembler {
     public static CreateTunnelResponse toCreateResponse(Tunnel tunnel) {
         return CreateTunnelResponse.builder()
                 .name(tunnel.getName())
-                .id(tunnel.getTunnelId())
                 .tunnelId(tunnel.getTunnelId())
                 .tunnelCode(tunnel.getTunnelCode())
                 .gridName(tunnel.getGridName())
@@ -30,7 +29,6 @@ public final class TunnelAssembler {
     public static TunnelDetailResponse toDetailResponse(Tunnel tunnel) {
         return TunnelDetailResponse.builder()
                 .name(tunnel.getName())
-                .id(tunnel.getTunnelId())
                 .tunnelId(tunnel.getTunnelId())
                 .tunnelCode(tunnel.getTunnelCode())
                 .gridName(tunnel.getGridName())

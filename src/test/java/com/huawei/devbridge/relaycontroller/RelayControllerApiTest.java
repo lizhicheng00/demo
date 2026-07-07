@@ -139,7 +139,7 @@ class RelayControllerApiTest {
                         .name("dev")
                         .description("dev tunnel")
                         .created(1720000000L)
-                        .url("aaaadysa-grid-a-relayprovider.xxx.com")
+                        .url("aaaadysa-grid-a-myhuaweicloud.com")
                         .build()));
 
         mockMvc.perform(get(BASE + "/tunnels")
@@ -155,11 +155,10 @@ class RelayControllerApiTest {
     void getTunnelDetailApi() throws Exception {
         when(tunnelAppService.getTunnelDetail(NAMESPACE, TUNNEL_ID)).thenReturn(TunnelDetailResponse.builder()
                 .name("dev")
-                .id(TUNNEL_ID)
                 .tunnelId(TUNNEL_ID)
                 .tunnelCode(123456L)
                 .gridName(GRID_NAME)
-                .url("aaaadysa-grid-a-relayprovider.xxx.com")
+                .url("aaaadysa-grid-a-myhuaweicloud.com")
                 .type("bridge")
                 .build());
 
@@ -167,7 +166,7 @@ class RelayControllerApiTest {
                         .header("X-Namespace", NAMESPACE))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.error_code").value("0000"))
-                .andExpect(jsonPath("$.data.id").value(TUNNEL_ID))
+                .andExpect(jsonPath("$.data.tunnelId").value(TUNNEL_ID))
                 .andExpect(jsonPath("$.data.gridName").value(GRID_NAME));
     }
 
@@ -384,7 +383,6 @@ class RelayControllerApiTest {
     private CreateTunnelResponse createTunnelResponse() {
         return CreateTunnelResponse.builder()
                 .name("dev")
-                .id(TUNNEL_ID)
                 .tunnelId(TUNNEL_ID)
                 .tunnelCode(123456L)
                 .gridName(GRID_NAME)
@@ -392,7 +390,7 @@ class RelayControllerApiTest {
                 .bandwidthUsed(0L)
                 .expiration(1720086400)
                 .created(1720000000L)
-                .url("aaaadysa-grid-a-relayprovider.xxx.com")
+                .url("aaaadysa-grid-a-myhuaweicloud.com")
                 .type("bridge")
                 .build();
     }

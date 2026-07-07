@@ -46,7 +46,7 @@ logging:
     com.huawei.devbridge.relaycontroller.common.exception: WARN
 
 relay:
-  domain: relayprovider.xxx.com
+  domain: myhuaweicloud.com
   region: region-a
   default-expiration-hours: 72
   jwt:

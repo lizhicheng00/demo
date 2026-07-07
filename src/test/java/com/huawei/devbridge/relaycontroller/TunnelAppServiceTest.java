@@ -73,7 +73,7 @@ class TunnelAppServiceTest {
 
         assertThat(response.getTunnelId()).isEqualTo("aaaadysa");
         assertThat(response.getTunnelCode()).isEqualTo(123456L);
-        assertThat(response.getUrl()).isEqualTo("aaaadysa-grid-a-relayprovider.xxx.com");
+        assertThat(response.getUrl()).isEqualTo("aaaadysa-grid-a-myhuaweicloud.com");
         assertThat(response.getType()).isEqualTo("bridge");
         assertThat(response.getExpiration())
                 .isBetween(Math.toIntExact(before + 72 * 3600L), Math.toIntExact(after + 72 * 3600L));
@@ -165,7 +165,7 @@ class TunnelAppServiceTest {
                 .name("local")
                 .namespace("ns-user-001")
                 .gridName("grid-a")
-                .url("local-grid-a-relayprovider.xxx.com")
+                .url("local-grid-a-myhuaweicloud.com")
                 .deleted(0)
                 .build();
 

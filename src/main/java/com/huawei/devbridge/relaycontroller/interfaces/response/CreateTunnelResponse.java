@@ -7,7 +7,6 @@ import lombok.Data;
 @Builder
 public class CreateTunnelResponse {
     private String name;
-    private String id;
     private String tunnelId;
     private Long tunnelCode;
     private String gridName;
