@@ -12,7 +12,6 @@ public interface TunnelMapper extends BaseMapper<TunnelEntity> {
 
     List<TunnelEntity> selectByNamespaceAndRegion(
             @Param("namespace") String namespace,
-            @Param("gridName") String gridName,
             @Param("region") String region);
 
     List<TunnelEntity> selectActiveByNamespaceAndRegion(
@@ -23,6 +22,7 @@ public interface TunnelMapper extends BaseMapper<TunnelEntity> {
 
     int increaseBandwidthUsed(
             @Param("tunnelId") String tunnelId,
+            @Param("region") String region,
             @Param("usageBytes") long usageBytes,
             @Param("updatedAt") long updatedAt);
 }

@@ -64,7 +64,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RuntimeException.class)
     public Result<Void> handleRuntimeException(RuntimeException exception) {
         log.error("Unhandled exception", exception);
-        return Result.failure(ErrorCode.INTERNAL_ERROR, messageOf(exception, ErrorCode.INTERNAL_ERROR));
+        return Result.failure(ErrorCode.INTERNAL_ERROR);
     }
 
     private String messageOf(Exception exception, ErrorCode fallback) {

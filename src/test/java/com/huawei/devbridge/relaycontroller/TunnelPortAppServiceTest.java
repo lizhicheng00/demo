@@ -54,15 +54,11 @@ class TunnelPortAppServiceTest {
 
         when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel("ns-user-001", "grid-a"));
         when(tunnelPortRepository.existsByTunnelCodeAndPort(123456L, 8080L)).thenReturn(false);
-        when(tunnelPortRepository.save(org.mockito.ArgumentMatchers.any(TunnelPort.class))).thenAnswer(invocation -> {
-            TunnelPort tunnelPort = invocation.getArgument(0);
-            tunnelPort.setId(1L);
-            return tunnelPort;
-        });
+        when(tunnelPortRepository.save(org.mockito.ArgumentMatchers.any(TunnelPort.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         TunnelPortResponse response = service.create("ns-user-001", "aaaadysa", request);
 
-        assertThat(response.getId()).isEqualTo(1L);
         assertThat(response.getTunnelId()).isEqualTo("aaaadysa");
         assertThat(response.getTunnelCode()).isEqualTo(123456L);
         assertThat(response.getPort()).isEqualTo(8080L);
@@ -135,8 +131,8 @@ class TunnelPortAppServiceTest {
 
         when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel("ns-user-001", "grid-a"));
         when(tunnelPortRepository.findByTunnelCode(123456L)).thenReturn(List.of(
-                TunnelPort.builder().id(1L).tunnelCode(123456L).port(8080L).allowAnonymous(false).build(),
-                TunnelPort.builder().id(2L).tunnelCode(123456L).port(8888L).allowAnonymous(true).build()));
+                TunnelPort.builder().tunnelCode(123456L).port(8080L).allowAnonymous(false).build(),
+                TunnelPort.builder().tunnelCode(123456L).port(8888L).allowAnonymous(true).build()));
 
         List<TunnelPortResponse> response = service.list("ns-user-001", "aaaadysa");
 
@@ -151,7 +147,7 @@ class TunnelPortAppServiceTest {
 
         when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel("ns-user-001", "grid-a"));
         when(tunnelPortRepository.findByTunnelCodeAndPort(123456L, 8080L))
-                .thenReturn(TunnelPort.builder().id(1L).tunnelCode(123456L).port(8080L).allowAnonymous(false).build());
+                .thenReturn(TunnelPort.builder().tunnelCode(123456L).port(8080L).allowAnonymous(false).build());
 
         TunnelPortResponse response = service.update("ns-user-001", "aaaadysa", 8080L, request);
 
@@ -165,7 +161,7 @@ class TunnelPortAppServiceTest {
 
         when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel("ns-user-001", "grid-a"));
         when(tunnelPortRepository.findByTunnelCodeAndPort(123456L, 8080L))
-                .thenReturn(TunnelPort.builder().id(1L).tunnelCode(123456L).port(8080L).allowAnonymous(false).build());
+                .thenReturn(TunnelPort.builder().tunnelCode(123456L).port(8080L).allowAnonymous(false).build());
 
         Boolean deleted = service.delete("ns-user-001", "aaaadysa", 8080L);
 
@@ -204,7 +200,7 @@ class TunnelPortAppServiceTest {
 
         when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel("ns-user-001", "grid-a"));
         when(tunnelPortRepository.findByTunnelCodeAndPort(123456L, 8080L))
-                .thenReturn(TunnelPort.builder().id(1L).tunnelCode(123456L).port(8080L).allowAnonymous(true).build());
+                .thenReturn(TunnelPort.builder().tunnelCode(123456L).port(8080L).allowAnonymous(true).build());
 
         GatewayTunnelPortPolicyResponse response = service.getGatewayPortPolicy("grid-a", "aaaadysa", 8080L);
 

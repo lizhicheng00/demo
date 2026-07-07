@@ -54,7 +54,8 @@ class MeteringAppServiceTest {
 
         assertThat(response.getAccepted()).isTrue();
         verify(meteringRepository).save(ArgumentMatchers.argThat(metering -> metering.getUsageBytes().equals(1024L)));
-        verify(tunnelRepository).increaseBandwidthUsed(ArgumentMatchers.eq("aaaadysa"), ArgumentMatchers.eq(1024L), ArgumentMatchers.anyLong());
+        verify(tunnelRepository).increaseBandwidthUsed(ArgumentMatchers.eq("aaaadysa"), ArgumentMatchers.eq("region-a"),
+                ArgumentMatchers.eq(1024L), ArgumentMatchers.anyLong());
     }
 
     @Test

@@ -4,6 +4,7 @@ import com.huawei.devbridge.relaycontroller.common.exception.BizException;
 import com.huawei.devbridge.relaycontroller.common.exception.ErrorCode;
 import com.huawei.devbridge.relaycontroller.common.util.IdUtils;
 import com.huawei.devbridge.relaycontroller.common.util.TimeUtils;
+import com.huawei.devbridge.relaycontroller.domain.model.JwtToken;
 import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
 import com.huawei.devbridge.relaycontroller.domain.service.JwtTokenService;
 import com.huawei.devbridge.relaycontroller.infrastructure.config.RelayProperties;
@@ -19,26 +20,20 @@ public class JwtTokenServiceImpl implements JwtTokenService {
     private final RelayProperties relayProperties;
 
     @Override
-    public String getOrCreateToken(Tunnel tunnel) {
+    public JwtToken getOrCreateToken(Tunnel tunnel) {
         long ttlSeconds = resolveTokenTtlSeconds(tunnel);
-        String cached = jwtTokenCache.getToken(tunnel.getTunnelId());
-        if (cached != null && !cached.isBlank()) {
+        JwtToken cached = jwtTokenCache.getToken(tunnel.getTunnelId());
+        if (cached != null && cached.expiresIn() <= ttlSeconds) {
             return cached;
         }
-        String token = createToken(tunnel);
+        String token = createToken(tunnel, ttlSeconds);
         jwtTokenCache.setToken(tunnel.getTunnelId(), token, ttlSeconds);
-        return token;
+        return new JwtToken(token, ttlSeconds);
     }
 
-    @Override
-    public String createToken(Tunnel tunnel) {
+    private String createToken(Tunnel tunnel, long ttlSeconds) {
         return jwtSigner.signToken(tunnel, "token:" + tunnel.getTunnelId() + ":" + IdUtils.uuid(),
-                resolveTokenTtlSeconds(tunnel));
-    }
-
-    @Override
-    public long getTokenTtlSeconds(Tunnel tunnel) {
-        return resolveTokenTtlSeconds(tunnel);
+                ttlSeconds);
     }
 
     @Override

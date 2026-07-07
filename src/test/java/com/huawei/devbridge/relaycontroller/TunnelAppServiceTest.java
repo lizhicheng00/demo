@@ -244,7 +244,7 @@ class TunnelAppServiceTest {
                 .deleted(0)
                 .build();
 
-        when(tunnelRepository.findByNamespaceAndRegion("ns-user-001", null, "region-a")).thenReturn(List.of(first));
+        when(tunnelRepository.findByNamespaceAndRegion("ns-user-001", "region-a")).thenReturn(List.of(first));
 
         Boolean deleted = service.deleteTunnels("ns-user-001");
 

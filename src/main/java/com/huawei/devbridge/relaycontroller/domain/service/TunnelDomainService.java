@@ -44,6 +44,8 @@ public class TunnelDomainService {
 
     public void assertInGridAndNotExpired(Tunnel tunnel, String gridName, ErrorCode mismatchErrorCode) {
         assertInGrid(tunnel, gridName, mismatchErrorCode);
-        assertNotExpired(tunnel);
+        if (tunnel.getExpiration() != null && tunnel.getExpiration() <= TimeUtils.nowSeconds()) {
+            throw new BizException(ErrorCode.TUNNEL_EXPIRED);
+        }
     }
 }

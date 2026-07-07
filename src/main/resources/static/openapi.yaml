@@ -277,6 +277,8 @@ components:
       schema:
         type: integer
         format: int64
+        minimum: 1
+        maximum: 65535
   schemas:
     ResultBase:
       type: object
@@ -499,9 +501,6 @@ components:
     TunnelPortResponse:
       type: object
       properties:
-        id:
-          type: integer
-          format: int64
         tunnelId:
           type: string
           pattern: '^[a-z2-7]{8}$'

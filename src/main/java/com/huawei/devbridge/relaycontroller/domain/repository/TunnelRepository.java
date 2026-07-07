@@ -6,7 +6,7 @@ import java.util.List;
 public interface TunnelRepository {
     Tunnel findByTunnelIdAndRegion(String tunnelId, String region);
 
-    List<Tunnel> findByNamespaceAndRegion(String namespace, String gridName, String region);
+    List<Tunnel> findByNamespaceAndRegion(String namespace, String region);
 
     List<Tunnel> findActiveByNamespaceAndRegion(String namespace, String gridName, String region, long now);
 
@@ -20,5 +20,5 @@ public interface TunnelRepository {
 
     void softDelete(String tunnelId, long updatedAt);
 
-    void increaseBandwidthUsed(String tunnelId, long usageBytes, long updatedAt);
+    void increaseBandwidthUsed(String tunnelId, String region, long usageBytes, long updatedAt);
 }

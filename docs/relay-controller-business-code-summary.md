@@ -110,6 +110,7 @@ Token 是 tunnel 访问凭证。当前是随 tunnel detail 返回的可复用 JW
 - JWT 签发只在 tunnel detail 内部触发；调用方通过 `GET /open-api-inner/v1/relay-controller/tunnels/{tunnelId}` 获取。
 - Redis 缓存 key：`jwt:token:{tunnelId}`
 - token 有效期取 `min(relay.jwt.token.ttl-seconds, tunnel 剩余有效期)`。
+- `jwt.expiresIn` 表示当前返回 token 的剩余秒数；缓存命中时取 Redis TTL。
 - tunnel expiration 更新或 tunnel 删除时会删除缓存 token。
 
 ### 2.9 Metering
@@ -199,7 +200,6 @@ GET /openapi.yaml
 | `0000` | success |
 | `40000` | parameter invalid |
 | `40100` | unauthorized |
-| `40300` | forbidden |
 | `10001` | grid not found |
 | `10002` | tunnel not found |
 | `10003` | tunnel id conflict |
@@ -347,6 +347,7 @@ DELETE /open-api-inner/v1/relay-controller/tunnels
 - 如果 Redis 有可用缓存，直接返回缓存 token。
 - 如果 Redis 无缓存或不可用，则重新签发 JWT。
 - JWT 和 Redis 缓存 TTL 取 `min(relay.jwt.token.ttl-seconds, tunnel 剩余有效期)`。
+- 返回的 `expiresIn` 与实际返回 token 的剩余 TTL 对齐。
 
 JWT claims：
 
@@ -473,7 +474,7 @@ POST /open-api-inner/v1/relay-controller/grids/{gridName}/metering
 4. 校验 tunnel 未删除、未过期。
 5. 校验 request.tunnelCode 等于 tunnel.tunnelCode。
 6. 插入 `metering` 表。
-7. 累加 `tunnel.bandwidth_used`。
+7. 在当前 region 范围内累加 `tunnel.bandwidth_used`。
 
 ## 6. 数据模型
 
@@ -835,6 +836,7 @@ Controller 不手写 request mapping，而是实现 OpenAPI Generator 生成的 
 - 未命中则签发 JWT 并写入 Redis。
 - Redis 失败不影响 token 生成。
 - TTL 被 tunnel 剩余有效期截断。
+- 缓存命中时返回 Redis 剩余 TTL，避免 `expiresIn` 高估。
 
 ### 10.4 JwtSigner
 
@@ -861,7 +863,7 @@ Controller 不手写 request mapping，而是实现 OpenAPI Generator 生成的 
 - 校验 tunnel 属于该 grid。
 - 校验 tunnelCode 与 tunnelId 对应。
 - 写入 metering 表。
-- 累加 tunnel.bandwidth_used。
+- 在当前 region 范围内累加 tunnel.bandwidth_used。
 
 ### 10.9 LocalGridService
 
@@ -1061,7 +1063,7 @@ bash scripts/http-smoke-test.sh
 - Redis token 只是缓存，失败不影响 token 签发。
 - tunnel 删除时清 token cache 和 port policy。
 - tunnel expiration 变更时清 token cache。
-- metering 插入和 bandwidth 累加在同一事务内。
+- metering 插入和当前 region 内的 bandwidth 累加在同一事务内。
 
 ## 15. 安全与边界
 
@@ -1139,9 +1141,9 @@ token 不能超过 tunnel 的剩余有效期，否则 tunnel 过期后 token 仍
 
 虽然 tunnel 能查到 gridName，但 Gateway 请求 path 中保留 gridName 是为了表达调用者 scope，并显式校验 tunnel 是否属于该 grid。
 
-### 17.6 tunnel 响应不包含 id 字段
+### 17.6 响应不暴露数据库 id
 
-`tunnelId` 是对外稳定标识。响应不额外提供同义的 `id` 字段，避免调用方误以为存在另一个 tunnel id。
+`tunnelId` 和 `(tunnelId, port)` 是对外稳定标识。响应不额外提供数据库 `_id` 字段，避免调用方绑定内部主键。
 
 ## 18. 代码阅读路径建议
 

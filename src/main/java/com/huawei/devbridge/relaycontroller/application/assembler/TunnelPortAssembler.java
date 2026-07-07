@@ -11,7 +11,6 @@ public final class TunnelPortAssembler {
 
     public static TunnelPortResponse toResponse(Tunnel tunnel, TunnelPort tunnelPort) {
         return TunnelPortResponse.builder()
-                .id(tunnelPort.getId())
                 .tunnelId(tunnel.getTunnelId())
                 .tunnelCode(tunnelPort.getTunnelCode())
                 .port(tunnelPort.getPort())

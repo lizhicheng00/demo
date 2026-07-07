@@ -255,7 +255,6 @@ class RelayControllerApiTest {
         when(tunnelPortAppService.list(NAMESPACE, TUNNEL_ID)).thenReturn(List.of(
                 tunnelPortResponse(false),
                 TunnelPortResponse.builder()
-                        .id(2L)
                         .tunnelId(TUNNEL_ID)
                         .tunnelCode(123456L)
                         .port(8888L)
@@ -357,7 +356,6 @@ class RelayControllerApiTest {
 
     private TunnelPortResponse tunnelPortResponse(boolean allowAnonymous) {
         return TunnelPortResponse.builder()
-                .id(1L)
                 .tunnelId(TUNNEL_ID)
                 .tunnelCode(123456L)
                 .port(8080L)

@@ -8,7 +8,6 @@ public enum ErrorCode {
 
     PARAM_INVALID("40000", "parameter invalid"),
     UNAUTHORIZED("40100", "unauthorized"),
-    FORBIDDEN("40300", "forbidden"),
 
     GRID_NOT_FOUND("10001", "grid not found"),
     TUNNEL_NOT_FOUND("10002", "tunnel not found"),

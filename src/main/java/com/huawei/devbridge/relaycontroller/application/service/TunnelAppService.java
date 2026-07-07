@@ -5,6 +5,7 @@ import com.huawei.devbridge.relaycontroller.common.exception.BizException;
 import com.huawei.devbridge.relaycontroller.common.exception.ErrorCode;
 import com.huawei.devbridge.relaycontroller.common.util.TimeUtils;
 import com.huawei.devbridge.relaycontroller.domain.model.Grid;
+import com.huawei.devbridge.relaycontroller.domain.model.JwtToken;
 import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
 import com.huawei.devbridge.relaycontroller.domain.model.TunnelType;
 import com.huawei.devbridge.relaycontroller.domain.repository.TunnelPortRepository;
@@ -43,7 +44,7 @@ public class TunnelAppService {
     public CreateTunnelResponse createTunnel(String rawNamespace, CreateTunnelRequest request) {
         String namespace = namespaceService.requireNamespace(rawNamespace);
         TunnelType type = request.getType() == null ? TunnelType.BRIDGE : request.getType();
-        Grid grid = findGrid(request.getGridName());
+        Grid grid = localGridService.requireLocalGrid(request.getGridName());
         long now = TimeUtils.nowSeconds();
         int expiration = resolveExpiration(request.getExpiration(), now);
         TunnelCode code = allocateTunnelCode();
@@ -51,7 +52,7 @@ public class TunnelAppService {
                 .name(request.getName())
                 .tunnelId(code.tunnelId())
                 .tunnelCode(code.tunnelCode())
-                .gridName(request.getGridName())
+                .gridName(grid.getGrid())
                 .expiration(expiration)
                 .namespace(namespace)
                 .description(request.getDescription())
@@ -87,9 +88,8 @@ public class TunnelAppService {
     public TunnelDetailResponse getTunnelDetail(String rawNamespace, String tunnelId) {
         Tunnel tunnel = findOwnedTunnel(rawNamespace, tunnelId);
         tunnelDomainService.assertNotExpired(tunnel);
-        long expiresIn = jwtTokenService.getTokenTtlSeconds(tunnel);
-        String token = jwtTokenService.getOrCreateToken(tunnel);
-        return TunnelAssembler.toDetailResponse(tunnel, token, expiresIn);
+        JwtToken jwtToken = jwtTokenService.getOrCreateToken(tunnel);
+        return TunnelAssembler.toDetailResponse(tunnel, jwtToken.token(), jwtToken.expiresIn());
     }
 
     @Transactional
@@ -120,7 +120,7 @@ public class TunnelAppService {
     @Transactional
     public Boolean deleteTunnels(String rawNamespace) {
         String namespace = namespaceService.requireNamespace(rawNamespace);
-        List<Tunnel> tunnels = tunnelRepository.findByNamespaceAndRegion(namespace, null, relayProperties.getRegion());
+        List<Tunnel> tunnels = tunnelRepository.findByNamespaceAndRegion(namespace, relayProperties.getRegion());
         long now = TimeUtils.nowSeconds();
         tunnels.forEach(tunnel -> {
             tunnelRepository.softDelete(tunnel.getTunnelId(), now);
@@ -175,10 +175,6 @@ public class TunnelAppService {
         Tunnel tunnel = tunnelRepository.findByTunnelIdAndRegion(tunnelId, relayProperties.getRegion());
         tunnelDomainService.assertOwnedAndNotExpired(tunnel, namespace);
         return tunnel;
-    }
-
-    private Grid findGrid(String gridName) {
-        return localGridService.requireLocalGrid(gridName);
     }
 
     private int resolveExpiration(Integer expirationHours, long now) {

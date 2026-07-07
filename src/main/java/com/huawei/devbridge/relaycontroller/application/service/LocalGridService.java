@@ -15,14 +15,10 @@ public class LocalGridService {
     private final RelayProperties relayProperties;
 
     public Grid requireLocalGrid(String gridName) {
-        Grid grid = findLocalGrid(gridName);
+        Grid grid = gridRepository.findByGridNameAndRegion(gridName, relayProperties.getRegion());
         if (grid == null) {
             throw new BizException(ErrorCode.GRID_NOT_FOUND);
         }
         return grid;
-    }
-
-    private Grid findLocalGrid(String gridName) {
-        return gridRepository.findByGridNameAndRegion(gridName, relayProperties.getRegion());
     }
 }

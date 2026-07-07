@@ -43,7 +43,7 @@ public class MeteringAppService {
                 .reportedAt(now)
                 .createdAt(now)
                 .build());
-        tunnelRepository.increaseBandwidthUsed(request.getTunnelId(), request.getUsage(), now);
+        tunnelRepository.increaseBandwidthUsed(request.getTunnelId(), relayProperties.getRegion(), request.getUsage(), now);
         log.info("Metering accepted: tunnelId={}, tunnelCode={}, gridName={}, usageBytes={}",
                 request.getTunnelId(), request.getTunnelCode(), gridName, request.getUsage());
         return MeteringReportResponse.builder().accepted(true).build();

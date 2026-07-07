@@ -23,8 +23,8 @@ public class TunnelRepositoryImpl implements TunnelRepository {
     }
 
     @Override
-    public List<Tunnel> findByNamespaceAndRegion(String namespace, String gridName, String region) {
-        return tunnelMapper.selectByNamespaceAndRegion(namespace, gridName, region).stream()
+    public List<Tunnel> findByNamespaceAndRegion(String namespace, String region) {
+        return tunnelMapper.selectByNamespaceAndRegion(namespace, region).stream()
                 .map(converter::toDomain)
                 .toList();
     }
@@ -71,8 +71,8 @@ public class TunnelRepositoryImpl implements TunnelRepository {
     }
 
     @Override
-    public void increaseBandwidthUsed(String tunnelId, long usageBytes, long updatedAt) {
-        tunnelMapper.increaseBandwidthUsed(tunnelId, usageBytes, updatedAt);
+    public void increaseBandwidthUsed(String tunnelId, String region, long usageBytes, long updatedAt) {
+        tunnelMapper.increaseBandwidthUsed(tunnelId, region, usageBytes, updatedAt);
     }
 
 }

@@ -1,6 +1,8 @@
 package com.huawei.devbridge.relaycontroller.infrastructure.redis;
 
+import com.huawei.devbridge.relaycontroller.domain.model.JwtToken;
 import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
@@ -12,9 +14,18 @@ public class JwtTokenCache {
 
     private final StringRedisTemplate stringRedisTemplate;
 
-    public String getToken(String tunnelId) {
+    public JwtToken getToken(String tunnelId) {
         try {
-            return stringRedisTemplate.opsForValue().get(TOKEN_KEY_PREFIX + tunnelId);
+            String key = TOKEN_KEY_PREFIX + tunnelId;
+            String token = stringRedisTemplate.opsForValue().get(key);
+            if (token == null || token.isBlank()) {
+                return null;
+            }
+            Long ttlSeconds = stringRedisTemplate.getExpire(key, TimeUnit.SECONDS);
+            if (ttlSeconds == null || ttlSeconds <= 0) {
+                return null;
+            }
+            return new JwtToken(token, ttlSeconds);
         } catch (RuntimeException exception) {
             return null;
         }

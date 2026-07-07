@@ -21,9 +21,6 @@
         WHERE t.namespace = #{namespace}
           AND g.region = #{region}
           AND t.deleted = 0
-        <if test="gridName != null and gridName != ''">
-          AND t.grid_name = #{gridName}
-        </if>
         ORDER BY t.created_at DESC
     </select>
 
@@ -43,10 +40,12 @@
     </select>
 
     <update id="increaseBandwidthUsed">
-        UPDATE tunnel
-        SET bandwidth_used = bandwidth_used + #{usageBytes},
-            updated_at = #{updatedAt}
-        WHERE tunnel_id = #{tunnelId}
-          AND deleted = 0
+        UPDATE tunnel t
+        INNER JOIN grid g ON g.grid = t.grid_name
+        SET t.bandwidth_used = t.bandwidth_used + #{usageBytes},
+            t.updated_at = #{updatedAt}
+        WHERE t.tunnel_id = #{tunnelId}
+          AND g.region = #{region}
+          AND t.deleted = 0
     </update>
 </mapper>
