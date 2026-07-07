@@ -951,9 +951,10 @@ spring:
   profiles:
     active: dev
   datasource:
-    url: jdbc:mysql://localhost:3306/relay_controller...
-    username: root
-    password: root
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/relay_controller...}
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD:root}
+    driver-class-name: com.mysql.cj.jdbc.Driver
   flyway:
     enabled: true
     baseline-on-migrate: true
@@ -975,6 +976,8 @@ relay:
     token:
       ttl-seconds: 86400
 ```
+
+项目使用 MySQL 官方驱动 `com.mysql.cj.jdbc.Driver` 和 `mysql-connector-j`。使用 `jdbc:mysql://` URL 时不要通过环境变量或外部配置覆盖为 `org.mariadb.jdbc.Driver`；如果启动时报 MariaDB driver 加载失败，优先检查并删除 `SPRING_DATASOURCE_DRIVER_CLASS_NAME` 或外部配置中的 MariaDB driver。JDBC URL 的冒号也必须是英文半角 `:`。
 
 ### 12.2 日志配置
 

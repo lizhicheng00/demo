@@ -81,6 +81,18 @@ Configure MySQL and Redis in `src/main/resources/application.yml`, then run:
 mvn spring-boot:run
 ```
 
+For another local machine, prefer overriding only the datasource URL, username, and password:
+
+```bash
+export SPRING_DATASOURCE_URL='jdbc:mysql://127.0.0.1:3306/relay_controller?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true'
+export SPRING_DATASOURCE_USERNAME='root'
+export SPRING_DATASOURCE_PASSWORD='root'
+mvn spring-boot:run
+```
+
+The project uses the official MySQL driver `com.mysql.cj.jdbc.Driver` with `mysql-connector-j`.
+Do not set `SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.mariadb.jdbc.Driver` when using a `jdbc:mysql://` URL. If startup says the MariaDB driver cannot be loaded, remove that environment variable or external config override. Also make sure the JDBC URL uses the normal ASCII colon `jdbc:mysql://`, not the full-width Chinese colon `jdbc：mysql://`.
+
 Run HTTP smoke tests against a running service:
 
 ```bash
