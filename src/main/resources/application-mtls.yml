@@ -2,10 +2,10 @@ server:
   port: ${SERVER_PORT:8443}
   ssl:
     enabled: true
-    key-store: ${SERVER_SSL_KEY_STORE}
-    key-store-password: ${SERVER_SSL_KEY_STORE_PASSWORD}
+    key-store: /Users/lizhicheng/Documents/Codex/2026-07-02/https-gitcode-com-qq-24650393-demo-3/work/repo/mtls/server.p12
+    key-store-password: changeit
     key-store-type: ${SERVER_SSL_KEY_STORE_TYPE:PKCS12}
-    trust-store: ${SERVER_SSL_TRUST_STORE}
-    trust-store-password: ${SERVER_SSL_TRUST_STORE_PASSWORD}
+    trust-store: /Users/lizhicheng/Documents/Codex/2026-07-02/https-gitcode-com-qq-24650393-demo-3/work/repo/mtls/server-truststore.p12
+    trust-store-password: changeit
     trust-store-type: ${SERVER_SSL_TRUST_STORE_TYPE:PKCS12}
     client-auth: need
