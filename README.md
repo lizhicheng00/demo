@@ -101,6 +101,22 @@ Run HTTP smoke tests against a running service:
 bash scripts/http-smoke-test.sh
 ```
 
+## Mutual TLS
+
+Relay Controller can require client certificates at the embedded Jetty layer. Enable the `mtls` profile and provide a server keystore plus a truststore containing the client CA:
+
+```bash
+export SPRING_PROFILES_ACTIVE=dev,mtls
+export SERVER_PORT=8443
+export SERVER_SSL_KEY_STORE=file:/path/to/relay-controller-server.p12
+export SERVER_SSL_KEY_STORE_PASSWORD=changeit
+export SERVER_SSL_TRUST_STORE=file:/path/to/client-ca-truststore.p12
+export SERVER_SSL_TRUST_STORE_PASSWORD=changeit
+mvn spring-boot:run
+```
+
+Set `SERVER_SSL_KEY_ALIAS` only when the server keystore contains multiple aliases and you need to select one explicitly. With `server.ssl.client-auth=need`, requests without a trusted client certificate fail during the TLS handshake and never reach the API controllers. Callers must use `https://` and pass a client certificate signed by the CA in `SERVER_SSL_TRUST_STORE`.
+
 Use JDK 17 for normal development and deployment. The project uses Jetty instead of Tomcat and Jedis instead of Lettuce/Netty to avoid JDK 26 startup warnings from Tomcat native loading and Netty `Unsafe` access. If Maven itself is run on JDK 26, Maven's own dependencies may still print JVM warnings before the application starts; those are not emitted by the Relay Controller runtime.
 
 If no RSA private key is configured, the service generates an ephemeral RSA key pair at startup for development. Configure `relay.jwt.private-key` for stable production token signing.
