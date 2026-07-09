@@ -3,7 +3,6 @@ package com.huawei.devbridge.relaycontroller;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.huawei.devbridge.relaycontroller.infrastructure.config.RelayProperties;
-import com.huawei.devbridge.relaycontroller.infrastructure.config.SccSecretBindHandlerAdvisor;
 import com.huawei.devbridge.relaycontroller.infrastructure.security.SccCrypto;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
