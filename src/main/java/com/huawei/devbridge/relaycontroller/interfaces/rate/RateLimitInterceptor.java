@@ -8,7 +8,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -32,12 +31,8 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         if (!rateLimit.isEnabled() || rateLimit.getRequestsPerMinute() <= 0) {
             return true;
         }
-        long now = System.currentTimeMillis();
-        String key = rateKey(request);
-        WindowCounter counter = counters.compute(key, (ignored, current) -> current == null || current.expired(now)
-                ? new WindowCounter(now, WINDOW_MILLIS)
-                : current);
-        if (counter.increment() <= rateLimit.getRequestsPerMinute()) {
+        WindowCounter counter = counters.computeIfAbsent(rateKey(request), ignored -> new WindowCounter());
+        if (counter.allow(System.currentTimeMillis(), rateLimit.getRequestsPerMinute())) {
             return true;
         }
         writeRateLimitedResponse(response);
@@ -60,19 +55,16 @@ public class RateLimitInterceptor implements HandlerInterceptor {
     }
 
     private static final class WindowCounter {
-        private final long expiresAt;
-        private final AtomicInteger count = new AtomicInteger();
+        private long windowStart;
+        private int count;
 
-        private WindowCounter(long createdAt, long ttlMillis) {
-            this.expiresAt = createdAt + ttlMillis;
-        }
-
-        private int increment() {
-            return count.incrementAndGet();
-        }
-
-        private boolean expired(long now) {
-            return now >= expiresAt;
+        private synchronized boolean allow(long now, int limit) {
+            if (now - windowStart >= WINDOW_MILLIS) {
+                windowStart = now;
+                count = 0;
+            }
+            count++;
+            return count <= limit;
         }
     }
 }

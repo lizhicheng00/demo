@@ -21,6 +21,7 @@ import com.huawei.devbridge.relaycontroller.interfaces.response.CreateTunnelResp
 import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelDetailResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelListItemResponse;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -40,9 +41,18 @@ public class TunnelAppService {
     private final TunnelDomainService tunnelDomainService;
     private final TunnelPortRepository tunnelPortRepository;
     private final RelayProperties relayProperties;
+    private final ConcurrentHashMap<String, Object> createLocks = new ConcurrentHashMap<>();
 
+    @Transactional
     public CreateTunnelResponse createTunnel(String rawNamespace, CreateTunnelRequest request) {
         String namespace = namespaceService.requireNamespace(rawNamespace);
+        Object lock = createLocks.computeIfAbsent(lockKey(namespace), ignored -> new Object());
+        synchronized (lock) {
+            return createTunnelLocked(namespace, request);
+        }
+    }
+
+    private CreateTunnelResponse createTunnelLocked(String namespace, CreateTunnelRequest request) {
         TunnelType type = request.getType() == null ? TunnelType.BRIDGE : request.getType();
         Grid grid = localGridService.requireLocalGrid(request.getGridName());
         long now = TimeUtils.nowSeconds();
@@ -70,6 +80,10 @@ public class TunnelAppService {
                 tunnel.getTunnelId(), tunnel.getTunnelCode(), tunnel.getNamespace(), tunnel.getGridName(),
                 tunnel.getType(), tunnel.getExpiration());
         return TunnelAssembler.toCreateResponse(tunnel);
+    }
+
+    private String lockKey(String namespace) {
+        return relayProperties.getRegion() + ":" + namespace;
     }
 
     public List<TunnelListItemResponse> listTunnels(String rawNamespace, String gridName) {
