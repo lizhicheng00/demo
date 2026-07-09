@@ -14,6 +14,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.huawei.devbridge.relaycontroller.application.service.MeteringAppService;
 import com.huawei.devbridge.relaycontroller.application.service.TunnelAppService;
 import com.huawei.devbridge.relaycontroller.application.service.TunnelPortAppService;
+import com.huawei.devbridge.relaycontroller.common.exception.BizException;
+import com.huawei.devbridge.relaycontroller.common.exception.ErrorCode;
 import com.huawei.devbridge.relaycontroller.common.exception.GlobalExceptionHandler;
 import com.huawei.devbridge.relaycontroller.interfaces.controller.MeteringController;
 import com.huawei.devbridge.relaycontroller.interfaces.controller.TunnelController;
@@ -99,7 +101,7 @@ class RelayControllerApiTest {
                                   "type": "bridge"
                                 }
                                 """))
-                .andExpect(status().isOk())
+                .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.error_code").value("40100"))
                 .andExpect(jsonPath("$.error_message").value("X-Namespace is required"));
     }
@@ -116,8 +118,30 @@ class RelayControllerApiTest {
                                   "type": "default"
                                 }
                                 """))
-                .andExpect(status().isOk())
+                .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error_code").value("40000"));
+    }
+
+    @Test
+    void getTunnelDetailNotFoundReturns404() throws Exception {
+        when(tunnelAppService.getTunnelDetail(NAMESPACE, TUNNEL_ID))
+                .thenThrow(new BizException(ErrorCode.TUNNEL_NOT_FOUND));
+
+        mockMvc.perform(get(BASE + "/tunnels/{tunnelId}", TUNNEL_ID)
+                        .header("X-Namespace", NAMESPACE))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error_code").value("10002"));
+    }
+
+    @Test
+    void getTunnelDetailUnexpectedErrorReturns500() throws Exception {
+        when(tunnelAppService.getTunnelDetail(NAMESPACE, TUNNEL_ID))
+                .thenThrow(new IllegalStateException("database password leaked"));
+
+        mockMvc.perform(get(BASE + "/tunnels/{tunnelId}", TUNNEL_ID)
+                        .header("X-Namespace", NAMESPACE))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.error_code").value("50000"));
     }
 
     @Test
