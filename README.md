@@ -6,6 +6,8 @@ This service does not implement WebSocket, WebTransport, TCP, or HTTP body forwa
 
 Detailed business and code summary: [docs/relay-controller-business-code-summary.md](docs/relay-controller-business-code-summary.md)
 
+User story and implementation design: [docs/relay-controller-user-story.md](docs/relay-controller-user-story.md)
+
 ## Stack
 
 - Java 17
