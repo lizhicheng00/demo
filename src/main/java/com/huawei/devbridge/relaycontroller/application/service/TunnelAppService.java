@@ -46,6 +46,7 @@ public class TunnelAppService {
         TunnelType type = request.getType() == null ? TunnelType.BRIDGE : request.getType();
         Grid grid = localGridService.requireLocalGrid(request.getGridName());
         long now = TimeUtils.nowSeconds();
+        assertTunnelQuota(namespace, now);
         int expiration = resolveExpiration(request.getExpiration(), now);
         TunnelCode code = allocateTunnelCode();
         Tunnel tunnel = Tunnel.builder()
@@ -161,6 +162,18 @@ public class TunnelAppService {
             }
         }
         throw new BizException(ErrorCode.TUNNEL_ID_CONFLICT);
+    }
+
+    private void assertTunnelQuota(String namespace, long now) {
+        int maxTunnels = relayProperties.getTunnel().getMaxPerNamespace();
+        if (maxTunnels <= 0) {
+            return;
+        }
+        long activeCount = tunnelRepository.countActiveByNamespaceAndRegion(namespace, relayProperties.getRegion(), now);
+        if (activeCount >= maxTunnels) {
+            throw new BizException(ErrorCode.TUNNEL_QUOTA_EXCEEDED,
+                    "active tunnel quota exceeded: max=" + maxTunnels);
+        }
     }
 
     private Tunnel findOwnedTunnel(String rawNamespace, String tunnelId) {

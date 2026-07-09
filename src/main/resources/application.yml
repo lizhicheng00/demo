@@ -49,6 +49,11 @@ relay:
   domain: myhuaweicloud.com
   region: region-a
   default-expiration-hours: 72
+  tunnel:
+    max-per-namespace: 10
+  rate-limit:
+    enabled: true
+    requests-per-minute: 120
   jwt:
     issuer: devbridge
     key-id: "1"

@@ -11,7 +11,20 @@ public class RelayProperties {
     private String domain = "myhuaweicloud.com";
     private String region = "region-a";
     private int defaultExpirationHours = 72;
+    private Tunnel tunnel = new Tunnel();
+    private RateLimit rateLimit = new RateLimit();
     private Jwt jwt = new Jwt();
+
+    @Data
+    public static class Tunnel {
+        private int maxPerNamespace = 10;
+    }
+
+    @Data
+    public static class RateLimit {
+        private boolean enabled = true;
+        private int requestsPerMinute = 120;
+    }
 
     @Data
     public static class Jwt {

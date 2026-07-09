@@ -14,6 +14,7 @@ public enum ErrorCode {
     TUNNEL_ID_CONFLICT("10003", "tunnel id conflict"),
     TUNNEL_EXPIRED("10004", "tunnel expired"),
     TUNNEL_ACCESS_DENIED("10005", "tunnel access denied"),
+    TUNNEL_QUOTA_EXCEEDED("10006", "tunnel quota exceeded"),
     TUNNEL_PORT_INVALID("11001", "tunnel port invalid"),
     TUNNEL_PORT_ALREADY_EXISTS("11002", "tunnel port already exists"),
     TUNNEL_PORT_NOT_FOUND("11003", "tunnel port not found"),
@@ -23,6 +24,8 @@ public enum ErrorCode {
     JWT_KEY_INVALID("30002", "jwt key invalid"),
 
     METERING_REPORT_FAILED("40001", "metering report failed"),
+
+    RATE_LIMITED("42900", "rate limited"),
 
     INTERNAL_ERROR("50000", "internal error");
 

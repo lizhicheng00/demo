@@ -45,12 +45,15 @@ Tunnel `expiration` in create and update requests is a duration in hours. Blank 
 Tunnel `tunnelCode` is a 40-bit `long`; `tunnelId` is the fixed 8-character lowercase base32 encoding of that 40-bit value.
 Tunnel URL format is `{tunnelId}-{gridName}-{relay.domain}`.
 Deleted tunnels are soft-deleted to preserve historical identifiers and metering references. List APIs return only active, non-expired tunnels. Detail, update, port, and metering operations reject expired tunnels; delete APIs can still delete expired tunnels.
+Each namespace can own up to 10 active tunnels by default. Deleted and expired tunnels do not count against this quota. Configure `relay.tunnel.max-per-namespace` to change the limit.
 Tunnel list responses expose stable metadata only: `tunnelId`, `tunnelCode`, `gridName`, `description`, `expiration`, `created`, and `url`. Runtime counters such as host/client connections or current upload/download rate require Gateway reporting and are intentionally not modeled here yet. Port policies remain available through the tunnel port APIs instead of being embedded into every list response.
 
 Tunnel detail returns a `jwt` object so callers can get tunnel metadata and connection credentials in one request. Tokens are cached at `jwt:token:{tunnelId}` and expire at the earlier of `relay.jwt.token.ttl-seconds` or the tunnel expiration. `jwt.expiresIn` is the remaining lifetime of the returned token.
 
 Tunnel port APIs manage the explicit per-port allow list for a tunnel. Unconfigured ports are denied by default. `allowAnonymous` only controls sending-side access to that port; listening-side gateway connection still requires token authentication.
 The gateway port policy API keeps `gridName` in the path intentionally. Gateway callers use it as their grid scope, and Relay Controller verifies the tunnel belongs to that grid before returning the port policy.
+
+Business APIs under `/open-api-inner/v1/relay-controller/**` have an in-memory fixed-window rate limit. The key is `X-Namespace` when present, otherwise client IP. The default is 120 requests per minute and can be adjusted with `relay.rate-limit.requests-per-minute` or disabled with `relay.rate-limit.enabled=false`.
 
 OpenAPI is maintained as YAML at `src/main/resources/static/openapi.yaml`. Maven uses this YAML during `generate-sources` to generate Spring API interfaces under `target/generated-sources/openapi`; controllers implement those generated interfaces and do not declare request mappings by hand.
 The same YAML is served directly as a static resource:

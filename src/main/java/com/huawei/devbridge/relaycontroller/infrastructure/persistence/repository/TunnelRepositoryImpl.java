@@ -37,6 +37,11 @@ public class TunnelRepositoryImpl implements TunnelRepository {
     }
 
     @Override
+    public long countActiveByNamespaceAndRegion(String namespace, String region, long now) {
+        return tunnelMapper.countActiveByNamespaceAndRegion(namespace, region, now);
+    }
+
+    @Override
     public boolean existsByTunnelId(String tunnelId) {
         return tunnelMapper.exists(new LambdaQueryWrapper<TunnelEntity>()
                 .eq(TunnelEntity::getTunnelId, tunnelId));

@@ -10,6 +10,8 @@ public interface TunnelRepository {
 
     List<Tunnel> findActiveByNamespaceAndRegion(String namespace, String gridName, String region, long now);
 
+    long countActiveByNamespaceAndRegion(String namespace, String region, long now);
+
     boolean existsByTunnelId(String tunnelId);
 
     boolean existsByTunnelCode(Long tunnelCode);

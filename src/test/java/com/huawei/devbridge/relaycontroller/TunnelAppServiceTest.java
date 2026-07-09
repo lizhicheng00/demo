@@ -132,6 +132,24 @@ class TunnelAppServiceTest {
     }
 
     @Test
+    void createTunnelRejectsWhenNamespaceQuotaExceeded() {
+        TunnelAppService service = newService(new RelayProperties());
+        CreateTunnelRequest request = new CreateTunnelRequest();
+        request.setName("dev");
+        request.setGridName("grid-a");
+
+        when(gridRepository.findByGridNameAndRegion("grid-a", "region-a"))
+                .thenReturn(Grid.builder().grid("grid-a").region("region-a").build());
+        when(tunnelRepository.countActiveByNamespaceAndRegion(eq("ns-user-001"), eq("region-a"), anyLong()))
+                .thenReturn(10L);
+
+        assertThatThrownBy(() -> service.createTunnel("ns-user-001", request))
+                .isInstanceOf(BizException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.TUNNEL_QUOTA_EXCEEDED);
+    }
+
+    @Test
     void updateTunnelEvictsTokenWhenExpirationChanges() {
         TunnelAppService service = newService(new RelayProperties());
         UpdateTunnelRequest request = new UpdateTunnelRequest();

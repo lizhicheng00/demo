@@ -20,6 +20,11 @@ public interface TunnelMapper extends BaseMapper<TunnelEntity> {
             @Param("region") String region,
             @Param("now") long now);
 
+    long countActiveByNamespaceAndRegion(
+            @Param("namespace") String namespace,
+            @Param("region") String region,
+            @Param("now") long now);
+
     int increaseBandwidthUsed(
             @Param("tunnelId") String tunnelId,
             @Param("region") String region,

@@ -39,6 +39,16 @@
         ORDER BY t.created_at DESC
     </select>
 
+    <select id="countActiveByNamespaceAndRegion" resultType="long">
+        SELECT COUNT(1)
+        FROM tunnel t
+        INNER JOIN grid g ON g.grid = t.grid_name
+        WHERE t.namespace = #{namespace}
+          AND g.region = #{region}
+          AND t.deleted = 0
+          AND t.expiration &gt; #{now}
+    </select>
+
     <update id="increaseBandwidthUsed">
         UPDATE tunnel t
         INNER JOIN grid g ON g.grid = t.grid_name
