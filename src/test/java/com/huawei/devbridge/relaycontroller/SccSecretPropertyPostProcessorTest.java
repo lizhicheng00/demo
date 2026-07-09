@@ -1,12 +1,18 @@
 package com.huawei.devbridge.relaycontroller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
-import com.huawei.devbridge.relaycontroller.infrastructure.config.SccEnvironmentPostProcessor;
+import com.huawei.devbridge.relaycontroller.infrastructure.config.SccSecretPropertyConfiguration;
+import com.huawei.devbridge.relaycontroller.infrastructure.config.SccSecretPropertyPostProcessor;
+import com.huawei.devbridge.relaycontroller.infrastructure.security.SccCrypto;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.boot.test.util.TestPropertyValues;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.mock.env.MockEnvironment;
 
-class SccEnvironmentPostProcessorTest {
+class SccSecretPropertyPostProcessorTest {
     private static final String SCC_PROPERTY_SOURCE = "sccDecryptedSecrets";
 
     @Test
@@ -19,7 +25,7 @@ class SccEnvironmentPostProcessorTest {
                 .withProperty("server.ssl.key-store-password", "{scc}server-store-pass")
                 .withProperty("server.ssl.trust-store-password", "{scc}trust-store-pass");
 
-        new SccEnvironmentPostProcessor().postProcessEnvironment(environment, null);
+        postProcess(environment);
 
         assertThat(environment.getProperty("spring.datasource.password")).isEqualTo("mysql-pass");
         assertThat(environment.getProperty("spring.data.redis.password")).isEqualTo("redis-pass");
@@ -34,7 +40,7 @@ class SccEnvironmentPostProcessorTest {
         MockEnvironment environment = new MockEnvironment()
                 .withProperty("spring.data.redis.password", "");
 
-        new SccEnvironmentPostProcessor().postProcessEnvironment(environment, null);
+        postProcess(environment);
 
         assertThat(environment.getPropertySources().contains(SCC_PROPERTY_SOURCE)).isFalse();
         assertThat(environment.getProperty("spring.data.redis.password")).isEmpty();
@@ -45,8 +51,27 @@ class SccEnvironmentPostProcessorTest {
         MockEnvironment environment = new MockEnvironment()
                 .withProperty("server.ssl.key-store-password", "${SERVER_SSL_KEY_STORE_PASSWORD}");
 
-        new SccEnvironmentPostProcessor().postProcessEnvironment(environment, null);
+        postProcess(environment);
 
         assertThat(environment.getPropertySources().contains(SCC_PROPERTY_SOURCE)).isFalse();
+    }
+
+    @Test
+    void shouldBeCreatedBySpringWithInjectedCrypto() {
+        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
+            TestPropertyValues.of("spring.data.redis.password={scc}redis-pass")
+                    .applyTo(context);
+            context.register(SccCrypto.class, SccSecretPropertyConfiguration.class);
+
+            context.refresh();
+
+            assertThat(context.getEnvironment().getProperty("spring.data.redis.password")).isEqualTo("redis-pass");
+        }
+    }
+
+    private void postProcess(MockEnvironment environment) {
+        SccSecretPropertyPostProcessor postProcessor = new SccSecretPropertyPostProcessor(new SccCrypto());
+        postProcessor.setEnvironment(environment);
+        postProcessor.postProcessBeanFactory(mock(ConfigurableListableBeanFactory.class));
     }
 }
