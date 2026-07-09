@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN" monitorInterval="60">
+    <Properties>
+        <Property name="LOG_PATTERN">%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %-5p [%t] %c{1.} - %m%n</Property>
+    </Properties>
+
+    <Appenders>
+        <Console name="CONSOLE" target="SYSTEM_OUT">
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+        </Console>
+    </Appenders>
+
+    <Loggers>
+        <Logger name="com.baomidou.mybatisplus.core.toolkit.Sequence" level="OFF"/>
+        <Logger name="org.flywaydb.core.internal.database.base.Database" level="ERROR"/>
+        <Logger name="com.huawei.devbridge.relaycontroller.RelayControllerApplication" level="INFO"/>
+        <Logger name="com.huawei.devbridge.relaycontroller.application.service" level="INFO"/>
+        <Logger name="com.huawei.devbridge.relaycontroller.common.exception" level="WARN"/>
+
+        <Root level="WARN">
+            <AppenderRef ref="CONSOLE"/>
+        </Root>
+    </Loggers>
+</Configuration>
