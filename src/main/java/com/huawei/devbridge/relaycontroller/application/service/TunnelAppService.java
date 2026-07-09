@@ -20,8 +20,8 @@ import com.huawei.devbridge.relaycontroller.interfaces.request.UpdateTunnelReque
 import com.huawei.devbridge.relaycontroller.interfaces.response.CreateTunnelResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelDetailResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelListItemResponse;
+import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -33,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class TunnelAppService {
     private static final int TUNNEL_CODE_MAX_RETRY = 5;
     private static final int SECONDS_PER_HOUR = 3600;
+    private static final int CREATE_LOCK_STRIPES = 64;
     private final TunnelRepository tunnelRepository;
     private final LocalGridService localGridService;
     private final NamespaceService namespaceService;
@@ -41,13 +42,11 @@ public class TunnelAppService {
     private final TunnelDomainService tunnelDomainService;
     private final TunnelPortRepository tunnelPortRepository;
     private final RelayProperties relayProperties;
-    private final ConcurrentHashMap<String, Object> createLocks = new ConcurrentHashMap<>();
+    private final Object[] createLocks = createLocks();
 
-    @Transactional
     public CreateTunnelResponse createTunnel(String rawNamespace, CreateTunnelRequest request) {
         String namespace = namespaceService.requireNamespace(rawNamespace);
-        Object lock = createLocks.computeIfAbsent(lockKey(namespace), ignored -> new Object());
-        synchronized (lock) {
+        synchronized (createLock(namespace)) {
             return createTunnelLocked(namespace, request);
         }
     }
@@ -82,8 +81,15 @@ public class TunnelAppService {
         return TunnelAssembler.toCreateResponse(tunnel);
     }
 
-    private String lockKey(String namespace) {
-        return relayProperties.getRegion() + ":" + namespace;
+    private Object createLock(String namespace) {
+        String key = relayProperties.getRegion() + ":" + namespace;
+        return createLocks[Math.floorMod(key.hashCode(), createLocks.length)];
+    }
+
+    private static Object[] createLocks() {
+        Object[] locks = new Object[CREATE_LOCK_STRIPES];
+        Arrays.setAll(locks, ignored -> new Object());
+        return locks;
     }
 
     public List<TunnelListItemResponse> listTunnels(String rawNamespace, String gridName) {

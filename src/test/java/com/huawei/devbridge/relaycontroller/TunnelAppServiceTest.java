@@ -3,6 +3,7 @@ package com.huawei.devbridge.relaycontroller;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -28,6 +29,12 @@ import com.huawei.devbridge.relaycontroller.interfaces.request.UpdateTunnelReque
 import com.huawei.devbridge.relaycontroller.interfaces.response.CreateTunnelResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelListItemResponse;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -147,6 +154,55 @@ class TunnelAppServiceTest {
                 .isInstanceOf(BizException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.TUNNEL_QUOTA_EXCEEDED);
+    }
+
+    @Test
+    void createTunnelDoesNotExceedQuotaWhenConcurrent() throws Exception {
+        AtomicLong activeCount = new AtomicLong();
+        RelayProperties properties = new RelayProperties();
+        TunnelAppService service = new TunnelAppService(
+                tunnelRepository,
+                new LocalGridService(gridRepository, properties),
+                new NamespaceService(),
+                new SequenceTunnelCodeGenerator(),
+                jwtTokenService,
+                new TunnelDomainService(),
+                tunnelPortRepository,
+                properties);
+        CreateTunnelRequest request = new CreateTunnelRequest();
+        request.setName("dev");
+        request.setGridName("grid-a");
+
+        when(gridRepository.findByGridNameAndRegion("grid-a", "region-a"))
+                .thenReturn(Grid.builder().grid("grid-a").region("region-a").build());
+        when(tunnelRepository.countActiveByNamespaceAndRegion(eq("ns-user-001"), eq("region-a"), anyLong()))
+                .thenAnswer(ignored -> {
+                    long count = activeCount.get();
+                    Thread.sleep(5);
+                    return count;
+                });
+        when(tunnelRepository.existsByTunnelCode(anyLong())).thenReturn(false);
+        when(tunnelRepository.existsByTunnelId(anyString())).thenReturn(false);
+        when(tunnelRepository.save(org.mockito.ArgumentMatchers.any(Tunnel.class))).thenAnswer(invocation -> {
+            activeCount.incrementAndGet();
+            return invocation.getArgument(0);
+        });
+
+        ExecutorService executor = Executors.newFixedThreadPool(8);
+        try {
+            List<Callable<Boolean>> tasks = IntStream.range(0, 20)
+                    .mapToObj(ignored -> (Callable<Boolean>) () -> createTunnelIfAllowed(service, request))
+                    .toList();
+            List<Future<Boolean>> futures = executor.invokeAll(tasks);
+            long created = futures.stream()
+                    .filter(this::created)
+                    .count();
+
+            assertThat(created).isEqualTo(10);
+            assertThat(activeCount.get()).isEqualTo(10);
+        } finally {
+            executor.shutdownNow();
+        }
     }
 
     @Test
@@ -293,6 +349,40 @@ class TunnelAppServiceTest {
         @Override
         public long generate() {
             return 123456L;
+        }
+    }
+
+    private static class SequenceTunnelCodeGenerator extends TunnelCodeGenerator {
+        private final AtomicLong next = new AtomicLong(100000L);
+
+        @Override
+        public long generate() {
+            return next.incrementAndGet();
+        }
+
+        @Override
+        public String toTunnelId(long tunnelCode) {
+            return "t" + tunnelCode;
+        }
+    }
+
+    private static boolean createTunnelIfAllowed(TunnelAppService service, CreateTunnelRequest request) {
+        try {
+            service.createTunnel("ns-user-001", request);
+            return true;
+        } catch (BizException exception) {
+            if (exception.getErrorCode() == ErrorCode.TUNNEL_QUOTA_EXCEEDED) {
+                return false;
+            }
+            throw exception;
+        }
+    }
+
+    private boolean created(Future<Boolean> future) {
+        try {
+            return future.get();
+        } catch (Exception exception) {
+            throw new AssertionError(exception);
         }
     }
 }
