@@ -145,6 +145,23 @@ class TunnelAppServiceTest {
     }
 
     @Test
+    void createTunnelRejectsExpirationLongerThan30Days() {
+        TunnelAppService service = newService(new RelayProperties());
+        CreateTunnelRequest request = new CreateTunnelRequest();
+        request.setName("dev");
+        request.setGridName("grid-a");
+        request.setExpiration(721);
+
+        when(gridRepository.findByGridNameAndRegion("grid-a", "region-a"))
+                .thenReturn(Grid.builder().grid("grid-a").region("region-a").build());
+
+        assertThatThrownBy(() -> service.createTunnel("ns-user-001", request))
+                .isInstanceOf(BizException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.PARAM_INVALID);
+    }
+
+    @Test
     void createTunnelRejectsWhenNamespaceQuotaExceeded() {
         TunnelAppService service = newService(new RelayProperties());
         CreateTunnelRequest request = new CreateTunnelRequest();

@@ -126,6 +126,23 @@ class RelayControllerApiTest {
     }
 
     @Test
+    void createTunnelWithTooLargeExpirationReturnsParamInvalid() throws Exception {
+        mockMvc.perform(post(BASE + "/tunnels")
+                        .header("X-Namespace", NAMESPACE)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name": "dev",
+                                  "gridName": "grid-a",
+                                  "type": "bridge",
+                                  "expiration": 721
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error_code").value("40000"));
+    }
+
+    @Test
     void getTunnelDetailNotFoundReturns404() throws Exception {
         when(tunnelAppService.getTunnelDetail(NAMESPACE, TUNNEL_ID))
                 .thenThrow(new BizException(ErrorCode.TUNNEL_NOT_FOUND));

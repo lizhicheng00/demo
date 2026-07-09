@@ -1,6 +1,7 @@
 package com.huawei.devbridge.relaycontroller.interfaces.request;
 
 import com.huawei.devbridge.relaycontroller.domain.model.TunnelType;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -17,6 +18,7 @@ public class CreateTunnelRequest {
     private String gridName;
     private String cluster;
     @Min(1)
+    @Max(720)
     private Integer expiration;
     private TunnelType type;
 }

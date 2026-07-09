@@ -369,7 +369,8 @@ components:
           type: integer
           format: int32
           minimum: 1
-          description: Expiration duration in hours. Defaults to 72 hours.
+          maximum: 720
+          description: Expiration duration in hours. Defaults to 72 hours. Maximum is 720 hours.
         type:
           type: string
           enum: [bridge, env]
@@ -389,7 +390,8 @@ components:
           type: integer
           format: int32
           minimum: 1
-          description: Expiration duration in hours from update time.
+          maximum: 720
+          description: Expiration duration in hours from update time. Maximum is 720 hours.
         type:
           type: string
           enum: [bridge, env]

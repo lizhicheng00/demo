@@ -33,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class TunnelAppService {
     private static final int TUNNEL_CODE_MAX_RETRY = 5;
     private static final int SECONDS_PER_HOUR = 3600;
+    private static final int MAX_EXPIRATION_HOURS = 30 * 24;
     private static final int CREATE_LOCK_STRIPES = 64;
     private final TunnelRepository tunnelRepository;
     private final LocalGridService localGridService;
@@ -216,6 +217,9 @@ public class TunnelAppService {
         int hours = expirationHours == null ? relayProperties.getDefaultExpirationHours() : expirationHours;
         if (hours <= 0) {
             throw new BizException(ErrorCode.PARAM_INVALID, "expiration must be positive hours");
+        }
+        if (hours > MAX_EXPIRATION_HOURS) {
+            throw new BizException(ErrorCode.PARAM_INVALID, "expiration must be less than or equal to 720 hours");
         }
         long expiresAt = now + (long) hours * SECONDS_PER_HOUR;
         if (expiresAt > Integer.MAX_VALUE) {
