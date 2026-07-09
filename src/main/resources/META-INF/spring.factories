@@ -1,0 +1,2 @@
+org.springframework.boot.env.EnvironmentPostProcessor=\
+com.huawei.devbridge.relaycontroller.infrastructure.config.SccEnvironmentPostProcessor

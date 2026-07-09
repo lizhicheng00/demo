@@ -95,7 +95,18 @@ export SPRING_DATASOURCE_PASSWORD='root'
 mvn spring-boot:run
 ```
 
-`SccCrypto` is currently a local test stub. It keeps encrypted values as plain text and strips a leading `{scc}` prefix on decrypt, so `SPRING_DATASOURCE_PASSWORD='{scc}root'` becomes `root` before datasource creation. Datasource password and `RELAY_JWT_PRIVATE_KEY` go through this decrypt boundary.
+`SccCrypto` is currently a local test stub. It keeps encrypted values as plain text and strips a leading `{scc}` prefix on decrypt, so `SPRING_DATASOURCE_PASSWORD='{scc}root'` becomes `root` before datasource creation.
+
+The following properties are decrypted before Spring Boot binds configuration:
+
+```text
+spring.datasource.password
+spring.data.redis.password
+relay.jwt.private-key
+server.ssl.key-password
+server.ssl.key-store-password
+server.ssl.trust-store-password
+```
 
 Keep these values out of committed YAML and provide them through environment variables, deployment secrets, or encrypted config:
 
@@ -116,7 +127,7 @@ SERVER_SSL_TRUST_STORE_PASSWORD
 
 The keystore/truststore files can also contain private material. Manage `SERVER_SSL_KEY_STORE` as sensitive storage because it contains the server private key. `SERVER_SSL_TRUST_STORE` usually contains only trusted client CA certificates, so it is less sensitive than the server keystore, but still keep it under controlled config management to avoid trusting the wrong CA. `SERVER_SSL_KEY_STORE_TYPE`, `SERVER_SSL_TRUST_STORE_TYPE`, `SERVER_PORT`, and path values themselves are not passwords.
 
-Spring Boot consumes TLS keystore passwords before application beans are initialized, so `SERVER_SSL_KEY_STORE_PASSWORD` and `SERVER_SSL_TRUST_STORE_PASSWORD` must come from the runtime secret source directly instead of `SccCrypto`.
+TLS password values can use the local SCC stub prefix, for example `SERVER_SSL_KEY_STORE_PASSWORD='{scc}server-pass'`.
 
 The project uses the official MySQL driver `com.mysql.cj.jdbc.Driver` with `mysql-connector-j`.
 Do not set `SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.mariadb.jdbc.Driver` when using a `jdbc:mysql://` URL. If startup says the MariaDB driver cannot be loaded, remove that environment variable or external config override. Also make sure the JDBC URL uses the normal ASCII colon `jdbc:mysql://`, not the full-width Chinese colon `jdbc：mysql://`.
