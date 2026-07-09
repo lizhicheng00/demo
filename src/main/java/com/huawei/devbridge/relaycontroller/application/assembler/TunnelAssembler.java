@@ -11,7 +11,7 @@ public final class TunnelAssembler {
     private TunnelAssembler() {
     }
 
-    public static CreateTunnelResponse toCreateResponse(Tunnel tunnel) {
+    public static CreateTunnelResponse toCreateResponse(Tunnel tunnel, String token, long expiresIn) {
         return CreateTunnelResponse.builder()
                 .name(tunnel.getName())
                 .tunnelId(tunnel.getTunnelId())
@@ -24,6 +24,7 @@ public final class TunnelAssembler {
                 .created(tunnel.getCreatedAt())
                 .url(tunnel.getUrl())
                 .type(typeValue(tunnel))
+                .jwt(jwtResponse(token, expiresIn))
                 .build();
     }
 

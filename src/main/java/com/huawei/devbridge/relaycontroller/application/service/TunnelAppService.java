@@ -44,6 +44,7 @@ public class TunnelAppService {
     private final RelayProperties relayProperties;
     private final Object[] createLocks = createLocks();
 
+    @Transactional
     public CreateTunnelResponse createTunnel(String rawNamespace, CreateTunnelRequest request) {
         String namespace = namespaceService.requireNamespace(rawNamespace);
         synchronized (createLock(namespace)) {
@@ -78,7 +79,8 @@ public class TunnelAppService {
         log.info("Tunnel created: tunnelId={}, tunnelCode={}, namespace={}, gridName={}, type={}, expiration={}",
                 tunnel.getTunnelId(), tunnel.getTunnelCode(), tunnel.getNamespace(), tunnel.getGridName(),
                 tunnel.getType(), tunnel.getExpiration());
-        return TunnelAssembler.toCreateResponse(tunnel);
+        JwtToken jwtToken = jwtTokenService.getOrCreateToken(tunnel);
+        return TunnelAssembler.toCreateResponse(tunnel, jwtToken.token(), jwtToken.expiresIn());
     }
 
     private Object createLock(String namespace) {

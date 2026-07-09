@@ -2,6 +2,7 @@ package com.huawei.devbridge.relaycontroller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -14,6 +15,7 @@ import com.huawei.devbridge.relaycontroller.common.exception.ErrorCode;
 import com.huawei.devbridge.relaycontroller.common.util.TimeUtils;
 import com.huawei.devbridge.relaycontroller.application.service.TunnelAppService;
 import com.huawei.devbridge.relaycontroller.domain.model.Grid;
+import com.huawei.devbridge.relaycontroller.domain.model.JwtToken;
 import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
 import com.huawei.devbridge.relaycontroller.domain.model.TunnelType;
 import com.huawei.devbridge.relaycontroller.domain.repository.GridRepository;
@@ -74,6 +76,7 @@ class TunnelAppServiceTest {
         when(tunnelRepository.existsByTunnelCode(123456L)).thenReturn(false);
         when(tunnelRepository.existsByTunnelId("aaaadysa")).thenReturn(false);
         when(tunnelRepository.save(org.mockito.ArgumentMatchers.any(Tunnel.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(jwtTokenService.getOrCreateToken(any(Tunnel.class))).thenReturn(new JwtToken("jwt-token", 86400));
 
         CreateTunnelResponse response = service.createTunnel("ns-user-001", request);
         long after = TimeUtils.nowSeconds();
@@ -82,6 +85,8 @@ class TunnelAppServiceTest {
         assertThat(response.getTunnelCode()).isEqualTo(123456L);
         assertThat(response.getUrl()).isEqualTo("aaaadysa-grid-a-myhuaweicloud.com");
         assertThat(response.getType()).isEqualTo("bridge");
+        assertThat(response.getJwt().getToken()).isEqualTo("jwt-token");
+        assertThat(response.getJwt().getExpiresIn()).isEqualTo(86400);
         assertThat(response.getExpiration())
                 .isBetween(Math.toIntExact(before + 72 * 3600L), Math.toIntExact(after + 72 * 3600L));
     }
@@ -113,6 +118,7 @@ class TunnelAppServiceTest {
         when(tunnelRepository.existsByTunnelCode(123456L)).thenReturn(false);
         when(tunnelRepository.existsByTunnelId("aaaadysa")).thenReturn(false);
         when(tunnelRepository.save(org.mockito.ArgumentMatchers.any(Tunnel.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(jwtTokenService.getOrCreateToken(any(Tunnel.class))).thenReturn(new JwtToken("jwt-token", 7200));
 
         CreateTunnelResponse response = service.createTunnel("ns-user-001", request);
         long after = TimeUtils.nowSeconds();
@@ -187,6 +193,7 @@ class TunnelAppServiceTest {
             activeCount.incrementAndGet();
             return invocation.getArgument(0);
         });
+        when(jwtTokenService.getOrCreateToken(any(Tunnel.class))).thenReturn(new JwtToken("jwt-token", 86400));
 
         ExecutorService executor = Executors.newFixedThreadPool(8);
         try {

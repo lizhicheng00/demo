@@ -87,7 +87,10 @@ class RelayControllerApiTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.error_code").value("0000"))
                 .andExpect(jsonPath("$.data.tunnelId").value(TUNNEL_ID))
-                .andExpect(jsonPath("$.data.gridName").value(GRID_NAME));
+                .andExpect(jsonPath("$.data.gridName").value(GRID_NAME))
+                .andExpect(jsonPath("$.data.jwt.tokenType").value("TOKEN"))
+                .andExpect(jsonPath("$.data.jwt.token").value("token-token"))
+                .andExpect(jsonPath("$.data.jwt.expiresIn").value(86400));
     }
 
     @Test
@@ -375,6 +378,11 @@ class RelayControllerApiTest {
                 .created(1720000000L)
                 .url("aaaadysa-grid-a-myhuaweicloud.com")
                 .type("bridge")
+                .jwt(JwtResponse.builder()
+                        .tokenType("TOKEN")
+                        .token("token-token")
+                        .expiresIn(86400L)
+                        .build())
                 .build();
     }
 
