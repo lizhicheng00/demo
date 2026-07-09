@@ -42,9 +42,9 @@ public class JwtTokenCache {
         try {
             stringRedisTemplate.opsForValue().set(TOKEN_KEY_PREFIX + tunnelId,
                     sccCrypto.encrypt(token), Duration.ofSeconds(ttlSeconds));
-        } catch (RuntimeException ignored) {
-            // Redis is a cache here; token generation remains functional if Redis is unavailable.
-        }
+        } catch (RuntimeException exception) {
+            log.warn("Failed to get jwt token cache: tunnelId={}, error={}",
+                    tunnelId, ExceptionUtils.anonymousMessage(exception));        }
     }
 
     public void deleteToken(String tunnelId) {
