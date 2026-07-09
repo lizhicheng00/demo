@@ -1,5 +1,6 @@
 package com.huawei.devbridge.relaycontroller.infrastructure.redis;
 
+import com.huawei.devbridge.relaycontroller.common.util.ExceptionUtils;
 import com.huawei.devbridge.relaycontroller.domain.model.JwtToken;
 import com.huawei.devbridge.relaycontroller.infrastructure.security.SccCrypto;
 import java.time.Duration;
@@ -50,7 +51,8 @@ public class JwtTokenCache {
         try {
             stringRedisTemplate.delete(TOKEN_KEY_PREFIX + tunnelId);
         } catch (RuntimeException exception) {
-            log.warn("Failed to delete jwt token cache: tunnelId={}", tunnelId, exception);
+            log.warn("Failed to delete jwt token cache: tunnelId={}, error={}",
+                    tunnelId, ExceptionUtils.anonymousMessage(exception));
         }
     }
 }

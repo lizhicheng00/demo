@@ -1,6 +1,7 @@
 package com.huawei.devbridge.relaycontroller.common.exception;
 
 import com.huawei.devbridge.relaycontroller.common.model.Result;
+import com.huawei.devbridge.relaycontroller.common.util.ExceptionUtils;
 import jakarta.validation.ConstraintViolationException;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -39,7 +40,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ConstraintViolationException.class)
     public Result<Void> handleConstraintViolation(ConstraintViolationException exception) {
-        log.warn("Request constraint violation: {}", exception.getMessage());
+        log.warn("Request constraint violation: {}", ExceptionUtils.anonymousMessage(exception));
         return Result.failure(ErrorCode.PARAM_INVALID, exception.getMessage());
     }
 
@@ -61,13 +62,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public Result<Void> handleMessageNotReadable(HttpMessageNotReadableException exception) {
         String message = messageOf(exception);
-        log.warn("Request body not readable: {}", message);
+        log.warn("Request body not readable: {}", ExceptionUtils.anonymousMessage(exception));
         return Result.failure(ErrorCode.PARAM_INVALID, message);
     }
 
     @ExceptionHandler(RuntimeException.class)
     public Result<Void> handleRuntimeException(RuntimeException exception) {
-        log.error("Unhandled exception", exception);
+        log.error("Unhandled exception: {}", ExceptionUtils.anonymousMessage(exception));
         return Result.failure(ErrorCode.INTERNAL_ERROR);
     }
 

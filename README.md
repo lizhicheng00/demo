@@ -95,7 +95,19 @@ export SPRING_DATASOURCE_PASSWORD='root'
 mvn spring-boot:run
 ```
 
-`SccCrypto` is currently a local test stub. It keeps encrypted values as plain text and strips a leading `{scc}` prefix on decrypt, so `SPRING_DATASOURCE_PASSWORD='{scc}root'` becomes `root` before datasource creation.
+`SccCrypto` is currently a local test stub. It keeps encrypted values as plain text and strips a leading `{scc}` prefix on decrypt, so `SPRING_DATASOURCE_PASSWORD='{scc}root'` becomes `root` before datasource creation. Datasource password and `relay.jwt.private-key` go through this decrypt boundary.
+
+Keep these values out of committed YAML and provide them through environment variables, deployment secrets, or encrypted config:
+
+```text
+SPRING_DATASOURCE_PASSWORD
+SPRING_DATA_REDIS_PASSWORD
+relay.jwt.private-key
+SERVER_SSL_KEY_STORE_PASSWORD
+SERVER_SSL_TRUST_STORE_PASSWORD
+```
+
+Spring Boot consumes TLS keystore passwords before application beans are initialized, so `SERVER_SSL_KEY_STORE_PASSWORD` and `SERVER_SSL_TRUST_STORE_PASSWORD` must come from the runtime secret source directly instead of `SccCrypto`.
 
 The project uses the official MySQL driver `com.mysql.cj.jdbc.Driver` with `mysql-connector-j`.
 Do not set `SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.mariadb.jdbc.Driver` when using a `jdbc:mysql://` URL. If startup says the MariaDB driver cannot be loaded, remove that environment variable or external config override. Also make sure the JDBC URL uses the normal ASCII colon `jdbc:mysql://`, not the full-width Chinese colon `jdbc：mysql://`.
@@ -114,9 +126,9 @@ Relay Controller can require client certificates at the embedded Jetty layer. En
 export SPRING_PROFILES_ACTIVE=dev,mtls
 export SERVER_PORT=8443
 export SERVER_SSL_KEY_STORE=file:/path/to/relay-controller-server.p12
-export SERVER_SSL_KEY_STORE_PASSWORD=changeit
+export SERVER_SSL_KEY_STORE_PASSWORD='<secret>'
 export SERVER_SSL_TRUST_STORE=file:/path/to/client-ca-truststore.p12
-export SERVER_SSL_TRUST_STORE_PASSWORD=changeit
+export SERVER_SSL_TRUST_STORE_PASSWORD='<secret>'
 mvn spring-boot:run
 ```
 
