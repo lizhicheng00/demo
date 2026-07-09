@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.huawei.devbridge.relaycontroller.infrastructure.config.RelayProperties;
 import com.huawei.devbridge.relaycontroller.interfaces.rate.RateLimitInterceptor;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -45,19 +45,25 @@ class RateLimitInterceptorTest {
     }
 
     @Test
-    void shouldBoundCountersForManyAnonymousIps() throws Exception {
+    void shouldCleanExpiredCounters() throws Exception {
         RelayProperties properties = new RelayProperties();
         properties.getRateLimit().setRequestsPerMinute(100);
         RateLimitInterceptor interceptor = new RateLimitInterceptor(properties, new ObjectMapper());
 
-        for (int i = 0; i < 4_200; i++) {
-            MockHttpServletRequest request = new MockHttpServletRequest();
-            request.setRemoteAddr("10.0." + (i / 256) + "." + (i % 256));
+        MockHttpServletRequest first = new MockHttpServletRequest();
+        first.setRemoteAddr("10.0.0.1");
+        interceptor.preHandle(first, new MockHttpServletResponse(), new Object());
+        ReflectionTestUtils.setField(interceptor, "lastCleanupAt", 0L);
 
-            interceptor.preHandle(request, new MockHttpServletResponse(), new Object());
-        }
+        ConcurrentHashMap<?, ?> counters =
+                (ConcurrentHashMap<?, ?>) ReflectionTestUtils.getField(interceptor, "counters");
+        Object counter = counters.values().iterator().next();
+        ReflectionTestUtils.setField(counter, "lastSeen", 1L);
 
-        Map<?, ?> counters = (Map<?, ?>) ReflectionTestUtils.getField(interceptor, "counters");
-        assertThat(counters).hasSizeLessThanOrEqualTo(4_097);
+        MockHttpServletRequest second = new MockHttpServletRequest();
+        second.setRemoteAddr("10.0.0.2");
+        interceptor.preHandle(second, new MockHttpServletResponse(), new Object());
+
+        assertThat(counters).hasSize(1);
     }
 }

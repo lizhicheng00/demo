@@ -10,6 +10,8 @@ public interface TunnelRepository {
 
     List<Tunnel> findActiveByNamespaceAndRegion(String namespace, String gridName, String region, long now);
 
+    List<Tunnel> findAgedByRegion(String region, long expirationCutoff, int limit);
+
     long countActiveByNamespaceAndRegion(String namespace, String region, long now);
 
     boolean existsByTunnelId(String tunnelId);
@@ -21,6 +23,8 @@ public interface TunnelRepository {
     void update(Tunnel tunnel);
 
     void softDelete(String tunnelId, long updatedAt);
+
+    boolean deleteAgedByTunnelId(String tunnelId, long expirationCutoff);
 
     void increaseBandwidthUsed(String tunnelId, String region, long usageBytes, long updatedAt);
 }

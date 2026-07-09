@@ -19,9 +19,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 public class RateLimitInterceptor implements HandlerInterceptor {
     private static final long WINDOW_MILLIS = 60_000L;
     private static final long COUNTER_TTL_MILLIS = WINDOW_MILLIS * 2;
-    private static final int MAX_COUNTERS = 4096;
     private static final String NAMESPACE_HEADER = "X-Namespace";
-    private static final String OVERFLOW_KEY = "overflow";
 
     private final RelayProperties relayProperties;
     private final ObjectMapper objectMapper;
@@ -37,20 +35,12 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         }
         long now = System.currentTimeMillis();
         cleanupCounters(now);
-        WindowCounter counter = counters.computeIfAbsent(counterKey(request), ignored -> new WindowCounter());
+        WindowCounter counter = counters.computeIfAbsent(rateKey(request), ignored -> new WindowCounter());
         if (counter.allow(now, rateLimit.getRequestsPerMinute())) {
             return true;
         }
         writeRateLimitedResponse(response);
         return false;
-    }
-
-    private String counterKey(HttpServletRequest request) {
-        String key = rateKey(request);
-        if (counters.size() >= MAX_COUNTERS && !counters.containsKey(key)) {
-            return OVERFLOW_KEY;
-        }
-        return key;
     }
 
     private String rateKey(HttpServletRequest request) {
@@ -62,7 +52,7 @@ public class RateLimitInterceptor implements HandlerInterceptor {
     }
 
     private void cleanupCounters(long now) {
-        if (now - lastCleanupAt < WINDOW_MILLIS && counters.size() < MAX_COUNTERS) {
+        if (now - lastCleanupAt < WINDOW_MILLIS) {
             return;
         }
         lastCleanupAt = now;

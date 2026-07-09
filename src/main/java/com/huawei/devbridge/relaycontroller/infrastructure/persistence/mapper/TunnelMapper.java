@@ -20,6 +20,11 @@ public interface TunnelMapper extends BaseMapper<TunnelEntity> {
             @Param("region") String region,
             @Param("now") long now);
 
+    List<TunnelEntity> selectAgedByRegion(
+            @Param("region") String region,
+            @Param("expirationCutoff") long expirationCutoff,
+            @Param("limit") int limit);
+
     long countActiveByNamespaceAndRegion(
             @Param("namespace") String namespace,
             @Param("region") String region,

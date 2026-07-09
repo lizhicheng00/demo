@@ -52,6 +52,9 @@ relay:
   default-expiration-hours: 72
   tunnel:
     max-per-namespace: 10
+    cleanup-retention-days: 3
+    cleanup-initial-delay-ms: 3600000
+    cleanup-interval-ms: 3600000
   rate-limit:
     enabled: true
     requests-per-minute: 120

@@ -18,6 +18,7 @@ public class RelayProperties {
     @Data
     public static class Tunnel {
         private int maxPerNamespace = 10;
+        private int cleanupRetentionDays = 3;
     }
 
     @Data

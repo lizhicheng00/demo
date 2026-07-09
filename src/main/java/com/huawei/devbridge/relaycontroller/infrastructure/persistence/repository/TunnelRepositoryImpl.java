@@ -37,6 +37,13 @@ public class TunnelRepositoryImpl implements TunnelRepository {
     }
 
     @Override
+    public List<Tunnel> findAgedByRegion(String region, long expirationCutoff, int limit) {
+        return tunnelMapper.selectAgedByRegion(region, expirationCutoff, limit).stream()
+                .map(converter::toDomain)
+                .toList();
+    }
+
+    @Override
     public long countActiveByNamespaceAndRegion(String namespace, String region, long now) {
         return tunnelMapper.countActiveByNamespaceAndRegion(namespace, region, now);
     }
@@ -73,6 +80,13 @@ public class TunnelRepositoryImpl implements TunnelRepository {
                 .eq(TunnelEntity::getDeleted, 0)
                 .set(TunnelEntity::getDeleted, 1)
                 .set(TunnelEntity::getUpdatedAt, updatedAt));
+    }
+
+    @Override
+    public boolean deleteAgedByTunnelId(String tunnelId, long expirationCutoff) {
+        return tunnelMapper.delete(new LambdaQueryWrapper<TunnelEntity>()
+                .eq(TunnelEntity::getTunnelId, tunnelId)
+                .le(TunnelEntity::getExpiration, expirationCutoff)) > 0;
     }
 
     @Override

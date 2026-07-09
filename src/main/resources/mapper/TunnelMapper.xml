@@ -49,6 +49,17 @@
           AND t.expiration &gt; #{now}
     </select>
 
+    <select id="selectAgedByRegion"
+            resultType="com.huawei.devbridge.relaycontroller.infrastructure.persistence.entity.TunnelEntity">
+        SELECT t.*
+        FROM tunnel t
+        INNER JOIN grid g ON g.grid = t.grid_name
+        WHERE g.region = #{region}
+          AND t.expiration &lt;= #{expirationCutoff}
+        ORDER BY t.expiration ASC
+        LIMIT #{limit}
+    </select>
+
     <update id="increaseBandwidthUsed">
         UPDATE tunnel t
         INNER JOIN grid g ON g.grid = t.grid_name
