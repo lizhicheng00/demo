@@ -22,9 +22,9 @@ public interface TunnelRepository {
 
     void update(Tunnel tunnel);
 
-    void softDelete(String tunnelId, long updatedAt);
-
     boolean deleteAgedByTunnelId(String tunnelId, long expirationCutoff);
+
+    boolean deleteByTunnelId(String tunnelId);
 
     void increaseBandwidthUsed(String tunnelId, String region, long usageBytes, long updatedAt);
 }

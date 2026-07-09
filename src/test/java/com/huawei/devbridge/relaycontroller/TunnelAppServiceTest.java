@@ -326,9 +326,9 @@ class TunnelAppServiceTest {
         Boolean deleted = service.deleteTunnel("ns-user-001", "aaaadysa");
 
         assertThat(deleted).isTrue();
-        verify(tunnelRepository).softDelete(eq("aaaadysa"), anyLong());
         verify(jwtTokenService).evictToken("aaaadysa");
         verify(tunnelPortRepository).deleteByTunnelCode(123456L);
+        verify(tunnelRepository).deleteByTunnelId("aaaadysa");
     }
 
     @Test
@@ -347,9 +347,9 @@ class TunnelAppServiceTest {
         Boolean deleted = service.deleteTunnels("ns-user-001");
 
         assertThat(deleted).isTrue();
-        verify(tunnelRepository).softDelete(eq("aaaadysa"), anyLong());
         verify(jwtTokenService).evictToken("aaaadysa");
         verify(tunnelPortRepository).deleteByTunnelCode(123456L);
+        verify(tunnelRepository).deleteByTunnelId("aaaadysa");
     }
 
     private TunnelAppService newService(RelayProperties properties) {

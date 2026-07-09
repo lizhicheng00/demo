@@ -1,7 +1,6 @@
 package com.huawei.devbridge.relaycontroller.infrastructure.persistence.repository;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
 import com.huawei.devbridge.relaycontroller.domain.repository.TunnelRepository;
 import com.huawei.devbridge.relaycontroller.infrastructure.persistence.converter.PersistenceConverter;
@@ -74,19 +73,16 @@ public class TunnelRepositoryImpl implements TunnelRepository {
     }
 
     @Override
-    public void softDelete(String tunnelId, long updatedAt) {
-        tunnelMapper.update(null, new LambdaUpdateWrapper<TunnelEntity>()
-                .eq(TunnelEntity::getTunnelId, tunnelId)
-                .eq(TunnelEntity::getDeleted, 0)
-                .set(TunnelEntity::getDeleted, 1)
-                .set(TunnelEntity::getUpdatedAt, updatedAt));
-    }
-
-    @Override
     public boolean deleteAgedByTunnelId(String tunnelId, long expirationCutoff) {
         return tunnelMapper.delete(new LambdaQueryWrapper<TunnelEntity>()
                 .eq(TunnelEntity::getTunnelId, tunnelId)
                 .le(TunnelEntity::getExpiration, expirationCutoff)) > 0;
+    }
+
+    @Override
+    public boolean deleteByTunnelId(String tunnelId) {
+        return tunnelMapper.delete(new LambdaQueryWrapper<TunnelEntity>()
+                .eq(TunnelEntity::getTunnelId, tunnelId)) > 0;
     }
 
     @Override

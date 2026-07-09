@@ -51,7 +51,7 @@ paths:
                 $ref: '#/components/schemas/TunnelListResult'
     delete:
       tags: [Tunnel]
-      summary: Soft delete all namespace tunnels
+      summary: Delete all namespace tunnels
       operationId: deleteTunnels
       parameters:
         - $ref: '#/components/parameters/NamespaceHeader'
@@ -99,7 +99,7 @@ paths:
                 $ref: '#/components/schemas/BooleanResult'
     delete:
       tags: [Tunnel]
-      summary: Soft delete tunnel
+      summary: Delete tunnel
       operationId: deleteTunnel
       parameters:
         - $ref: '#/components/parameters/NamespaceHeader'

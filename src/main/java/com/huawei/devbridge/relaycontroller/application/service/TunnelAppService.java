@@ -133,9 +133,9 @@ public class TunnelAppService {
     @Transactional
     public Boolean deleteTunnel(String rawNamespace, String tunnelId) {
         Tunnel tunnel = findOwnedTunnel(rawNamespace, tunnelId);
-        tunnelRepository.softDelete(tunnelId, TimeUtils.nowSeconds());
-        jwtTokenService.evictToken(tunnelId);
         tunnelPortRepository.deleteByTunnelCode(tunnel.getTunnelCode());
+        tunnelRepository.deleteByTunnelId(tunnelId);
+        jwtTokenService.evictToken(tunnelId);
         log.info("Tunnel deleted: tunnelId={}, tunnelCode={}, namespace={}",
                 tunnel.getTunnelId(), tunnel.getTunnelCode(), tunnel.getNamespace());
         return true;
@@ -145,11 +145,10 @@ public class TunnelAppService {
     public Boolean deleteTunnels(String rawNamespace) {
         String namespace = namespaceService.requireNamespace(rawNamespace);
         List<Tunnel> tunnels = tunnelRepository.findByNamespaceAndRegion(namespace, relayProperties.getRegion());
-        long now = TimeUtils.nowSeconds();
         tunnels.forEach(tunnel -> {
-            tunnelRepository.softDelete(tunnel.getTunnelId(), now);
-            jwtTokenService.evictToken(tunnel.getTunnelId());
             tunnelPortRepository.deleteByTunnelCode(tunnel.getTunnelCode());
+            tunnelRepository.deleteByTunnelId(tunnel.getTunnelId());
+            jwtTokenService.evictToken(tunnel.getTunnelId());
         });
         log.info("Tunnels deleted: namespace={}, count={}", namespace, tunnels.size());
         return true;
