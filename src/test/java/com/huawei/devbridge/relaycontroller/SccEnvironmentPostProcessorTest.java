@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.mock.env.MockEnvironment;
 
 class SccEnvironmentPostProcessorTest {
+    private static final String SCC_PROPERTY_SOURCE = "sccDecryptedSecrets";
+
     @Test
     void shouldDecryptSecretsBeforePropertiesAreBound() {
         MockEnvironment environment = new MockEnvironment()
@@ -25,5 +27,26 @@ class SccEnvironmentPostProcessorTest {
         assertThat(environment.getProperty("server.ssl.key-password")).isEqualTo("server-key-pass");
         assertThat(environment.getProperty("server.ssl.key-store-password")).isEqualTo("server-store-pass");
         assertThat(environment.getProperty("server.ssl.trust-store-password")).isEqualTo("trust-store-pass");
+    }
+
+    @Test
+    void shouldKeepBlankSecretUnchanged() {
+        MockEnvironment environment = new MockEnvironment()
+                .withProperty("spring.data.redis.password", "");
+
+        new SccEnvironmentPostProcessor().postProcessEnvironment(environment, null);
+
+        assertThat(environment.getPropertySources().contains(SCC_PROPERTY_SOURCE)).isFalse();
+        assertThat(environment.getProperty("spring.data.redis.password")).isEmpty();
+    }
+
+    @Test
+    void shouldIgnoreUnresolvedSecretPlaceholder() {
+        MockEnvironment environment = new MockEnvironment()
+                .withProperty("server.ssl.key-store-password", "${SERVER_SSL_KEY_STORE_PASSWORD}");
+
+        new SccEnvironmentPostProcessor().postProcessEnvironment(environment, null);
+
+        assertThat(environment.getPropertySources().contains(SCC_PROPERTY_SOURCE)).isFalse();
     }
 }

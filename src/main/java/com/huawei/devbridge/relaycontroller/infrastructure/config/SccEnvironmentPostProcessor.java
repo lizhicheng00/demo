@@ -26,15 +26,26 @@ public class SccEnvironmentPostProcessor implements EnvironmentPostProcessor, Or
     public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
         Map<String, Object> decryptedProperties = new LinkedHashMap<>();
         for (String key : SECRET_KEYS) {
-            String value = environment.getProperty(key);
+            String value = getConfiguredValue(environment, key);
+            if (value == null || value.isBlank()) {
+                continue;
+            }
             String decrypted = sccCrypto.decrypt(value);
-            if (decrypted != null && !decrypted.equals(value)) {
+            if (!decrypted.equals(value)) {
                 decryptedProperties.put(key, decrypted);
             }
         }
         if (!decryptedProperties.isEmpty()) {
             environment.getPropertySources()
                     .addFirst(new MapPropertySource(PROPERTY_SOURCE_NAME, decryptedProperties));
+        }
+    }
+
+    private String getConfiguredValue(ConfigurableEnvironment environment, String key) {
+        try {
+            return environment.getProperty(key);
+        } catch (IllegalArgumentException exception) {
+            return null;
         }
     }
 
