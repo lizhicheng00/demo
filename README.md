@@ -95,17 +95,26 @@ export SPRING_DATASOURCE_PASSWORD='root'
 mvn spring-boot:run
 ```
 
-`SccCrypto` is currently a local test stub. It keeps encrypted values as plain text and strips a leading `{scc}` prefix on decrypt, so `SPRING_DATASOURCE_PASSWORD='{scc}root'` becomes `root` before datasource creation. Datasource password and `relay.jwt.private-key` go through this decrypt boundary.
+`SccCrypto` is currently a local test stub. It keeps encrypted values as plain text and strips a leading `{scc}` prefix on decrypt, so `SPRING_DATASOURCE_PASSWORD='{scc}root'` becomes `root` before datasource creation. Datasource password and `RELAY_JWT_PRIVATE_KEY` go through this decrypt boundary.
 
 Keep these values out of committed YAML and provide them through environment variables, deployment secrets, or encrypted config:
 
 ```text
 SPRING_DATASOURCE_PASSWORD
 SPRING_DATA_REDIS_PASSWORD
-relay.jwt.private-key
+RELAY_JWT_PRIVATE_KEY
 SERVER_SSL_KEY_STORE_PASSWORD
 SERVER_SSL_TRUST_STORE_PASSWORD
 ```
+
+For TLS, treat these as secrets:
+
+```text
+SERVER_SSL_KEY_STORE_PASSWORD
+SERVER_SSL_TRUST_STORE_PASSWORD
+```
+
+The keystore/truststore files can also contain private material. Manage `SERVER_SSL_KEY_STORE` as sensitive storage because it contains the server private key. `SERVER_SSL_TRUST_STORE` usually contains only trusted client CA certificates, so it is less sensitive than the server keystore, but still keep it under controlled config management to avoid trusting the wrong CA. `SERVER_SSL_KEY_STORE_TYPE`, `SERVER_SSL_TRUST_STORE_TYPE`, `SERVER_PORT`, and path values themselves are not passwords.
 
 Spring Boot consumes TLS keystore passwords before application beans are initialized, so `SERVER_SSL_KEY_STORE_PASSWORD` and `SERVER_SSL_TRUST_STORE_PASSWORD` must come from the runtime secret source directly instead of `SccCrypto`.
 
@@ -129,6 +138,7 @@ export SERVER_SSL_KEY_STORE=file:/path/to/relay-controller-server.p12
 export SERVER_SSL_KEY_STORE_PASSWORD='<secret>'
 export SERVER_SSL_TRUST_STORE=file:/path/to/client-ca-truststore.p12
 export SERVER_SSL_TRUST_STORE_PASSWORD='<secret>'
+export RELAY_JWT_PRIVATE_KEY='<private-key-pem-or-{scc}encrypted-value>'
 mvn spring-boot:run
 ```
 
@@ -136,4 +146,4 @@ Set `SERVER_SSL_KEY_ALIAS` only when the server keystore contains multiple alias
 
 Use JDK 17 for normal development and deployment. The project uses Jetty instead of Tomcat and Jedis instead of Lettuce/Netty to avoid JDK 26 startup warnings from Tomcat native loading and Netty `Unsafe` access. If Maven itself is run on JDK 26, Maven's own dependencies may still print JVM warnings before the application starts; those are not emitted by the Relay Controller runtime.
 
-If no RSA private key is configured, the service generates an ephemeral RSA key pair at startup for development. Configure `relay.jwt.private-key` for stable production token signing.
+If no RSA private key is configured, the service generates an ephemeral RSA key pair at startup for development. Configure `RELAY_JWT_PRIVATE_KEY` for stable production token signing.

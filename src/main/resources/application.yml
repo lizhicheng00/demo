@@ -58,6 +58,6 @@ relay:
   jwt:
     issuer: devbridge
     key-id: "1"
-    private-key:
+    private-key: ${RELAY_JWT_PRIVATE_KEY:}
     token:
       ttl-seconds: 86400
