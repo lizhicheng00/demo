@@ -17,7 +17,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class JwtKeyProvider {
     private final RelayProperties relayProperties;
-    private final SccCrypto sccCrypto;
     private PrivateKey privateKey;
 
     @PostConstruct
@@ -27,7 +26,7 @@ public class JwtKeyProvider {
             initEphemeralKeyPair();
             return;
         }
-        this.privateKey = parsePrivateKey(sccCrypto.decrypt(configuredPrivateKey));
+        this.privateKey = parsePrivateKey(configuredPrivateKey);
     }
 
     public PrivateKey getPrivateKey() {

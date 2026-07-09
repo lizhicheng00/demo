@@ -97,15 +97,15 @@ mvn spring-boot:run
 
 `SccCrypto` is currently a local test stub. It keeps encrypted values as plain text and strips a leading `{scc}` prefix on decrypt, so `SPRING_DATASOURCE_PASSWORD='{scc}root'` becomes `root` before datasource creation.
 
-The following properties are decrypted before Spring Boot binds configuration:
+SCC decryption runs through a Spring Boot `ConfigurationPropertiesBindHandlerAdvisor`, so the company `SccCrypto` bean is injected normally. The following configuration values are decrypted while Spring Boot binds them, before their consumers use them:
 
 ```text
-spring.datasource.password
-spring.data.redis.password
-relay.jwt.private-key
-server.ssl.key-password
-server.ssl.key-store-password
-server.ssl.trust-store-password
+DataSourceProperties.password
+RedisProperties.password
+ServerProperties.ssl.keyPassword
+ServerProperties.ssl.keyStorePassword
+ServerProperties.ssl.trustStorePassword
+RelayProperties.jwt.privateKey
 ```
 
 Keep these values out of committed YAML and provide them through environment variables, deployment secrets, or encrypted config:

@@ -3,9 +3,9 @@ server:
   ssl:
     enabled: true
     key-store: ${SERVER_SSL_KEY_STORE}
-    key-store-password: ${SERVER_SSL_KEY_STORE_PASSWORD}
+    key-store-password: ${SERVER_SSL_KEY_STORE_PASSWORD:}
     key-store-type: ${SERVER_SSL_KEY_STORE_TYPE:PKCS12}
     trust-store: ${SERVER_SSL_TRUST_STORE}
-    trust-store-password: ${SERVER_SSL_TRUST_STORE_PASSWORD}
+    trust-store-password: ${SERVER_SSL_TRUST_STORE_PASSWORD:}
     trust-store-type: ${SERVER_SSL_TRUST_STORE_TYPE:PKCS12}
     client-auth: need
