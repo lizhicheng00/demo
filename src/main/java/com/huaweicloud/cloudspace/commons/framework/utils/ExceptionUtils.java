@@ -1,5 +1,8 @@
 package com.huaweicloud.cloudspace.commons.framework.utils;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
 public final class ExceptionUtils {
     private ExceptionUtils() {
     }
@@ -8,14 +11,8 @@ public final class ExceptionUtils {
         if (exception == null) {
             return "unknown";
         }
-        return rootCause(exception).getClass().getSimpleName();
-    }
-
-    private static Throwable rootCause(Throwable exception) {
-        Throwable cause = exception;
-        while (cause.getCause() != null) {
-            cause = cause.getCause();
-        }
-        return cause;
+        StringWriter stackTrace = new StringWriter();
+        exception.printStackTrace(new PrintWriter(stackTrace));
+        return stackTrace.toString().stripTrailing();
     }
 }
