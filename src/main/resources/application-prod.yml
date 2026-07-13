@@ -9,23 +9,3 @@ logging:
     com.huawei.devbridge.relaycontroller: WARN
     com.huawei.devbridge.relaycontroller.RelayControllerApplication: INFO
     com.huawei.devbridge.relaycontroller.common.exception: WARN
-
-wushan:
-  integration:
-    auth:
-      new-resource-tag-check-enabled: true
-
-security:
-  validator:
-    enabled: false
-
-scc:
-  crypto:
-    enable: true
-    primary-key-store-file: /opt/cloud/scc/ks/primary.ks
-    standby-key-store-file: /opt/cloud/scc/ks/standby.ks
-    backup-folder-name: /opt/cloud/scc/backup
-    domain-count: 8
-    log-path: /opt/cloud/scc/logs
-    log-file: scc
-    default-algorithm: ALG_AES256_GCM

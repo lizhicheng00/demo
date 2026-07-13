@@ -93,8 +93,14 @@ export DATASOURCE_URL='jdbc:mysql://127.0.0.1:3306/relay_controller?useUnicode=t
 export DATASOURCE_USERNAME='root'
 export DATASOURCE_PASSWORD='root'
 export REDIS_HOST='localhost'
-export REDIS_PASSWORD='123'
+export REDIS_PASSWORD='<redis-password>'
 mvn spring-boot:run
+```
+
+For IntelliJ IDEA, paste this semicolon-separated template into **Run/Debug Configuration > Environment variables** and fill in each value:
+
+```text
+SPRING_PROFILES_ACTIVE=;SERVER_PORT=;DATASOURCE_URL=;DATASOURCE_USERNAME=;DATASOURCE_PASSWORD=;REDIS_HOST=;REDIS_PASSWORD=;RELAY_JWT_PRIVATE_KEY=;SERVER_SSL_KEY_STORE_BASE64=;SERVER_SSL_KEY_STORE_PASSWORD=;SERVER_SSL_TRUST_STORE_BASE64=;SERVER_SSL_TRUST_STORE_PASSWORD=
 ```
 
 `SccCrypto` is currently a local test stub used by the JWT token cache. Configuration properties are not decrypted by Relay Controller, so provide consumer-ready values through environment variables or deployment secrets.
