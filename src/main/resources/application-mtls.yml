@@ -11,10 +11,10 @@ spring:
       jks:
         mtls:
           keystore:
-            location: base64:${MTLS_KEYSTORE_BASE64}
-            password: ${MTLS_KEYSTORE_PASSWORD}
+            location: base64:${SERVER_SSL_KEY_STORE_BASE64}
+            password: ${SERVER_SSL_KEY_STORE_PASSWORD}
             type: PKCS12
           truststore:
-            location: base64:${MTLS_TRUSTSTORE_BASE64}
-            password: ${MTLS_TRUSTSTORE_PASSWORD}
+            location: base64:${SERVER_SSL_TRUST_STORE_BASE64}
+            password: ${SERVER_SSL_TRUST_STORE_PASSWORD}
             type: PKCS12

@@ -1,6 +1,6 @@
 package com.huawei.devbridge.relaycontroller.common.exception;
 
-import com.huawei.cloudspace.commons.framework.utils.ExceptionUtils;
+import com.huaweicloud.cloudspace.commons.framework.utils.ExceptionUtils;
 import com.huawei.devbridge.relaycontroller.common.model.ErrorResponse;
 import com.huawei.devbridge.relaycontroller.common.model.ErrorResponse.ErrorDetail;
 import jakarta.validation.ConstraintViolationException;

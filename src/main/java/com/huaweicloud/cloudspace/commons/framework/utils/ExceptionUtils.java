@@ -1,4 +1,4 @@
-package com.huawei.cloudspace.commons.framework.utils;
+package com.huaweicloud.cloudspace.commons.framework.utils;
 
 public final class ExceptionUtils {
     private ExceptionUtils() {

@@ -1,6 +1,6 @@
 package com.huawei.devbridge.relaycontroller.infrastructure.redis;
 
-import com.huawei.cloudspace.commons.framework.utils.ExceptionUtils;
+import com.huaweicloud.cloudspace.commons.framework.utils.ExceptionUtils;
 import com.huawei.clouds.wushan.scc.crypto.SccCrypto;
 import com.huawei.devbridge.relaycontroller.domain.model.JwtScope;
 import com.huawei.devbridge.relaycontroller.domain.model.JwtToken;

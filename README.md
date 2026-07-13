@@ -95,38 +95,30 @@ export SPRING_DATASOURCE_PASSWORD='root'
 mvn spring-boot:run
 ```
 
-`SccCrypto` is currently a local test stub. It keeps encrypted values as plain text and strips a leading `{scc}` prefix on decrypt, so `SPRING_DATASOURCE_PASSWORD='{scc}root'` becomes `root` before datasource creation.
+`SccCrypto` is currently a local test stub used by the JWT token cache. Configuration properties are not decrypted by Relay Controller, so provide consumer-ready values through environment variables or deployment secrets.
 
-SCC decryption runs through a Spring Boot `ConfigurationPropertiesBindHandlerAdvisor`, so the company `SccCrypto` bean is injected normally. The following configuration values are decrypted while Spring Boot binds them, before their consumers use them:
-
-```text
-DataSourceProperties.password
-RedisProperties.password
-SslProperties.bundles.jks.mtls.keystore.password
-SslProperties.bundles.jks.mtls.truststore.password
-RelayProperties.jwt.privateKey
-```
-
-Keep these values out of committed YAML and provide them through environment variables, deployment secrets, or encrypted config:
+Keep these values out of committed YAML:
 
 ```text
 SPRING_DATASOURCE_PASSWORD
 SPRING_DATA_REDIS_PASSWORD
 RELAY_JWT_PRIVATE_KEY
-MTLS_KEYSTORE_PASSWORD
-MTLS_TRUSTSTORE_PASSWORD
+SERVER_SSL_KEY_STORE_BASE64
+SERVER_SSL_KEY_STORE_PASSWORD
+SERVER_SSL_TRUST_STORE_BASE64
+SERVER_SSL_TRUST_STORE_PASSWORD
 ```
 
 For TLS, treat these as secrets:
 
 ```text
-MTLS_KEYSTORE_PASSWORD
-MTLS_TRUSTSTORE_PASSWORD
+SERVER_SSL_KEY_STORE_BASE64
+SERVER_SSL_KEY_STORE_PASSWORD
+SERVER_SSL_TRUST_STORE_BASE64
+SERVER_SSL_TRUST_STORE_PASSWORD
 ```
 
 The Base64 keystore content is sensitive because it contains the server private key. The truststore usually contains only trusted client CA certificates, but it must still be protected from unauthorized replacement. Base64 is transport encoding, not encryption; keep both values in deployment secret storage.
-
-TLS password values can use the local SCC stub prefix, for example `MTLS_KEYSTORE_PASSWORD='{scc}server-pass'`.
 
 The project uses the official MySQL driver `com.mysql.cj.jdbc.Driver` with `mysql-connector-j`.
 Do not set `SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.mariadb.jdbc.Driver` when using a `jdbc:mysql://` URL. If startup says the MariaDB driver cannot be loaded, remove that environment variable or external config override. Also make sure the JDBC URL uses the normal ASCII colon `jdbc:mysql://`, not the full-width Chinese colon `jdbc：mysql://`.
@@ -144,11 +136,11 @@ Relay Controller can require client certificates at the embedded Jetty layer. En
 ```bash
 export SPRING_PROFILES_ACTIVE=dev,mtls
 export SERVER_PORT=8443
-export MTLS_KEYSTORE_BASE64="$(base64 < mtls/server.p12 | tr -d '\n')"
-export MTLS_KEYSTORE_PASSWORD='<secret>'
-export MTLS_TRUSTSTORE_BASE64="$(base64 < mtls/server-truststore.p12 | tr -d '\n')"
-export MTLS_TRUSTSTORE_PASSWORD='<secret>'
-export RELAY_JWT_PRIVATE_KEY='<private-key-pem-or-{scc}encrypted-value>'
+export SERVER_SSL_KEY_STORE_BASE64="$(base64 < mtls/server.p12 | tr -d '\n')"
+export SERVER_SSL_KEY_STORE_PASSWORD='<secret>'
+export SERVER_SSL_TRUST_STORE_BASE64="$(base64 < mtls/server-truststore.p12 | tr -d '\n')"
+export SERVER_SSL_TRUST_STORE_PASSWORD='<secret>'
+export RELAY_JWT_PRIVATE_KEY='<private-key-pem>'
 mvn spring-boot:run
 ```
 
