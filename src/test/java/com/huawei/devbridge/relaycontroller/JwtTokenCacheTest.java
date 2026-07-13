@@ -1,8 +1,6 @@
 package com.huawei.devbridge.relaycontroller;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -13,29 +11,38 @@ import com.huawei.devbridge.relaycontroller.infrastructure.security.SccCrypto;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
+@ExtendWith(MockitoExtension.class)
 class JwtTokenCacheTest {
+    private static final String KEY = "jwt:token:aaaadysa:connect";
+
+    @Mock
+    private StringRedisTemplate redisTemplate;
+    @Mock
+    private ValueOperations<String, String> valueOperations;
+    @Mock
+    private SccCrypto sccCrypto;
+    @InjectMocks
+    private JwtTokenCache cache;
 
     @Test
-    void shouldStoreAndReadTokenThroughSccCrypto() {
-        StringRedisTemplate redisTemplate = mock(StringRedisTemplate.class);
-        ValueOperations<String, String> valueOperations = mock(ValueOperations.class);
+    void storesAndReadsScopedToken() {
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-
-        SccCrypto crypto = new SccCrypto();
-        JwtTokenCache cache = new JwtTokenCache(redisTemplate, crypto);
+        when(sccCrypto.encrypt("jwt-token")).thenReturn("encrypted-token");
 
         cache.setToken("aaaadysa", JwtScope.CONNECT, "jwt-token", 60);
 
-        ArgumentCaptor<String> valueCaptor = ArgumentCaptor.forClass(String.class);
-        verify(valueOperations).set(eq("jwt:token:aaaadysa:connect"), valueCaptor.capture(), eq(Duration.ofSeconds(60)));
-        assertThat(valueCaptor.getValue()).isEqualTo("jwt-token");
+        verify(valueOperations).set(KEY, "encrypted-token", Duration.ofSeconds(60));
 
-        when(valueOperations.get("jwt:token:aaaadysa:connect")).thenReturn("{scc}jwt-token");
-        when(redisTemplate.getExpire("jwt:token:aaaadysa:connect", TimeUnit.SECONDS)).thenReturn(60L);
+        when(valueOperations.get(KEY)).thenReturn("encrypted-token");
+        when(redisTemplate.getExpire(KEY, TimeUnit.SECONDS)).thenReturn(60L);
+        when(sccCrypto.decrypt("encrypted-token")).thenReturn("jwt-token");
 
         JwtToken token = cache.getToken("aaaadysa", JwtScope.CONNECT);
 

@@ -2,7 +2,6 @@ package com.huawei.devbridge.relaycontroller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -25,7 +24,6 @@ import com.huawei.devbridge.relaycontroller.interfaces.response.GatewayTunnelPor
 import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelPortResponse;
 import com.huawei.devbridge.relaycontroller.infrastructure.config.RelayProperties;
 import java.util.List;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -40,11 +38,6 @@ class TunnelPortAppServiceTest {
     @Mock
     private ClusterRepository clusterRepository;
 
-    @BeforeEach
-    void setUp() {
-        localCluster("cluster-a");
-    }
-
     @Test
     void createTunnelPortWritesPolicy() {
         TunnelPortAppService service = newService();
@@ -53,7 +46,6 @@ class TunnelPortAppServiceTest {
         request.setAllowAnonymous(false);
 
         when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel("ns-user-001", "cluster-a"));
-        when(tunnelPortRepository.existsByTunnelCodeAndPort(123456L, 8080L)).thenReturn(false);
         when(tunnelPortRepository.save(org.mockito.ArgumentMatchers.any(TunnelPort.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -186,8 +178,6 @@ class TunnelPortAppServiceTest {
         TunnelPortAppService service = newService();
 
         when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel("ns-user-001", "cluster-a"));
-        when(tunnelPortRepository.findByTunnelCodeAndPort(123456L, 8080L)).thenReturn(null);
-
         assertThatThrownBy(() -> service.detail("ns-user-001", "aaaadysa", 8080L))
                 .isInstanceOf(BizException.class)
                 .extracting("errorCode")
@@ -198,6 +188,7 @@ class TunnelPortAppServiceTest {
     void gatewayPolicyChecksClusterAndReturnsPolicy() {
         TunnelPortAppService service = newService();
 
+        localCluster("cluster-a");
         when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel("ns-user-001", "cluster-a"));
         when(tunnelPortRepository.findByTunnelCodeAndPort(123456L, 8080L))
                 .thenReturn(TunnelPort.builder().tunnelCode(123456L).port(8080L).allowAnonymous(true).build());
@@ -254,7 +245,7 @@ class TunnelPortAppServiceTest {
     }
 
     private void localCluster(String clusterId) {
-        lenient().when(clusterRepository.findByClusterIdAndRegion(clusterId, "region-a"))
+        when(clusterRepository.findByClusterIdAndRegion(clusterId, "region-a"))
                 .thenReturn(Cluster.builder().clusterId(clusterId).region("region-a").build());
     }
 }

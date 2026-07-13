@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -222,7 +223,7 @@ class TunnelAppServiceTest {
                     .toList();
             List<Future<Boolean>> futures = executor.invokeAll(tasks);
             long created = futures.stream()
-                    .filter(this::created)
+                    .filter(TunnelAppServiceTest::created)
                     .count();
 
             assertThat(created).isEqualTo(10);
@@ -270,7 +271,7 @@ class TunnelAppServiceTest {
                 .build();
 
         when(tunnelRepository.findActiveByNamespaceAndRegion(
-                eq("ns-user-001"), eq(null), eq("region-a"), anyLong()))
+                eq("ns-user-001"), isNull(), eq("region-a"), anyLong()))
                 .thenReturn(List.of(local));
 
         List<TunnelListItemResponse> response = service.listTunnels("ns-user-001", null);
@@ -283,7 +284,7 @@ class TunnelAppServiceTest {
         TunnelAppService service = newService(new RelayProperties());
 
         when(tunnelRepository.findActiveByNamespaceAndRegion(
-                eq("ns-user-001"), eq(null), eq("region-a"), anyLong()))
+                eq("ns-user-001"), isNull(), eq("region-a"), anyLong()))
                 .thenReturn(List.of());
 
         List<TunnelListItemResponse> response = service.listTunnels("ns-user-001", null);
@@ -367,11 +368,6 @@ class TunnelAppServiceTest {
                 properties);
     }
 
-    private void stubLocalCluster(String clusterId) {
-        when(clusterRepository.findByClusterIdAndRegion(clusterId, "region-a"))
-                .thenReturn(Cluster.builder().clusterId(clusterId).region("region-a").build());
-    }
-
     private static class FixedTunnelCodeGenerator extends TunnelCodeGenerator {
         @Override
         public long generate() {
@@ -405,7 +401,7 @@ class TunnelAppServiceTest {
         }
     }
 
-    private boolean created(Future<Boolean> future) {
+    private static boolean created(Future<Boolean> future) {
         try {
             return future.get();
         } catch (Exception exception) {
