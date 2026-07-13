@@ -31,8 +31,8 @@ public class JwtSigner {
                     .issuer(relayProperties.getJwt().getIssuer())
                     .expirationTime(Date.from(expiresAt))
                     .notBeforeTime(Date.from(now))
-                    .claim("tunnelid", tunnel.getTunnelId())
-                    .claim("clusterid", tunnel.getClusterId())
+                    .claim("tunnelId", tunnel.getTunnelId())
+                    .claim("clusterId", tunnel.getClusterId())
                     .claim("scp", scope.value())
                     .build();
             return sign(claims);

@@ -39,10 +39,10 @@ class JwtSignerTest {
         assertThat(jwt.verify(new RSASSAVerifier((RSAPublicKey) keyPair.getPublic()))).isTrue();
         assertThat(jwt.getHeader().getKeyID()).isEqualTo("1");
         assertThat(jwt.getJWTClaimsSet().getClaims().keySet())
-                .isEqualTo(Set.of("iss", "exp", "nbf", "tunnelid", "clusterid", "scp"));
+                .isEqualTo(Set.of("iss", "exp", "nbf", "tunnelId", "clusterId", "scp"));
         assertThat(jwt.getJWTClaimsSet().getIssuer()).isEqualTo("devbridge");
-        assertThat(jwt.getJWTClaimsSet().getStringClaim("tunnelid")).isEqualTo("aaaadysa");
-        assertThat(jwt.getJWTClaimsSet().getStringClaim("clusterid")).isEqualTo("cluster-a");
+        assertThat(jwt.getJWTClaimsSet().getStringClaim("tunnelId")).isEqualTo("aaaadysa");
+        assertThat(jwt.getJWTClaimsSet().getStringClaim("clusterId")).isEqualTo("cluster-a");
         assertThat(jwt.getJWTClaimsSet().getStringClaim("scp")).isEqualTo("connect");
         assertThat(jwt.getJWTClaimsSet().getNotBeforeTime().toInstant().getEpochSecond()).isGreaterThanOrEqualTo(before);
         assertThat(jwt.getJWTClaimsSet().getExpirationTime().toInstant().getEpochSecond())

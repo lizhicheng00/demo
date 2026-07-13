@@ -353,8 +353,8 @@ JWT claims：
 - `iss`：`relay.jwt.issuer`
 - `exp`：token 过期时间
 - `nbf`：签发时间
-- `tunnelid`
-- `clusterid`
+- `tunnelId`
+- `clusterId`
 - `scp`：`connect` 或 `host`
 
 JWT header：
@@ -529,7 +529,7 @@ cluster-a -> region-a
 
 注意：
 
-- `tunnel_id` 注释已通过 V2 migration 修正为 base32 tunnel id。
+- `tunnel_id` 在第一版迁移中定义为 base32 tunnel id。
 - 数据库保留 `_id` 自增主键；API 使用 `tunnelId` 作为对外标识。
 - `tunnel_id` 和 `tunnel_code` 唯一约束不因软删释放。
 

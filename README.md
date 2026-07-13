@@ -50,7 +50,7 @@ Deleted tunnels are soft-deleted to preserve historical identifiers and metering
 Each namespace can own up to 10 active tunnels by default. Deleted and expired tunnels do not count against this quota. Configure `relay.tunnel.max-per-namespace` to change the limit.
 Tunnel list responses expose stable metadata only: `tunnelId`, `tunnelCode`, `clusterId`, `description`, `expiration`, `created`, and `url`. Runtime counters such as host/client connections or current upload/download rate require Gateway reporting and are intentionally not modeled here yet. Port policies remain available through the tunnel port APIs instead of being embedded into every list response.
 
-Tunnel create and detail return `jwt.connect` and `jwt.host`. Both tokens expire at the earlier of `relay.jwt.token.ttl-seconds` or the tunnel expiration and are cached separately at `jwt:token:{tunnelId}:{scope}`. Their claims are limited to `iss`, `exp`, `nbf`, `tunnelid`, `clusterid`, and `scp`.
+Tunnel create and detail return `jwt.connect` and `jwt.host`. Both tokens expire at the earlier of `relay.jwt.token.ttl-seconds` or the tunnel expiration and are cached separately at `jwt:token:{tunnelId}:{scope}`. Their claims are limited to `iss`, `exp`, `nbf`, `tunnelId`, `clusterId`, and `scp`.
 
 Tunnel port APIs manage the explicit per-port allow list for a tunnel. Unconfigured ports are denied by default. `allowAnonymous` only controls sending-side access to that port; listening-side gateway connection still requires token authentication.
 The gateway port policy API keeps `clusterId` in the path intentionally. Gateway callers use it as their cluster scope, and Relay Controller verifies the tunnel belongs to that cluster before returning the port policy.

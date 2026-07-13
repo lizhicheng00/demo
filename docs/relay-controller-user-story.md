@@ -73,7 +73,7 @@ Relay Controller 提供 tunnel 创建、查询、更新和删除能力。
 
 Tunnel detail 用于返回 tunnel 元数据，以及按 `scp` 分离的 `connect`、`host` JWT。
 
-JWT claims 只包含 `iss`、`exp`、`nbf`、`tunnelid`、`clusterid`、`scp`。有效期受 tunnel 剩余有效期约束，不会超过 tunnel 生命周期；tunnel 被删除或过期时间变化时，服务端会清理两个 scope 的缓存。
+JWT claims 只包含 `iss`、`exp`、`nbf`、`tunnelId`、`clusterId`、`scp`。有效期受 tunnel 剩余有效期约束，不会超过 tunnel 生命周期；tunnel 被删除或过期时间变化时，服务端会清理两个 scope 的缓存。
 
 #### 2.1.3 Tunnel Port 策略
 
