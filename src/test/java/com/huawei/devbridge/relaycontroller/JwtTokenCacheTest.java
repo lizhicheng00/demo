@@ -7,7 +7,7 @@ import static org.mockito.Mockito.when;
 import com.huawei.devbridge.relaycontroller.domain.model.JwtScope;
 import com.huawei.devbridge.relaycontroller.domain.model.JwtToken;
 import com.huawei.devbridge.relaycontroller.infrastructure.redis.JwtTokenCache;
-import com.huawei.devbridge.relaycontroller.infrastructure.security.SccCrypto;
+import com.huawei.clouds.wushan.scc.crypto.SccCrypto;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;

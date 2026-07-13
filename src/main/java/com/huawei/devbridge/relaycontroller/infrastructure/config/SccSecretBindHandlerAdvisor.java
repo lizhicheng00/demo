@@ -1,6 +1,6 @@
 package com.huawei.devbridge.relaycontroller.infrastructure.config;
 
-import com.huawei.devbridge.relaycontroller.infrastructure.security.SccCrypto;
+import com.huawei.clouds.wushan.scc.crypto.SccCrypto;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.ConfigurationPropertiesBindHandlerAdvisor;
@@ -18,9 +18,8 @@ public class SccSecretBindHandlerAdvisor implements ConfigurationPropertiesBindH
             "spring.datasource.password",
             "spring.data.redis.password",
             "relay.jwt.private-key",
-            "server.ssl.key-password",
-            "server.ssl.key-store-password",
-            "server.ssl.trust-store-password");
+            "spring.ssl.bundle.jks.mtls.keystore.password",
+            "spring.ssl.bundle.jks.mtls.truststore.password");
 
     private final SccCrypto sccCrypto;
 

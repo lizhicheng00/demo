@@ -1,4 +1,4 @@
-package com.huawei.devbridge.relaycontroller.infrastructure.security;
+package com.huawei.clouds.wushan.scc.crypto;
 
 import org.springframework.stereotype.Component;
 

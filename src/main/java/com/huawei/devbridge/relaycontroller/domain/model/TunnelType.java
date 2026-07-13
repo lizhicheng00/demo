@@ -27,7 +27,7 @@ public enum TunnelType {
             return BRIDGE;
         }
         return Arrays.stream(values())
-                .filter(type -> type.value.equals(value.trim().toLowerCase()))
+                .filter(type -> type.value.equalsIgnoreCase(value.trim()))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Unsupported tunnel type: " + value));
     }

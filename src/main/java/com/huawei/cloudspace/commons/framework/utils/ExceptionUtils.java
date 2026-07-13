@@ -1,4 +1,4 @@
-package com.huawei.devbridge.relaycontroller.common.util;
+package com.huawei.cloudspace.commons.framework.utils;
 
 public final class ExceptionUtils {
     private ExceptionUtils() {

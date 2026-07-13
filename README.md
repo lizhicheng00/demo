@@ -102,9 +102,8 @@ SCC decryption runs through a Spring Boot `ConfigurationPropertiesBindHandlerAdv
 ```text
 DataSourceProperties.password
 RedisProperties.password
-ServerProperties.ssl.keyPassword
-ServerProperties.ssl.keyStorePassword
-ServerProperties.ssl.trustStorePassword
+SslProperties.bundles.jks.mtls.keystore.password
+SslProperties.bundles.jks.mtls.truststore.password
 RelayProperties.jwt.privateKey
 ```
 
@@ -114,20 +113,20 @@ Keep these values out of committed YAML and provide them through environment var
 SPRING_DATASOURCE_PASSWORD
 SPRING_DATA_REDIS_PASSWORD
 RELAY_JWT_PRIVATE_KEY
-SERVER_SSL_KEY_STORE_PASSWORD
-SERVER_SSL_TRUST_STORE_PASSWORD
+MTLS_KEYSTORE_PASSWORD
+MTLS_TRUSTSTORE_PASSWORD
 ```
 
 For TLS, treat these as secrets:
 
 ```text
-SERVER_SSL_KEY_STORE_PASSWORD
-SERVER_SSL_TRUST_STORE_PASSWORD
+MTLS_KEYSTORE_PASSWORD
+MTLS_TRUSTSTORE_PASSWORD
 ```
 
-The keystore/truststore files can also contain private material. Manage `SERVER_SSL_KEY_STORE` as sensitive storage because it contains the server private key. `SERVER_SSL_TRUST_STORE` usually contains only trusted client CA certificates, so it is less sensitive than the server keystore, but still keep it under controlled config management to avoid trusting the wrong CA. `SERVER_SSL_KEY_STORE_TYPE`, `SERVER_SSL_TRUST_STORE_TYPE`, `SERVER_PORT`, and path values themselves are not passwords.
+The Base64 keystore content is sensitive because it contains the server private key. The truststore usually contains only trusted client CA certificates, but it must still be protected from unauthorized replacement. Base64 is transport encoding, not encryption; keep both values in deployment secret storage.
 
-TLS password values can use the local SCC stub prefix, for example `SERVER_SSL_KEY_STORE_PASSWORD='{scc}server-pass'`.
+TLS password values can use the local SCC stub prefix, for example `MTLS_KEYSTORE_PASSWORD='{scc}server-pass'`.
 
 The project uses the official MySQL driver `com.mysql.cj.jdbc.Driver` with `mysql-connector-j`.
 Do not set `SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.mariadb.jdbc.Driver` when using a `jdbc:mysql://` URL. If startup says the MariaDB driver cannot be loaded, remove that environment variable or external config override. Also make sure the JDBC URL uses the normal ASCII colon `jdbc:mysql://`, not the full-width Chinese colon `jdbc：mysql://`.
@@ -140,20 +139,20 @@ bash scripts/http-smoke-test.sh
 
 ## Mutual TLS
 
-Relay Controller can require client certificates at the embedded Jetty layer. Enable the `mtls` profile and provide a server keystore plus a truststore containing the client CA:
+Relay Controller can require client certificates at the embedded Jetty layer. Enable the `mtls` profile and provide a Base64-encoded PKCS12 server keystore plus a truststore containing the client CA:
 
 ```bash
 export SPRING_PROFILES_ACTIVE=dev,mtls
 export SERVER_PORT=8443
-export SERVER_SSL_KEY_STORE=file:/path/to/relay-controller-server.p12
-export SERVER_SSL_KEY_STORE_PASSWORD='<secret>'
-export SERVER_SSL_TRUST_STORE=file:/path/to/client-ca-truststore.p12
-export SERVER_SSL_TRUST_STORE_PASSWORD='<secret>'
+export MTLS_KEYSTORE_BASE64="$(base64 < mtls/server.p12 | tr -d '\n')"
+export MTLS_KEYSTORE_PASSWORD='<secret>'
+export MTLS_TRUSTSTORE_BASE64="$(base64 < mtls/server-truststore.p12 | tr -d '\n')"
+export MTLS_TRUSTSTORE_PASSWORD='<secret>'
 export RELAY_JWT_PRIVATE_KEY='<private-key-pem-or-{scc}encrypted-value>'
 mvn spring-boot:run
 ```
 
-Set `SERVER_SSL_KEY_ALIAS` only when the server keystore contains multiple aliases and you need to select one explicitly. With `server.ssl.client-auth=need`, requests without a trusted client certificate fail during the TLS handshake and never reach the API controllers. Callers must use `https://` and pass a client certificate signed by the CA in `SERVER_SSL_TRUST_STORE`.
+The profile registers `spring.ssl.bundle.jks.mtls` and assigns it through `server.ssl.bundle`. With `server.ssl.client-auth=need`, requests without a trusted client certificate fail during the TLS handshake and never reach the API controllers. Callers must use `https://` and pass a client certificate signed by the CA in the configured truststore.
 
 Use JDK 17 for normal development and deployment. The project uses Jetty instead of Tomcat and Jedis instead of Lettuce/Netty to avoid JDK 26 startup warnings from Tomcat native loading and Netty `Unsafe` access. If Maven itself is run on JDK 26, Maven's own dependencies may still print JVM warnings before the application starts; those are not emitted by the Relay Controller runtime.
 

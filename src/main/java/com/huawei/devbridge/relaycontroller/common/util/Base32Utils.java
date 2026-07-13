@@ -1,5 +1,6 @@
 package com.huawei.devbridge.relaycontroller.common.util;
 
+import java.util.Locale;
 import org.apache.commons.codec.binary.Base32;
 
 public final class Base32Utils {
@@ -21,6 +22,6 @@ public final class Base32Utils {
                 (byte) ((value >> 8) & BYTE_MASK),
                 (byte) (value & BYTE_MASK)
         };
-        return BASE32.encodeToString(bytes).replace("=", "").toLowerCase();
+        return BASE32.encodeToString(bytes).replace("=", "").toLowerCase(Locale.ENGLISH);
     }
 }

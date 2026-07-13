@@ -1,9 +1,9 @@
 package com.huawei.devbridge.relaycontroller.infrastructure.redis;
 
-import com.huawei.devbridge.relaycontroller.common.util.ExceptionUtils;
+import com.huawei.cloudspace.commons.framework.utils.ExceptionUtils;
+import com.huawei.clouds.wushan.scc.crypto.SccCrypto;
 import com.huawei.devbridge.relaycontroller.domain.model.JwtScope;
 import com.huawei.devbridge.relaycontroller.domain.model.JwtToken;
-import com.huawei.devbridge.relaycontroller.infrastructure.security.SccCrypto;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
