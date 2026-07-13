@@ -957,9 +957,9 @@ spring:
   data:
     redis:
       client-type: jedis
-      host: ${REDIS_HOST:localhost}
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
       port: 6379
-      password: ${REDIS_PASSWORD}
+      password: ${SPRING_DATA_REDIS_PASSWORD}
 
 relay:
   domain: myhuaweicloud.com
