@@ -85,12 +85,13 @@ class RelayControllerApiTest {
                                 }
                                 """))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.error_code").value("0000"))
-                .andExpect(jsonPath("$.data.tunnelId").value(TUNNEL_ID))
-                .andExpect(jsonPath("$.data.gridName").value(GRID_NAME))
-                .andExpect(jsonPath("$.data.jwt.tokenType").value("TOKEN"))
-                .andExpect(jsonPath("$.data.jwt.token").value("token-token"))
-                .andExpect(jsonPath("$.data.jwt.expiresIn").value(86400));
+                .andExpect(jsonPath("$.tunnelId").value(TUNNEL_ID))
+                .andExpect(jsonPath("$.gridName").value(GRID_NAME))
+                .andExpect(jsonPath("$.jwt.tokenType").value("TOKEN"))
+                .andExpect(jsonPath("$.jwt.token").value("token-token"))
+                .andExpect(jsonPath("$.jwt.expiresIn").value(86400))
+                .andExpect(jsonPath("$.data").doesNotExist())
+                .andExpect(jsonPath("$.error_code").doesNotExist());
     }
 
     @Test
@@ -105,8 +106,10 @@ class RelayControllerApiTest {
                                 }
                                 """))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.error_code").value("40100"))
-                .andExpect(jsonPath("$.error_message").value("X-Namespace is required"));
+                .andExpect(jsonPath("$.error.code").value("40100"))
+                .andExpect(jsonPath("$.error.message").value("X-Namespace is required"))
+                .andExpect(jsonPath("$.error.target").value("X-Namespace"))
+                .andExpect(jsonPath("$.error_code").doesNotExist());
     }
 
     @Test
@@ -122,7 +125,8 @@ class RelayControllerApiTest {
                                 }
                                 """))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error_code").value("40000"));
+                .andExpect(jsonPath("$.error.code").value("40000"))
+                .andExpect(jsonPath("$.error.target").value("requestBody"));
     }
 
     @Test
@@ -139,7 +143,8 @@ class RelayControllerApiTest {
                                 }
                                 """))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error_code").value("40000"));
+                .andExpect(jsonPath("$.error.code").value("40000"))
+                .andExpect(jsonPath("$.error.details[0].target").value("expiration"));
     }
 
     @Test
@@ -150,7 +155,7 @@ class RelayControllerApiTest {
         mockMvc.perform(get(BASE + "/tunnels/{tunnelId}", TUNNEL_ID)
                         .header("X-Namespace", NAMESPACE))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error_code").value("10002"));
+                .andExpect(jsonPath("$.error.code").value("10002"));
     }
 
     @Test
@@ -161,7 +166,10 @@ class RelayControllerApiTest {
         mockMvc.perform(get(BASE + "/tunnels/{tunnelId}", TUNNEL_ID)
                         .header("X-Namespace", NAMESPACE))
                 .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.error_code").value("50000"));
+                .andExpect(jsonPath("$.error.code").value("50000"))
+                .andExpect(jsonPath("$.error.message").value("internal error"))
+                .andExpect(jsonPath("$.error.target").doesNotExist())
+                .andExpect(jsonPath("$.error.innerError").doesNotExist());
     }
 
     @Test
@@ -182,11 +190,10 @@ class RelayControllerApiTest {
                         .header("X-Namespace", NAMESPACE)
                         .param("gridName", GRID_NAME))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.error_code").value("0000"))
-                .andExpect(jsonPath("$.data", hasSize(1)))
-                .andExpect(jsonPath("$.data[0].tunnelId").value(TUNNEL_ID))
-                .andExpect(jsonPath("$.data[0].gridName").value(GRID_NAME))
-                .andExpect(jsonPath("$.data[0].name").value("dev"));
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].tunnelId").value(TUNNEL_ID))
+                .andExpect(jsonPath("$[0].gridName").value(GRID_NAME))
+                .andExpect(jsonPath("$[0].name").value("dev"));
     }
 
     @Test
@@ -208,11 +215,10 @@ class RelayControllerApiTest {
         mockMvc.perform(get(BASE + "/tunnels/{tunnelId}", TUNNEL_ID)
                         .header("X-Namespace", NAMESPACE))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.error_code").value("0000"))
-                .andExpect(jsonPath("$.data.tunnelId").value(TUNNEL_ID))
-                .andExpect(jsonPath("$.data.gridName").value(GRID_NAME))
-                .andExpect(jsonPath("$.data.jwt.tokenType").value("TOKEN"))
-                .andExpect(jsonPath("$.data.jwt.expiresIn").value(86400));
+                .andExpect(jsonPath("$.tunnelId").value(TUNNEL_ID))
+                .andExpect(jsonPath("$.gridName").value(GRID_NAME))
+                .andExpect(jsonPath("$.jwt.tokenType").value("TOKEN"))
+                .andExpect(jsonPath("$.jwt.expiresIn").value(86400));
     }
 
     @Test
@@ -229,8 +235,7 @@ class RelayControllerApiTest {
                                 }
                                 """))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.error_code").value("0000"))
-                .andExpect(jsonPath("$.data").value(true));
+                .andExpect(jsonPath("$").value(true));
     }
 
     @Test
@@ -240,8 +245,7 @@ class RelayControllerApiTest {
         mockMvc.perform(delete(BASE + "/tunnels/{tunnelId}", TUNNEL_ID)
                         .header("X-Namespace", NAMESPACE))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.error_code").value("0000"))
-                .andExpect(jsonPath("$.data").value(true));
+                .andExpect(jsonPath("$").value(true));
     }
 
     @Test
@@ -251,8 +255,7 @@ class RelayControllerApiTest {
         mockMvc.perform(delete(BASE + "/tunnels")
                         .header("X-Namespace", NAMESPACE))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.error_code").value("0000"))
-                .andExpect(jsonPath("$.data").value(true));
+                .andExpect(jsonPath("$").value(true));
     }
 
     @Test
@@ -270,8 +273,7 @@ class RelayControllerApiTest {
                                 }
                                 """))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.error_code").value("0000"))
-                .andExpect(jsonPath("$.data.accepted").value(true));
+                .andExpect(jsonPath("$.accepted").value(true));
     }
 
     @Test
@@ -289,9 +291,8 @@ class RelayControllerApiTest {
                                 }
                                 """))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.error_code").value("0000"))
-                .andExpect(jsonPath("$.data.port").value(8080))
-                .andExpect(jsonPath("$.data.allowAnonymous").value(false));
+                .andExpect(jsonPath("$.port").value(8080))
+                .andExpect(jsonPath("$.allowAnonymous").value(false));
     }
 
     @Test
@@ -308,9 +309,8 @@ class RelayControllerApiTest {
         mockMvc.perform(get(BASE + "/tunnels/{tunnelId}/ports", TUNNEL_ID)
                         .header("X-Namespace", NAMESPACE))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.error_code").value("0000"))
-                .andExpect(jsonPath("$.data", hasSize(2)))
-                .andExpect(jsonPath("$.data[1].allowAnonymous").value(true));
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[1].allowAnonymous").value(true));
     }
 
     @Test
@@ -320,9 +320,8 @@ class RelayControllerApiTest {
         mockMvc.perform(get(BASE + "/tunnels/{tunnelId}/ports/{port}", TUNNEL_ID, 8080)
                         .header("X-Namespace", NAMESPACE))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.error_code").value("0000"))
-                .andExpect(jsonPath("$.data.tunnelId").value(TUNNEL_ID))
-                .andExpect(jsonPath("$.data.port").value(8080));
+                .andExpect(jsonPath("$.tunnelId").value(TUNNEL_ID))
+                .andExpect(jsonPath("$.port").value(8080));
     }
 
     @Test
@@ -339,8 +338,7 @@ class RelayControllerApiTest {
                                 }
                                 """))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.error_code").value("0000"))
-                .andExpect(jsonPath("$.data.allowAnonymous").value(true));
+                .andExpect(jsonPath("$.allowAnonymous").value(true));
     }
 
     @Test
@@ -350,8 +348,7 @@ class RelayControllerApiTest {
         mockMvc.perform(delete(BASE + "/tunnels/{tunnelId}/ports/{port}", TUNNEL_ID, 8080)
                         .header("X-Namespace", NAMESPACE))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.error_code").value("0000"))
-                .andExpect(jsonPath("$.data").value(true));
+                .andExpect(jsonPath("$").value(true));
     }
 
     @Test
@@ -361,8 +358,7 @@ class RelayControllerApiTest {
         mockMvc.perform(delete(BASE + "/tunnels/{tunnelId}/ports", TUNNEL_ID)
                         .header("X-Namespace", NAMESPACE))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.error_code").value("0000"))
-                .andExpect(jsonPath("$.data").value(true));
+                .andExpect(jsonPath("$").value(true));
     }
 
     @Test
@@ -378,9 +374,8 @@ class RelayControllerApiTest {
 
         mockMvc.perform(get(BASE + "/grids/{gridName}/tunnels/{tunnelId}/ports/{port}", GRID_NAME, TUNNEL_ID, 8080))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.error_code").value("0000"))
-                .andExpect(jsonPath("$.data.gridName").value(GRID_NAME))
-                .andExpect(jsonPath("$.data.allowAnonymous").value(false));
+                .andExpect(jsonPath("$.gridName").value(GRID_NAME))
+                .andExpect(jsonPath("$.allowAnonymous").value(false));
     }
 
     private CreateTunnelResponse createTunnelResponse() {

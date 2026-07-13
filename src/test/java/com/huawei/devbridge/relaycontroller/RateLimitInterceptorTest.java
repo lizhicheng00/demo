@@ -28,7 +28,7 @@ class RateLimitInterceptorTest {
 
         assertThat(interceptor.preHandle(request, limitedResponse, new Object())).isFalse();
         assertThat(limitedResponse.getStatus()).isEqualTo(429);
-        assertThat(limitedResponse.getContentAsString()).contains("\"error_code\":\"42900\"");
+        assertThat(limitedResponse.getContentAsString()).contains("\"code\":\"42900\"");
     }
 
     @Test

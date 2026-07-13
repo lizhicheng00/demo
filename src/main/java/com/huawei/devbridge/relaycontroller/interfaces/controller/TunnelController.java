@@ -1,7 +1,6 @@
 package com.huawei.devbridge.relaycontroller.interfaces.controller;
 
 import com.huawei.devbridge.relaycontroller.application.service.TunnelAppService;
-import com.huawei.devbridge.relaycontroller.common.model.Result;
 import com.huawei.devbridge.relaycontroller.generated.api.TunnelApi;
 import com.huawei.devbridge.relaycontroller.interfaces.request.CreateTunnelRequest;
 import com.huawei.devbridge.relaycontroller.interfaces.request.UpdateTunnelRequest;
@@ -18,32 +17,32 @@ public class TunnelController implements TunnelApi {
     private final TunnelAppService tunnelAppService;
 
     @Override
-    public Result<CreateTunnelResponse> createTunnel(String xNamespace, CreateTunnelRequest request) {
-        return Result.success(tunnelAppService.createTunnel(xNamespace, request));
+    public CreateTunnelResponse createTunnel(String xNamespace, CreateTunnelRequest request) {
+        return tunnelAppService.createTunnel(xNamespace, request);
     }
 
     @Override
-    public Result<Boolean> deleteTunnel(String xNamespace, String tunnelId) {
-        return Result.success(tunnelAppService.deleteTunnel(xNamespace, tunnelId));
+    public Boolean deleteTunnel(String xNamespace, String tunnelId) {
+        return tunnelAppService.deleteTunnel(xNamespace, tunnelId);
     }
 
     @Override
-    public Result<Boolean> deleteTunnels(String xNamespace) {
-        return Result.success(tunnelAppService.deleteTunnels(xNamespace));
+    public Boolean deleteTunnels(String xNamespace) {
+        return tunnelAppService.deleteTunnels(xNamespace);
     }
 
     @Override
-    public Result<TunnelDetailResponse> getTunnelDetail(String xNamespace, String tunnelId) {
-        return Result.success(tunnelAppService.getTunnelDetail(xNamespace, tunnelId));
+    public TunnelDetailResponse getTunnelDetail(String xNamespace, String tunnelId) {
+        return tunnelAppService.getTunnelDetail(xNamespace, tunnelId);
     }
 
     @Override
-    public Result<List<TunnelListItemResponse>> listTunnels(String xNamespace, String gridName) {
-        return Result.success(tunnelAppService.listTunnels(xNamespace, gridName));
+    public List<TunnelListItemResponse> listTunnels(String xNamespace, String gridName) {
+        return tunnelAppService.listTunnels(xNamespace, gridName);
     }
 
     @Override
-    public Result<Boolean> updateTunnel(String xNamespace, String tunnelId, UpdateTunnelRequest request) {
-        return Result.success(tunnelAppService.updateTunnel(xNamespace, tunnelId, request));
+    public Boolean updateTunnel(String xNamespace, String tunnelId, UpdateTunnelRequest request) {
+        return tunnelAppService.updateTunnel(xNamespace, tunnelId, request);
     }
 }

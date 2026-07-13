@@ -2,7 +2,7 @@ package com.huawei.devbridge.relaycontroller.interfaces.rate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.huawei.devbridge.relaycontroller.common.exception.ErrorCode;
-import com.huawei.devbridge.relaycontroller.common.model.Result;
+import com.huawei.devbridge.relaycontroller.common.model.ErrorResponse;
 import com.huawei.devbridge.relaycontroller.infrastructure.config.RelayProperties;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -63,7 +63,7 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
-        objectMapper.writeValue(response.getWriter(), Result.failure(ErrorCode.RATE_LIMITED));
+        objectMapper.writeValue(response.getWriter(), ErrorResponse.of(ErrorCode.RATE_LIMITED));
     }
 
     private static final class WindowCounter {

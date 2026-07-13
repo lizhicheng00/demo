@@ -30,7 +30,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CreateTunnelResult'
+                $ref: '#/components/schemas/CreateTunnelResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
     get:
       tags: [Tunnel]
       summary: List namespace tunnels
@@ -48,7 +50,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TunnelListResult'
+                type: array
+                items:
+                  $ref: '#/components/schemas/TunnelListItemResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
     delete:
       tags: [Tunnel]
       summary: Delete all namespace tunnels
@@ -61,7 +67,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BooleanResult'
+                type: boolean
+        default:
+          $ref: '#/components/responses/ErrorResponse'
   /open-api-inner/v1/relay-controller/tunnels/{tunnelId}:
     get:
       tags: [Tunnel]
@@ -76,7 +84,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TunnelDetailResult'
+                $ref: '#/components/schemas/TunnelDetailResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
     put:
       tags: [Tunnel]
       summary: Update tunnel
@@ -96,7 +106,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BooleanResult'
+                type: boolean
+        default:
+          $ref: '#/components/responses/ErrorResponse'
     delete:
       tags: [Tunnel]
       summary: Delete tunnel
@@ -110,7 +122,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BooleanResult'
+                type: boolean
+        default:
+          $ref: '#/components/responses/ErrorResponse'
   /open-api-inner/v1/relay-controller/grids/{gridName}/metering:
     post:
       tags: [Metering]
@@ -130,7 +144,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MeteringReportResult'
+                $ref: '#/components/schemas/MeteringReportResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
   /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports:
     post:
       tags: [Tunnel Port]
@@ -151,7 +167,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TunnelPortResult'
+                $ref: '#/components/schemas/TunnelPortResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
     get:
       tags: [Tunnel Port]
       summary: List tunnel port policies
@@ -165,7 +183,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TunnelPortListResult'
+                type: array
+                items:
+                  $ref: '#/components/schemas/TunnelPortResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
     delete:
       tags: [Tunnel Port]
       summary: Delete all tunnel port policies
@@ -179,7 +201,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BooleanResult'
+                type: boolean
+        default:
+          $ref: '#/components/responses/ErrorResponse'
   /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports/{port}:
     get:
       tags: [Tunnel Port]
@@ -195,7 +219,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TunnelPortResult'
+                $ref: '#/components/schemas/TunnelPortResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
     put:
       tags: [Tunnel Port]
       summary: Update tunnel port policy
@@ -216,7 +242,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TunnelPortResult'
+                $ref: '#/components/schemas/TunnelPortResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
     delete:
       tags: [Tunnel Port]
       summary: Delete tunnel port policy
@@ -231,7 +259,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BooleanResult'
+                type: boolean
+        default:
+          $ref: '#/components/responses/ErrorResponse'
   /open-api-inner/v1/relay-controller/grids/{gridName}/tunnels/{tunnelId}/ports/{port}:
     get:
       tags: [Gateway Tunnel Port]
@@ -247,8 +277,17 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GatewayTunnelPortPolicyResult'
+                $ref: '#/components/schemas/GatewayTunnelPortPolicyResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
 components:
+  responses:
+    ErrorResponse:
+      description: Request failed.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
   parameters:
     NamespaceHeader:
       name: X-Namespace
@@ -280,76 +319,42 @@ components:
         minimum: 1
         maximum: 65535
   schemas:
-    ResultBase:
+    ErrorResponse:
       type: object
-      required: [error_code, error_message]
+      required: [error]
       properties:
-        error_code:
+        error:
+          $ref: '#/components/schemas/Error'
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code:
           type: string
-          example: "0000"
-        error_message:
+          example: "10002"
+        message:
           type: string
-          example: success
-    BooleanResult:
-      allOf:
-        - $ref: '#/components/schemas/ResultBase'
-        - type: object
-          properties:
-            data:
-              type: boolean
-    CreateTunnelResult:
-      allOf:
-        - $ref: '#/components/schemas/ResultBase'
-        - type: object
-          properties:
-            data:
-              $ref: '#/components/schemas/Tunnel'
-    TunnelDetailResult:
-      allOf:
-        - $ref: '#/components/schemas/ResultBase'
-        - type: object
-          properties:
-            data:
-              $ref: '#/components/schemas/Tunnel'
-    TunnelListResult:
-      allOf:
-        - $ref: '#/components/schemas/ResultBase'
-        - type: object
-          properties:
-            data:
-              type: array
-              items:
-                $ref: '#/components/schemas/TunnelListItem'
-    MeteringReportResult:
-      allOf:
-        - $ref: '#/components/schemas/ResultBase'
-        - type: object
-          properties:
-            data:
-              $ref: '#/components/schemas/MeteringReportResponse'
-    TunnelPortResult:
-      allOf:
-        - $ref: '#/components/schemas/ResultBase'
-        - type: object
-          properties:
-            data:
-              $ref: '#/components/schemas/TunnelPortResponse'
-    TunnelPortListResult:
-      allOf:
-        - $ref: '#/components/schemas/ResultBase'
-        - type: object
-          properties:
-            data:
-              type: array
-              items:
-                $ref: '#/components/schemas/TunnelPortResponse'
-    GatewayTunnelPortPolicyResult:
-      allOf:
-        - $ref: '#/components/schemas/ResultBase'
-        - type: object
-          properties:
-            data:
-              $ref: '#/components/schemas/GatewayTunnelPortPolicyResponse'
+          example: tunnel not found
+        target:
+          type: string
+          example: tunnelId
+        details:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorDetail'
+    ErrorDetail:
+      type: object
+      required: [code, target, message]
+      properties:
+        code:
+          type: string
+          example: "40000"
+        target:
+          type: string
+          example: expiration
+        message:
+          type: string
+          example: must be less than or equal to 720
     CreateTunnelRequest:
       type: object
       required: [name, gridName]
@@ -426,6 +431,12 @@ components:
       properties:
         allowAnonymous:
           type: boolean
+    CreateTunnelResponse:
+      allOf:
+        - $ref: '#/components/schemas/Tunnel'
+    TunnelDetailResponse:
+      allOf:
+        - $ref: '#/components/schemas/Tunnel'
     Tunnel:
       type: object
       properties:
@@ -460,7 +471,7 @@ components:
           enum: [bridge, env]
         jwt:
           $ref: '#/components/schemas/JwtResponse'
-    TunnelListItem:
+    TunnelListItemResponse:
       type: object
       properties:
         tunnelId:

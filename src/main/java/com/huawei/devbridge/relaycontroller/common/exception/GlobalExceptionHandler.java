@@ -1,9 +1,10 @@
 package com.huawei.devbridge.relaycontroller.common.exception;
 
-import com.huawei.devbridge.relaycontroller.common.model.Result;
+import com.huawei.devbridge.relaycontroller.common.model.ErrorResponse;
+import com.huawei.devbridge.relaycontroller.common.model.ErrorResponse.ErrorDetail;
 import com.huawei.devbridge.relaycontroller.common.util.ExceptionUtils;
 import jakarta.validation.ConstraintViolationException;
-import java.util.stream.Collectors;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,55 +20,68 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(BizException.class)
-    public ResponseEntity<Result<Void>> handleBizException(BizException exception) {
+    public ResponseEntity<ErrorResponse> handleBizException(BizException exception) {
         log.warn("Business exception: code={}, message={}",
                 exception.getErrorCode().getCode(), exception.getMessage());
         return failure(statusOf(exception.getErrorCode()), exception.getErrorCode(), exception.getMessage());
     }
 
     @ExceptionHandler({MethodArgumentNotValidException.class, BindException.class})
-    public ResponseEntity<Result<Void>> handleBindException(BindException exception) {
-        String message = exception.getBindingResult().getFieldErrors().stream()
-                .map(error -> error.getField() + " " + error.getDefaultMessage())
-                .collect(Collectors.joining("; "));
-        log.warn("Request validation failed: {}", message);
-        return failure(HttpStatus.BAD_REQUEST, ErrorCode.PARAM_INVALID, message);
+    public ResponseEntity<ErrorResponse> handleBindException(BindException exception) {
+        List<ErrorDetail> details = exception.getBindingResult().getFieldErrors().stream()
+                .map(error -> new ErrorDetail(
+                        ErrorCode.PARAM_INVALID.getCode(), error.getField(), error.getDefaultMessage()))
+                .toList();
+        log.warn("Request validation failed: {} field(s)", details.size());
+        return ResponseEntity.badRequest().body(ErrorResponse.validation("request validation failed", details));
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<Result<Void>> handleConstraintViolation(ConstraintViolationException exception) {
+    public ResponseEntity<ErrorResponse> handleConstraintViolation(ConstraintViolationException exception) {
+        List<ErrorDetail> details = exception.getConstraintViolations().stream()
+                .map(violation -> new ErrorDetail(ErrorCode.PARAM_INVALID.getCode(),
+                        lastPathSegment(violation.getPropertyPath().toString()), violation.getMessage()))
+                .toList();
         log.warn("Request constraint violation: {}", ExceptionUtils.anonymousMessage(exception));
-        return failure(HttpStatus.BAD_REQUEST, ErrorCode.PARAM_INVALID, exception.getMessage());
+        return ResponseEntity.badRequest().body(ErrorResponse.validation("request validation failed", details));
     }
 
     @ExceptionHandler(MissingRequestHeaderException.class)
-    public ResponseEntity<Result<Void>> handleMissingRequestHeader(MissingRequestHeaderException exception) {
+    public ResponseEntity<ErrorResponse> handleMissingRequestHeader(MissingRequestHeaderException exception) {
         log.warn("Missing request header: {}", exception.getHeaderName());
         if ("X-Namespace".equalsIgnoreCase(exception.getHeaderName())) {
-            return failure(HttpStatus.UNAUTHORIZED, ErrorCode.UNAUTHORIZED, "X-Namespace is required");
+            return failure(HttpStatus.UNAUTHORIZED, ErrorCode.UNAUTHORIZED,
+                    "X-Namespace is required", exception.getHeaderName());
         }
-        return failure(HttpStatus.BAD_REQUEST, ErrorCode.PARAM_INVALID, exception.getMessage());
+        return failure(HttpStatus.BAD_REQUEST, ErrorCode.PARAM_INVALID,
+                "required request header is missing", exception.getHeaderName());
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<Result<Void>> handleMessageNotReadable(HttpMessageNotReadableException exception) {
-        String message = messageOf(exception);
+    public ResponseEntity<ErrorResponse> handleMessageNotReadable(HttpMessageNotReadableException exception) {
         log.warn("Request body not readable: {}", ExceptionUtils.anonymousMessage(exception));
-        return failure(HttpStatus.BAD_REQUEST, ErrorCode.PARAM_INVALID, message);
+        return failure(HttpStatus.BAD_REQUEST, ErrorCode.PARAM_INVALID,
+                "request body is invalid", "requestBody");
     }
 
     @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<Result<Void>> handleRuntimeException(RuntimeException exception) {
+    public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException exception) {
         log.error("Unhandled exception: {}", ExceptionUtils.anonymousMessage(exception));
         return failure(HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
     }
 
-    private static ResponseEntity<Result<Void>> failure(HttpStatus status, ErrorCode errorCode) {
-        return ResponseEntity.status(status).body(Result.failure(errorCode));
+    private static ResponseEntity<ErrorResponse> failure(HttpStatus status, ErrorCode errorCode) {
+        return ResponseEntity.status(status).body(ErrorResponse.of(errorCode));
     }
 
-    private static ResponseEntity<Result<Void>> failure(HttpStatus status, ErrorCode errorCode, String message) {
-        return ResponseEntity.status(status).body(Result.failure(errorCode, message));
+    private static ResponseEntity<ErrorResponse> failure(
+            HttpStatus status, ErrorCode errorCode, String message) {
+        return failure(status, errorCode, message, null);
+    }
+
+    private static ResponseEntity<ErrorResponse> failure(
+            HttpStatus status, ErrorCode errorCode, String message, String target) {
+        return ResponseEntity.status(status).body(ErrorResponse.of(errorCode, message, target));
     }
 
     private static HttpStatus statusOf(ErrorCode errorCode) {
@@ -80,21 +94,11 @@ public class GlobalExceptionHandler {
             case TUNNEL_ID_CONFLICT, TUNNEL_PORT_ALREADY_EXISTS -> HttpStatus.CONFLICT;
             case TUNNEL_QUOTA_EXCEEDED, RATE_LIMITED -> HttpStatus.TOO_MANY_REQUESTS;
             case JWT_GENERATE_FAILED, JWT_KEY_INVALID, INTERNAL_ERROR -> HttpStatus.INTERNAL_SERVER_ERROR;
-            case SUCCESS -> HttpStatus.OK;
         };
     }
 
-    private static String messageOf(Throwable exception) {
-        Throwable cause = rootCause(exception);
-        String message = cause.getMessage();
-        return message == null ? ErrorCode.PARAM_INVALID.getMessage() : message;
-    }
-
-    private static Throwable rootCause(Throwable exception) {
-        Throwable cause = exception;
-        while (cause.getCause() != null) {
-            cause = cause.getCause();
-        }
-        return cause;
+    private static String lastPathSegment(String path) {
+        int separator = path.lastIndexOf('.');
+        return separator < 0 ? path : path.substring(separator + 1);
     }
 }

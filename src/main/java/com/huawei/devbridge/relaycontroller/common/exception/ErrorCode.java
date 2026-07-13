@@ -4,8 +4,6 @@ import lombok.Getter;
 
 @Getter
 public enum ErrorCode {
-    SUCCESS("0000", "success"),
-
     PARAM_INVALID("40000", "parameter invalid"),
     UNAUTHORIZED("40100", "unauthorized"),
 
