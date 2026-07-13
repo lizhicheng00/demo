@@ -1,9 +1,11 @@
 package com.huawei.devbridge.relaycontroller.infrastructure.security;
 
+import com.huawei.clouds.wushan.scc.crypto.SccCrypto;
 import com.huawei.devbridge.relaycontroller.common.exception.BizException;
 import com.huawei.devbridge.relaycontroller.common.exception.ErrorCode;
 import com.huawei.devbridge.relaycontroller.infrastructure.config.RelayProperties;
 import jakarta.annotation.PostConstruct;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class JwtKeyProvider {
     private final RelayProperties relayProperties;
+    private final SccCrypto sccCrypto;
     private PrivateKey privateKey;
 
     @PostConstruct
@@ -26,7 +29,7 @@ public class JwtKeyProvider {
             initEphemeralKeyPair();
             return;
         }
-        this.privateKey = parsePrivateKey(configuredPrivateKey);
+        this.privateKey = parsePrivateKey(sccCrypto.decrypt(configuredPrivateKey));
     }
 
     public PrivateKey getPrivateKey() {
@@ -44,15 +47,29 @@ public class JwtKeyProvider {
         }
     }
 
-    private PrivateKey parsePrivateKey(String pem) {
+    private PrivateKey parsePrivateKey(String configuredValue) {
         try {
-            String content = pem.replace("-----BEGIN PRIVATE KEY-----", "")
-                    .replace("-----END PRIVATE KEY-----", "")
-                    .replaceAll("\\s", "");
-            byte[] bytes = Base64.getDecoder().decode(content);
-            return KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(bytes));
+            byte[] keyBytes = decodePkcs8(configuredValue);
+            return KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(keyBytes));
         } catch (Exception exception) {
             throw new BizException(ErrorCode.JWT_KEY_INVALID);
         }
+    }
+
+    private byte[] decodePkcs8(String configuredValue) {
+        String value = configuredValue.strip().replace("\\n", "\n");
+        if (value.startsWith("-----BEGIN PRIVATE KEY-----")) {
+            return decodePem(value);
+        }
+
+        byte[] decoded = Base64.getMimeDecoder().decode(value);
+        String decodedText = new String(decoded, StandardCharsets.US_ASCII).strip();
+        return decodedText.startsWith("-----BEGIN PRIVATE KEY-----") ? decodePem(decodedText) : decoded;
+    }
+
+    private byte[] decodePem(String pem) {
+        String content = pem.replace("-----BEGIN PRIVATE KEY-----", "")
+                .replace("-----END PRIVATE KEY-----", "");
+        return Base64.getMimeDecoder().decode(content);
     }
 }
