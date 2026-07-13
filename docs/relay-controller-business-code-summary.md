@@ -947,10 +947,9 @@ spring:
   profiles:
     active: dev
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/relay_controller...}
-    username: ${SPRING_DATASOURCE_USERNAME:root}
-    password: ${SPRING_DATASOURCE_PASSWORD:root}
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${DATASOURCE_URL}
+    username: ${DATASOURCE_USERNAME}
+    password: ${DATASOURCE_PASSWORD}
   flyway:
     enabled: true
     baseline-on-migrate: true
@@ -958,8 +957,9 @@ spring:
   data:
     redis:
       client-type: jedis
-      host: localhost
+      host: ${REDIS_HOST:localhost}
       port: 6379
+      password: ${REDIS_PASSWORD:123}
 
 relay:
   domain: myhuaweicloud.com
@@ -973,7 +973,7 @@ relay:
       ttl-seconds: 86400
 ```
 
-项目使用 MySQL 官方驱动 `com.mysql.cj.jdbc.Driver` 和 `mysql-connector-j`。使用 `jdbc:mysql://` URL 时不要通过环境变量或外部配置覆盖为 `org.mariadb.jdbc.Driver`；如果启动时报 MariaDB driver 加载失败，优先检查并删除 `SPRING_DATASOURCE_DRIVER_CLASS_NAME` 或外部配置中的 MariaDB driver。JDBC URL 的冒号也必须是英文半角 `:`。
+项目使用 `mysql-connector-j`，Spring Boot 根据 `DATASOURCE_URL` 自动识别驱动，不显式配置 driver class。
 
 ### 12.2 日志配置
 
