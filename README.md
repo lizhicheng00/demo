@@ -136,9 +136,9 @@ Relay Controller can require client certificates at the embedded Jetty layer. En
 ```bash
 export SPRING_PROFILES_ACTIVE=dev,mtls
 export SERVER_PORT=8443
-export SERVER_SSL_KEY_STORE_BASE64="$(base64 < mtls/server.p12 | tr -d '\n')"
+export SERVER_SSL_KEY_STORE_BASE64="$(base64 < /path/to/server.p12 | tr -d '\n')"
 export SERVER_SSL_KEY_STORE_PASSWORD='<secret>'
-export SERVER_SSL_TRUST_STORE_BASE64="$(base64 < mtls/server-truststore.p12 | tr -d '\n')"
+export SERVER_SSL_TRUST_STORE_BASE64="$(base64 < /path/to/server-truststore.p12 | tr -d '\n')"
 export SERVER_SSL_TRUST_STORE_PASSWORD='<secret>'
 export RELAY_JWT_PRIVATE_KEY='<private-key-pem>'
 mvn spring-boot:run
