@@ -317,4 +317,33 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <!-- Enabled only on machines where the local stand-in artifacts were installed. -->
+        <profile>
+            <id>local-company-library-stubs</id>
+            <activation>
+                <file>
+                    <exists>${user.home}/.m2/repository/local/devbridge/stubs/.enabled</exists>
+                </file>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>local.devbridge.stubs</groupId>
+                    <artifactId>scc-crypto-stub</artifactId>
+                    <version>1.0.0</version>
+                </dependency>
+                <dependency>
+                    <groupId>local.devbridge.stubs</groupId>
+                    <artifactId>us-secure-random-stub</artifactId>
+                    <version>1.0.0</version>
+                </dependency>
+                <dependency>
+                    <groupId>local.devbridge.stubs</groupId>
+                    <artifactId>cloudspace-commons-stub</artifactId>
+                    <version>1.0.0</version>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
 </project>
