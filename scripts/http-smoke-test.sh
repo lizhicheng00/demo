@@ -5,7 +5,7 @@ BASE_URL="${BASE_URL:-http://localhost:8080}"
 API_BASE="$BASE_URL/open-api-inner/v1/relay-controller"
 NAMESPACE="${NAMESPACE:-ns-user-001}"
 TUNNEL_ID="${TUNNEL_ID:-aaaadysa}"
-GRID_NAME="${GRID_NAME:-grid-a}"
+CLUSTER_ID="${CLUSTER_ID:-cluster-a}"
 
 request() {
   local name="$1"
@@ -31,18 +31,18 @@ request() {
   printf '%-36s %-4s %s\n' "$name" "$http_code" "$content"
 }
 
-request "01 create missing namespace" POST "$API_BASE/tunnels" "{\"name\":\"dev\",\"gridName\":\"$GRID_NAME\",\"type\":\"bridge\"}"
-request "02 create invalid type" POST "$API_BASE/tunnels" "{\"name\":\"dev\",\"gridName\":\"$GRID_NAME\",\"type\":\"default\"}" yes
-request "03 create bridge" POST "$API_BASE/tunnels" "{\"name\":\"dev\",\"gridName\":\"$GRID_NAME\",\"expiration\":24,\"type\":\"bridge\"}" yes
-request "04 list tunnels" GET "$API_BASE/tunnels?gridName=$GRID_NAME" "" yes
+request "01 create missing namespace" POST "$API_BASE/tunnels" "{\"name\":\"dev\",\"clusterId\":\"$CLUSTER_ID\",\"type\":\"bridge\"}"
+request "02 create invalid type" POST "$API_BASE/tunnels" "{\"name\":\"dev\",\"clusterId\":\"$CLUSTER_ID\",\"type\":\"default\"}" yes
+request "03 create bridge" POST "$API_BASE/tunnels" "{\"name\":\"dev\",\"clusterId\":\"$CLUSTER_ID\",\"expiration\":24,\"type\":\"bridge\"}" yes
+request "04 list tunnels" GET "$API_BASE/tunnels?clusterId=$CLUSTER_ID" "" yes
 request "05 tunnel detail" GET "$API_BASE/tunnels/$TUNNEL_ID" "" yes
 request "06 update tunnel env" PUT "$API_BASE/tunnels/$TUNNEL_ID" "{\"type\":\"env\"}" yes
-request "07 metering" POST "$API_BASE/grids/$GRID_NAME/metering" "{\"tunnelCode\":123456,\"tunnelId\":\"$TUNNEL_ID\",\"usage\":1024}"
+request "07 metering" POST "$API_BASE/clusters/$CLUSTER_ID/metering" "{\"tunnelCode\":123456,\"tunnelId\":\"$TUNNEL_ID\",\"usage\":1024}"
 request "08 create port" POST "$API_BASE/tunnels/$TUNNEL_ID/ports" "{\"port\":8080,\"allowAnonymous\":false}" yes
 request "09 list ports" GET "$API_BASE/tunnels/$TUNNEL_ID/ports" "" yes
 request "10 get port" GET "$API_BASE/tunnels/$TUNNEL_ID/ports/8080" "" yes
 request "11 update port" PUT "$API_BASE/tunnels/$TUNNEL_ID/ports/8080" "{\"allowAnonymous\":true}" yes
-request "12 gateway port policy" GET "$API_BASE/grids/$GRID_NAME/tunnels/$TUNNEL_ID/ports/8080"
+request "12 gateway port policy" GET "$API_BASE/clusters/$CLUSTER_ID/tunnels/$TUNNEL_ID/ports/8080"
 request "13 delete port" DELETE "$API_BASE/tunnels/$TUNNEL_ID/ports/8080" "" yes
 request "14 delete ports" DELETE "$API_BASE/tunnels/$TUNNEL_ID/ports" "" yes
 request "15 delete tunnel" DELETE "$API_BASE/tunnels/$TUNNEL_ID" "" yes

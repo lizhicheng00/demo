@@ -7,7 +7,7 @@ public enum ErrorCode {
     PARAM_INVALID("40000", "parameter invalid"),
     UNAUTHORIZED("40100", "unauthorized"),
 
-    GRID_NOT_FOUND("10001", "grid not found"),
+    CLUSTER_NOT_FOUND("10001", "cluster not found"),
     TUNNEL_NOT_FOUND("10002", "tunnel not found"),
     TUNNEL_ID_CONFLICT("10003", "tunnel id conflict"),
     TUNNEL_EXPIRED("10004", "tunnel expired"),

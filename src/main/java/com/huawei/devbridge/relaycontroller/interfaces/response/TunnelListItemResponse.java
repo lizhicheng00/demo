@@ -8,7 +8,7 @@ import lombok.Data;
 public class TunnelListItemResponse {
     private String tunnelId;
     private Long tunnelCode;
-    private String gridName;
+    private String clusterId;
     private String name;
     private String description;
     private Integer expiration;

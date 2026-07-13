@@ -16,7 +16,7 @@ public interface TunnelMapper extends BaseMapper<TunnelEntity> {
 
     List<TunnelEntity> selectActiveByNamespaceAndRegion(
             @Param("namespace") String namespace,
-            @Param("gridName") String gridName,
+            @Param("clusterId") String clusterId,
             @Param("region") String region,
             @Param("now") long now);
 

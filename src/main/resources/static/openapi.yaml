@@ -39,7 +39,7 @@ paths:
       operationId: listTunnels
       parameters:
         - $ref: '#/components/parameters/NamespaceHeader'
-        - name: gridName
+        - name: clusterId
           in: query
           required: false
           schema:
@@ -125,13 +125,13 @@ paths:
                 type: boolean
         default:
           $ref: '#/components/responses/ErrorResponse'
-  /open-api-inner/v1/relay-controller/grids/{gridName}/metering:
+  /open-api-inner/v1/relay-controller/clusters/{clusterId}/metering:
     post:
       tags: [Metering]
       summary: Report tunnel traffic usage
       operationId: reportMetering
       parameters:
-        - $ref: '#/components/parameters/GridNamePath'
+        - $ref: '#/components/parameters/ClusterIdPath'
       requestBody:
         required: true
         content:
@@ -262,13 +262,13 @@ paths:
                 type: boolean
         default:
           $ref: '#/components/responses/ErrorResponse'
-  /open-api-inner/v1/relay-controller/grids/{gridName}/tunnels/{tunnelId}/ports/{port}:
+  /open-api-inner/v1/relay-controller/clusters/{clusterId}/tunnels/{tunnelId}/ports/{port}:
     get:
       tags: [Gateway Tunnel Port]
       summary: Get gateway tunnel port policy
       operationId: getGatewayTunnelPortPolicy
       parameters:
-        - $ref: '#/components/parameters/GridNamePath'
+        - $ref: '#/components/parameters/ClusterIdPath'
         - $ref: '#/components/parameters/TunnelIdPath'
         - $ref: '#/components/parameters/PortPath'
       responses:
@@ -303,8 +303,8 @@ components:
         type: string
         pattern: '^[a-z2-7]{8}$'
         description: Lowercase base32 encoded 40-bit tunnel code.
-    GridNamePath:
-      name: gridName
+    ClusterIdPath:
+      name: clusterId
       in: path
       required: true
       schema:
@@ -357,7 +357,7 @@ components:
           example: must be less than or equal to 720
     CreateTunnelRequest:
       type: object
-      required: [name, gridName]
+      required: [name, clusterId]
       properties:
         name:
           type: string
@@ -365,11 +365,9 @@ components:
         description:
           type: string
           maxLength: 512
-        gridName:
+        clusterId:
           type: string
-          description: Grid name.
-        cluster:
-          type: string
+          description: Cluster identifier.
         expiration:
           type: integer
           format: int32
@@ -389,8 +387,6 @@ components:
         description:
           type: string
           maxLength: 512
-        cluster:
-          type: string
         expiration:
           type: integer
           format: int32
@@ -448,9 +444,7 @@ components:
         tunnelCode:
           type: integer
           format: int64
-        gridName:
-          type: string
-        cluster:
+        clusterId:
           type: string
         description:
           type: string
@@ -480,7 +474,7 @@ components:
         tunnelCode:
           type: integer
           format: int64
-        gridName:
+        clusterId:
           type: string
         name:
           type: string
@@ -502,12 +496,14 @@ components:
           type: boolean
     JwtResponse:
       type: object
+      required: [connect, host, expiresIn]
       properties:
-        tokenType:
+        connect:
           type: string
-          enum: [TOKEN]
-        token:
+          description: JWT with connect scope.
+        host:
           type: string
+          description: JWT with host scope.
         expiresIn:
           type: integer
           format: int64
@@ -534,7 +530,7 @@ components:
         tunnelCode:
           type: integer
           format: int64
-        gridName:
+        clusterId:
           type: string
         port:
           type: integer

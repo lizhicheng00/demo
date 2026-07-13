@@ -9,9 +9,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Grid {
+public class Cluster {
     private Long id;
-    private String grid;
+    private String clusterId;
     private String region;
     private Long createdAt;
     private Long updatedAt;

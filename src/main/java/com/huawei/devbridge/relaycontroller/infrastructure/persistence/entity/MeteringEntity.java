@@ -10,7 +10,7 @@ import lombok.Data;
 public class MeteringEntity {
     @TableId(value = "_id", type = IdType.AUTO)
     private Long id;
-    private String gridName;
+    private String clusterId;
     private Long tunnelCode;
     private String tunnelId;
     private Long usageBytes;

@@ -2,6 +2,7 @@ package com.huawei.devbridge.relaycontroller.infrastructure.security;
 
 import com.huawei.devbridge.relaycontroller.common.exception.BizException;
 import com.huawei.devbridge.relaycontroller.common.exception.ErrorCode;
+import com.huawei.devbridge.relaycontroller.domain.model.JwtScope;
 import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
 import com.huawei.devbridge.relaycontroller.infrastructure.config.RelayProperties;
 import com.nimbusds.jose.JOSEObjectType;
@@ -22,20 +23,17 @@ public class JwtSigner {
     private final RelayProperties relayProperties;
     private final JwtKeyProvider jwtKeyProvider;
 
-    public String signToken(Tunnel tunnel, String jti, long ttlSeconds) {
+    public String signToken(Tunnel tunnel, JwtScope scope, long ttlSeconds) {
         try {
             Instant now = Instant.now();
             Instant expiresAt = now.plusSeconds(ttlSeconds);
             JWTClaimsSet claims = new JWTClaimsSet.Builder()
-                    .jwtID(jti)
-                    .claim("typ", "TOKEN")
                     .issuer(relayProperties.getJwt().getIssuer())
-                    .issueTime(Date.from(now))
                     .expirationTime(Date.from(expiresAt))
-                    .claim("tunnelId", tunnel.getTunnelId())
-                    .claim("tunnelCode", tunnel.getTunnelCode())
-                    .claim("namespace", tunnel.getNamespace())
-                    .claim("gridName", tunnel.getGridName())
+                    .notBeforeTime(Date.from(now))
+                    .claim("tunnelid", tunnel.getTunnelId())
+                    .claim("clusterid", tunnel.getClusterId())
+                    .claim("scp", scope.value())
                     .build();
             return sign(claims);
         } catch (Exception exception) {

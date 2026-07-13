@@ -35,15 +35,15 @@ public class TunnelDomainService {
         }
     }
 
-    public void assertInGrid(Tunnel tunnel, String gridName, ErrorCode mismatchErrorCode) {
+    public void assertInCluster(Tunnel tunnel, String clusterId, ErrorCode mismatchErrorCode) {
         assertActive(tunnel);
-        if (!Objects.equals(gridName, tunnel.getGridName())) {
+        if (!Objects.equals(clusterId, tunnel.getClusterId())) {
             throw new BizException(mismatchErrorCode);
         }
     }
 
-    public void assertInGridAndNotExpired(Tunnel tunnel, String gridName, ErrorCode mismatchErrorCode) {
-        assertInGrid(tunnel, gridName, mismatchErrorCode);
+    public void assertInClusterAndNotExpired(Tunnel tunnel, String clusterId, ErrorCode mismatchErrorCode) {
+        assertInCluster(tunnel, clusterId, mismatchErrorCode);
         assertNotExpired(tunnel);
     }
 }

@@ -1,9 +1,11 @@
 package com.huawei.devbridge.relaycontroller.infrastructure.redis;
 
 import com.huawei.devbridge.relaycontroller.common.util.ExceptionUtils;
+import com.huawei.devbridge.relaycontroller.domain.model.JwtScope;
 import com.huawei.devbridge.relaycontroller.domain.model.JwtToken;
 import com.huawei.devbridge.relaycontroller.infrastructure.security.SccCrypto;
 import java.time.Duration;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,9 +23,9 @@ public class JwtTokenCache {
     private final SccCrypto sccCrypto;
 
     @Nullable
-    public JwtToken getToken(String tunnelId) {
+    public JwtToken getToken(String tunnelId, JwtScope scope) {
         try {
-            String key = TOKEN_KEY_PREFIX + tunnelId;
+            String key = tokenKey(tunnelId, scope);
             String token = stringRedisTemplate.opsForValue().get(key);
             if (token == null || token.isBlank()) {
                 return null;
@@ -38,21 +40,27 @@ public class JwtTokenCache {
         }
     }
 
-    public void setToken(String tunnelId, String token, long ttlSeconds) {
+    public void setToken(String tunnelId, JwtScope scope, String token, long ttlSeconds) {
         try {
-            stringRedisTemplate.opsForValue().set(TOKEN_KEY_PREFIX + tunnelId,
+            stringRedisTemplate.opsForValue().set(tokenKey(tunnelId, scope),
                     sccCrypto.encrypt(token), Duration.ofSeconds(ttlSeconds));
         } catch (RuntimeException exception) {
-            log.warn("Failed to get jwt token cache: tunnelId={}, error={}",
-                    tunnelId, ExceptionUtils.anonymousMessage(exception));        }
+            log.warn("Failed to set jwt token cache: tunnelId={}, scope={}, error={}",
+                    tunnelId, scope.value(), ExceptionUtils.anonymousMessage(exception));
+        }
     }
 
     public void deleteToken(String tunnelId) {
         try {
-            stringRedisTemplate.delete(TOKEN_KEY_PREFIX + tunnelId);
+            stringRedisTemplate.delete(List.of(
+                    tokenKey(tunnelId, JwtScope.CONNECT), tokenKey(tunnelId, JwtScope.HOST)));
         } catch (RuntimeException exception) {
             log.warn("Failed to delete jwt token cache: tunnelId={}, error={}",
                     tunnelId, ExceptionUtils.anonymousMessage(exception));
         }
+    }
+
+    private static String tokenKey(String tunnelId, JwtScope scope) {
+        return TOKEN_KEY_PREFIX + tunnelId + ":" + scope.value();
     }
 }

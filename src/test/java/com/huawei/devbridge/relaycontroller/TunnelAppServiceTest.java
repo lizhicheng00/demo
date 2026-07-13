@@ -9,16 +9,16 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.huawei.devbridge.relaycontroller.application.service.LocalGridService;
+import com.huawei.devbridge.relaycontroller.application.service.LocalClusterService;
 import com.huawei.devbridge.relaycontroller.common.exception.BizException;
 import com.huawei.devbridge.relaycontroller.common.exception.ErrorCode;
 import com.huawei.devbridge.relaycontroller.common.util.TimeUtils;
 import com.huawei.devbridge.relaycontroller.application.service.TunnelAppService;
-import com.huawei.devbridge.relaycontroller.domain.model.Grid;
-import com.huawei.devbridge.relaycontroller.domain.model.JwtToken;
+import com.huawei.devbridge.relaycontroller.domain.model.Cluster;
+import com.huawei.devbridge.relaycontroller.domain.model.JwtTokens;
 import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
 import com.huawei.devbridge.relaycontroller.domain.model.TunnelType;
-import com.huawei.devbridge.relaycontroller.domain.repository.GridRepository;
+import com.huawei.devbridge.relaycontroller.domain.repository.ClusterRepository;
 import com.huawei.devbridge.relaycontroller.domain.repository.TunnelPortRepository;
 import com.huawei.devbridge.relaycontroller.domain.repository.TunnelRepository;
 import com.huawei.devbridge.relaycontroller.domain.service.JwtTokenService;
@@ -47,7 +47,7 @@ class TunnelAppServiceTest {
     @Mock
     private TunnelRepository tunnelRepository;
     @Mock
-    private GridRepository gridRepository;
+    private ClusterRepository clusterRepository;
     @Mock
     private JwtTokenService jwtTokenService;
     @Mock
@@ -58,7 +58,7 @@ class TunnelAppServiceTest {
         RelayProperties properties = new RelayProperties();
         TunnelAppService service = new TunnelAppService(
                 tunnelRepository,
-                new LocalGridService(gridRepository, properties),
+                new LocalClusterService(clusterRepository, properties),
                 new NamespaceService(),
                 new FixedTunnelCodeGenerator(),
                 jwtTokenService,
@@ -67,41 +67,42 @@ class TunnelAppServiceTest {
                 properties);
         CreateTunnelRequest request = new CreateTunnelRequest();
         request.setName("dev");
-        request.setGridName("grid-a");
-        request.setCluster("cluster-a");
+        request.setClusterId("cluster-a");
         long before = TimeUtils.nowSeconds();
 
-        when(gridRepository.findByGridNameAndRegion("grid-a", "region-a"))
-                .thenReturn(Grid.builder().grid("grid-a").region("region-a").build());
+        when(clusterRepository.findByClusterIdAndRegion("cluster-a", "region-a"))
+                .thenReturn(Cluster.builder().clusterId("cluster-a").region("region-a").build());
         when(tunnelRepository.existsByTunnelCode(123456L)).thenReturn(false);
         when(tunnelRepository.existsByTunnelId("aaaadysa")).thenReturn(false);
         when(tunnelRepository.save(org.mockito.ArgumentMatchers.any(Tunnel.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(jwtTokenService.getOrCreateToken(any(Tunnel.class))).thenReturn(new JwtToken("jwt-token", 86400));
+        when(jwtTokenService.getOrCreateTokens(any(Tunnel.class)))
+                .thenReturn(new JwtTokens("connect-token", "host-token", 86400));
 
         CreateTunnelResponse response = service.createTunnel("ns-user-001", request);
         long after = TimeUtils.nowSeconds();
 
         assertThat(response.getTunnelId()).isEqualTo("aaaadysa");
         assertThat(response.getTunnelCode()).isEqualTo(123456L);
-        assertThat(response.getUrl()).isEqualTo("aaaadysa-grid-a-myhuaweicloud.com");
+        assertThat(response.getUrl()).isEqualTo("aaaadysa-cluster-a-myhuaweicloud.com");
         assertThat(response.getType()).isEqualTo("bridge");
-        assertThat(response.getJwt().getToken()).isEqualTo("jwt-token");
+        assertThat(response.getJwt().getConnect()).isEqualTo("connect-token");
+        assertThat(response.getJwt().getHost()).isEqualTo("host-token");
         assertThat(response.getJwt().getExpiresIn()).isEqualTo(86400);
         assertThat(response.getExpiration())
                 .isBetween(Math.toIntExact(before + 72 * 3600L), Math.toIntExact(after + 72 * 3600L));
     }
 
     @Test
-    void createTunnelRejectsGridOutsideLocalRegion() {
+    void createTunnelRejectsClusterOutsideLocalRegion() {
         TunnelAppService service = newService(new RelayProperties());
         CreateTunnelRequest request = new CreateTunnelRequest();
         request.setName("dev");
-        request.setGridName("grid-b");
+        request.setClusterId("cluster-b");
 
         assertThatThrownBy(() -> service.createTunnel("ns-user-001", request))
                 .isInstanceOf(BizException.class)
                 .extracting("errorCode")
-                .isEqualTo(ErrorCode.GRID_NOT_FOUND);
+                .isEqualTo(ErrorCode.CLUSTER_NOT_FOUND);
     }
 
     @Test
@@ -109,16 +110,17 @@ class TunnelAppServiceTest {
         TunnelAppService service = newService(new RelayProperties());
         CreateTunnelRequest request = new CreateTunnelRequest();
         request.setName("dev");
-        request.setGridName("grid-a");
+        request.setClusterId("cluster-a");
         request.setExpiration(2);
         long before = TimeUtils.nowSeconds();
 
-        when(gridRepository.findByGridNameAndRegion("grid-a", "region-a"))
-                .thenReturn(Grid.builder().grid("grid-a").region("region-a").build());
+        when(clusterRepository.findByClusterIdAndRegion("cluster-a", "region-a"))
+                .thenReturn(Cluster.builder().clusterId("cluster-a").region("region-a").build());
         when(tunnelRepository.existsByTunnelCode(123456L)).thenReturn(false);
         when(tunnelRepository.existsByTunnelId("aaaadysa")).thenReturn(false);
         when(tunnelRepository.save(org.mockito.ArgumentMatchers.any(Tunnel.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(jwtTokenService.getOrCreateToken(any(Tunnel.class))).thenReturn(new JwtToken("jwt-token", 7200));
+        when(jwtTokenService.getOrCreateTokens(any(Tunnel.class)))
+                .thenReturn(new JwtTokens("connect-token", "host-token", 7200));
 
         CreateTunnelResponse response = service.createTunnel("ns-user-001", request);
         long after = TimeUtils.nowSeconds();
@@ -132,11 +134,11 @@ class TunnelAppServiceTest {
         TunnelAppService service = newService(new RelayProperties());
         CreateTunnelRequest request = new CreateTunnelRequest();
         request.setName("dev");
-        request.setGridName("grid-a");
+        request.setClusterId("cluster-a");
         request.setExpiration(0);
 
-        when(gridRepository.findByGridNameAndRegion("grid-a", "region-a"))
-                .thenReturn(Grid.builder().grid("grid-a").region("region-a").build());
+        when(clusterRepository.findByClusterIdAndRegion("cluster-a", "region-a"))
+                .thenReturn(Cluster.builder().clusterId("cluster-a").region("region-a").build());
 
         assertThatThrownBy(() -> service.createTunnel("ns-user-001", request))
                 .isInstanceOf(BizException.class)
@@ -149,11 +151,11 @@ class TunnelAppServiceTest {
         TunnelAppService service = newService(new RelayProperties());
         CreateTunnelRequest request = new CreateTunnelRequest();
         request.setName("dev");
-        request.setGridName("grid-a");
+        request.setClusterId("cluster-a");
         request.setExpiration(721);
 
-        when(gridRepository.findByGridNameAndRegion("grid-a", "region-a"))
-                .thenReturn(Grid.builder().grid("grid-a").region("region-a").build());
+        when(clusterRepository.findByClusterIdAndRegion("cluster-a", "region-a"))
+                .thenReturn(Cluster.builder().clusterId("cluster-a").region("region-a").build());
 
         assertThatThrownBy(() -> service.createTunnel("ns-user-001", request))
                 .isInstanceOf(BizException.class)
@@ -166,10 +168,10 @@ class TunnelAppServiceTest {
         TunnelAppService service = newService(new RelayProperties());
         CreateTunnelRequest request = new CreateTunnelRequest();
         request.setName("dev");
-        request.setGridName("grid-a");
+        request.setClusterId("cluster-a");
 
-        when(gridRepository.findByGridNameAndRegion("grid-a", "region-a"))
-                .thenReturn(Grid.builder().grid("grid-a").region("region-a").build());
+        when(clusterRepository.findByClusterIdAndRegion("cluster-a", "region-a"))
+                .thenReturn(Cluster.builder().clusterId("cluster-a").region("region-a").build());
         when(tunnelRepository.countActiveByNamespaceAndRegion(eq("ns-user-001"), eq("region-a"), anyLong()))
                 .thenReturn(10L);
 
@@ -185,7 +187,7 @@ class TunnelAppServiceTest {
         RelayProperties properties = new RelayProperties();
         TunnelAppService service = new TunnelAppService(
                 tunnelRepository,
-                new LocalGridService(gridRepository, properties),
+                new LocalClusterService(clusterRepository, properties),
                 new NamespaceService(),
                 new SequenceTunnelCodeGenerator(),
                 jwtTokenService,
@@ -194,10 +196,10 @@ class TunnelAppServiceTest {
                 properties);
         CreateTunnelRequest request = new CreateTunnelRequest();
         request.setName("dev");
-        request.setGridName("grid-a");
+        request.setClusterId("cluster-a");
 
-        when(gridRepository.findByGridNameAndRegion("grid-a", "region-a"))
-                .thenReturn(Grid.builder().grid("grid-a").region("region-a").build());
+        when(clusterRepository.findByClusterIdAndRegion("cluster-a", "region-a"))
+                .thenReturn(Cluster.builder().clusterId("cluster-a").region("region-a").build());
         when(tunnelRepository.countActiveByNamespaceAndRegion(eq("ns-user-001"), eq("region-a"), anyLong()))
                 .thenAnswer(ignored -> {
                     long count = activeCount.get();
@@ -210,7 +212,8 @@ class TunnelAppServiceTest {
             activeCount.incrementAndGet();
             return invocation.getArgument(0);
         });
-        when(jwtTokenService.getOrCreateToken(any(Tunnel.class))).thenReturn(new JwtToken("jwt-token", 86400));
+        when(jwtTokenService.getOrCreateTokens(any(Tunnel.class)))
+                .thenReturn(new JwtTokens("connect-token", "host-token", 86400));
 
         ExecutorService executor = Executors.newFixedThreadPool(8);
         try {
@@ -237,7 +240,7 @@ class TunnelAppServiceTest {
         Tunnel tunnel = Tunnel.builder()
                 .tunnelId("aaaadysa")
                 .namespace("ns-user-001")
-                .gridName("grid-a")
+                .clusterId("cluster-a")
                 .deleted(0)
                 .expiration(Math.toIntExact(TimeUtils.nowSeconds() + 1800))
                 .build();
@@ -261,8 +264,8 @@ class TunnelAppServiceTest {
         Tunnel local = Tunnel.builder()
                 .name("local")
                 .namespace("ns-user-001")
-                .gridName("grid-a")
-                .url("local-grid-a-myhuaweicloud.com")
+                .clusterId("cluster-a")
+                .url("local-cluster-a-myhuaweicloud.com")
                 .deleted(0)
                 .build();
 
@@ -296,7 +299,7 @@ class TunnelAppServiceTest {
         Tunnel tunnel = Tunnel.builder()
                 .tunnelId("aaaadysa")
                 .namespace("ns-user-001")
-                .gridName("grid-a")
+                .clusterId("cluster-a")
                 .deleted(0)
                 .type(TunnelType.BRIDGE)
                 .build();
@@ -317,7 +320,7 @@ class TunnelAppServiceTest {
                 .tunnelId("aaaadysa")
                 .tunnelCode(123456L)
                 .namespace("ns-user-001")
-                .gridName("grid-a")
+                .clusterId("cluster-a")
                 .deleted(0)
                 .build();
 
@@ -338,7 +341,7 @@ class TunnelAppServiceTest {
                 .tunnelId("aaaadysa")
                 .tunnelCode(123456L)
                 .namespace("ns-user-001")
-                .gridName("grid-a")
+                .clusterId("cluster-a")
                 .deleted(0)
                 .build();
 
@@ -355,7 +358,7 @@ class TunnelAppServiceTest {
     private TunnelAppService newService(RelayProperties properties) {
         return new TunnelAppService(
                 tunnelRepository,
-                new LocalGridService(gridRepository, properties),
+                new LocalClusterService(clusterRepository, properties),
                 new NamespaceService(),
                 new FixedTunnelCodeGenerator(),
                 jwtTokenService,
@@ -364,9 +367,9 @@ class TunnelAppServiceTest {
                 properties);
     }
 
-    private void stubLocalGrid(String gridName) {
-        when(gridRepository.findByGridNameAndRegion(gridName, "region-a"))
-                .thenReturn(Grid.builder().grid(gridName).region("region-a").build());
+    private void stubLocalCluster(String clusterId) {
+        when(clusterRepository.findByClusterIdAndRegion(clusterId, "region-a"))
+                .thenReturn(Cluster.builder().clusterId(clusterId).region("region-a").build());
     }
 
     private static class FixedTunnelCodeGenerator extends TunnelCodeGenerator {

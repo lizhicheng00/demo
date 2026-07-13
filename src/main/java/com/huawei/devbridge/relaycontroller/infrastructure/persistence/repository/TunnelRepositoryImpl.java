@@ -29,8 +29,8 @@ public class TunnelRepositoryImpl implements TunnelRepository {
     }
 
     @Override
-    public List<Tunnel> findActiveByNamespaceAndRegion(String namespace, String gridName, String region, long now) {
-        return tunnelMapper.selectActiveByNamespaceAndRegion(namespace, gridName, region, now).stream()
+    public List<Tunnel> findActiveByNamespaceAndRegion(String namespace, String clusterId, String region, long now) {
+        return tunnelMapper.selectActiveByNamespaceAndRegion(namespace, clusterId, region, now).stream()
                 .map(converter::toDomain)
                 .toList();
     }

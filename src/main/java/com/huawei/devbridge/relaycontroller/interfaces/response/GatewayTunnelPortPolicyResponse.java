@@ -8,7 +8,7 @@ import lombok.Data;
 public class GatewayTunnelPortPolicyResponse {
     private String tunnelId;
     private Long tunnelCode;
-    private String gridName;
+    private String clusterId;
     private Long port;
     private Boolean allowAnonymous;
 }

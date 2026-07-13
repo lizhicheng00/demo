@@ -4,8 +4,8 @@ import com.huawei.devbridge.relaycontroller.application.assembler.TunnelAssemble
 import com.huawei.devbridge.relaycontroller.common.exception.BizException;
 import com.huawei.devbridge.relaycontroller.common.exception.ErrorCode;
 import com.huawei.devbridge.relaycontroller.common.util.TimeUtils;
-import com.huawei.devbridge.relaycontroller.domain.model.Grid;
-import com.huawei.devbridge.relaycontroller.domain.model.JwtToken;
+import com.huawei.devbridge.relaycontroller.domain.model.Cluster;
+import com.huawei.devbridge.relaycontroller.domain.model.JwtTokens;
 import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
 import com.huawei.devbridge.relaycontroller.domain.model.TunnelType;
 import com.huawei.devbridge.relaycontroller.domain.repository.TunnelPortRepository;
@@ -36,7 +36,7 @@ public class TunnelAppService {
     private static final int MAX_EXPIRATION_HOURS = 30 * 24;
     private static final int CREATE_LOCK_STRIPES = 64;
     private final TunnelRepository tunnelRepository;
-    private final LocalGridService localGridService;
+    private final LocalClusterService localClusterService;
     private final NamespaceService namespaceService;
     private final TunnelCodeGenerator tunnelCodeGenerator;
     private final JwtTokenService jwtTokenService;
@@ -55,7 +55,7 @@ public class TunnelAppService {
 
     private CreateTunnelResponse createTunnelLocked(String namespace, CreateTunnelRequest request) {
         TunnelType type = request.getType() == null ? TunnelType.BRIDGE : request.getType();
-        Grid grid = localGridService.requireLocalGrid(request.getGridName());
+        Cluster cluster = localClusterService.requireLocalCluster(request.getClusterId());
         long now = TimeUtils.nowSeconds();
         assertTunnelQuota(namespace, now);
         int expiration = resolveExpiration(request.getExpiration(), now);
@@ -64,24 +64,23 @@ public class TunnelAppService {
                 .name(request.getName())
                 .tunnelId(code.tunnelId())
                 .tunnelCode(code.tunnelCode())
-                .gridName(grid.getGrid())
+                .clusterId(cluster.getClusterId())
                 .expiration(expiration)
                 .namespace(namespace)
                 .description(request.getDescription())
-                .cluster(request.getCluster())
                 .bandwidthUsed(0L)
-                .url(buildTunnelUrl(code.tunnelId(), grid))
+                .url(buildTunnelUrl(code.tunnelId(), cluster))
                 .type(type)
                 .deleted(0)
                 .createdAt(now)
                 .updatedAt(now)
                 .build();
         tunnelRepository.save(tunnel);
-        log.info("Tunnel created: tunnelId={}, tunnelCode={}, namespace={}, gridName={}, type={}, expiration={}",
-                tunnel.getTunnelId(), tunnel.getTunnelCode(), tunnel.getNamespace(), tunnel.getGridName(),
+        log.info("Tunnel created: tunnelId={}, tunnelCode={}, namespace={}, clusterId={}, type={}, expiration={}",
+                tunnel.getTunnelId(), tunnel.getTunnelCode(), tunnel.getNamespace(), tunnel.getClusterId(),
                 tunnel.getType(), tunnel.getExpiration());
-        JwtToken jwtToken = jwtTokenService.getOrCreateToken(tunnel);
-        return TunnelAssembler.toCreateResponse(tunnel, jwtToken.token(), jwtToken.expiresIn());
+        JwtTokens jwtTokens = jwtTokenService.getOrCreateTokens(tunnel);
+        return TunnelAssembler.toCreateResponse(tunnel, jwtTokens);
     }
 
     private Object createLock(String namespace) {
@@ -95,12 +94,12 @@ public class TunnelAppService {
         return locks;
     }
 
-    public List<TunnelListItemResponse> listTunnels(String rawNamespace, String gridName) {
+    public List<TunnelListItemResponse> listTunnels(String rawNamespace, String clusterId) {
         String namespace = namespaceService.requireNamespace(rawNamespace);
         long now = TimeUtils.nowSeconds();
-        if (gridName != null && !gridName.isBlank()) {
-            localGridService.requireLocalGrid(gridName);
-            return tunnelRepository.findActiveByNamespaceAndRegion(namespace, gridName, relayProperties.getRegion(), now).stream()
+        if (clusterId != null && !clusterId.isBlank()) {
+            localClusterService.requireLocalCluster(clusterId);
+            return tunnelRepository.findActiveByNamespaceAndRegion(namespace, clusterId, relayProperties.getRegion(), now).stream()
                     .map(TunnelAssembler::toListItem)
                     .toList();
         }
@@ -112,8 +111,8 @@ public class TunnelAppService {
     public TunnelDetailResponse getTunnelDetail(String rawNamespace, String tunnelId) {
         Tunnel tunnel = findOwnedTunnel(rawNamespace, tunnelId);
         tunnelDomainService.assertNotExpired(tunnel);
-        JwtToken jwtToken = jwtTokenService.getOrCreateToken(tunnel);
-        return TunnelAssembler.toDetailResponse(tunnel, jwtToken.token(), jwtToken.expiresIn());
+        JwtTokens jwtTokens = jwtTokenService.getOrCreateTokens(tunnel);
+        return TunnelAssembler.toDetailResponse(tunnel, jwtTokens);
     }
 
     @Transactional
@@ -161,9 +160,6 @@ public class TunnelAppService {
         }
         if (request.getDescription() != null) {
             tunnel.setDescription(request.getDescription());
-        }
-        if (request.getCluster() != null) {
-            tunnel.setCluster(request.getCluster());
         }
         if (request.getExpiration() != null) {
             tunnel.setExpiration(resolveExpiration(request.getExpiration(), TimeUtils.nowSeconds()));
@@ -227,8 +223,8 @@ public class TunnelAppService {
         return Math.toIntExact(expiresAt);
     }
 
-    private String buildTunnelUrl(String tunnelId, Grid grid) {
-        return tunnelId + "-" + grid.getGrid() + "-" + relayProperties.getDomain();
+    private String buildTunnelUrl(String tunnelId, Cluster cluster) {
+        return tunnelId + "-" + cluster.getClusterId() + "-" + relayProperties.getDomain();
     }
 
     private record TunnelCode(long tunnelCode, String tunnelId) {

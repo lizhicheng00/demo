@@ -15,8 +15,7 @@ public class CreateTunnelRequest {
     @Size(max = 512)
     private String description;
     @NotBlank
-    private String gridName;
-    private String cluster;
+    private String clusterId;
     @Min(1)
     @Max(720)
     private Integer expiration;

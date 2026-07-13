@@ -20,23 +20,23 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Slf4j
 public class MeteringAppService {
-    private final LocalGridService localGridService;
+    private final LocalClusterService localClusterService;
     private final TunnelRepository tunnelRepository;
     private final MeteringRepository meteringRepository;
     private final TunnelDomainService tunnelDomainService;
     private final RelayProperties relayProperties;
 
     @Transactional
-    public MeteringReportResponse report(String gridName, MeteringReportRequest request) {
-        localGridService.requireLocalGrid(gridName);
+    public MeteringReportResponse report(String clusterId, MeteringReportRequest request) {
+        localClusterService.requireLocalCluster(clusterId);
         Tunnel tunnel = tunnelRepository.findByTunnelIdAndRegion(request.getTunnelId(), relayProperties.getRegion());
-        tunnelDomainService.assertInGridAndNotExpired(tunnel, gridName, ErrorCode.METERING_REPORT_FAILED);
+        tunnelDomainService.assertInClusterAndNotExpired(tunnel, clusterId, ErrorCode.METERING_REPORT_FAILED);
         if (!request.getTunnelCode().equals(tunnel.getTunnelCode())) {
             throw new BizException(ErrorCode.METERING_REPORT_FAILED, "metering tunnel mismatch");
         }
         long now = TimeUtils.nowSeconds();
         meteringRepository.save(Metering.builder()
-                .gridName(gridName)
+                .clusterId(clusterId)
                 .tunnelCode(request.getTunnelCode())
                 .tunnelId(request.getTunnelId())
                 .usageBytes(request.getUsage())
@@ -44,8 +44,8 @@ public class MeteringAppService {
                 .createdAt(now)
                 .build());
         tunnelRepository.increaseBandwidthUsed(request.getTunnelId(), relayProperties.getRegion(), request.getUsage(), now);
-        log.info("Metering accepted: tunnelId={}, tunnelCode={}, gridName={}, usageBytes={}",
-                request.getTunnelId(), request.getTunnelCode(), gridName, request.getUsage());
+        log.info("Metering accepted: tunnelId={}, tunnelCode={}, clusterId={}, usageBytes={}",
+                request.getTunnelId(), request.getTunnelCode(), clusterId, request.getUsage());
         return MeteringReportResponse.builder().accepted(true).build();
     }
 }

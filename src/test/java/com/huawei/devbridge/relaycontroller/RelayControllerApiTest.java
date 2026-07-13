@@ -47,7 +47,7 @@ class RelayControllerApiTest {
     private static final String BASE = "/open-api-inner/v1/relay-controller";
     private static final String NAMESPACE = "ns-user-001";
     private static final String TUNNEL_ID = "aaaadysa";
-    private static final String GRID_NAME = "grid-a";
+    private static final String CLUSTER_ID = "cluster-a";
 
     private MockMvc mockMvc;
 
@@ -79,16 +79,15 @@ class RelayControllerApiTest {
                         .content("""
                                 {
                                   "name": "dev",
-                                  "gridName": "grid-a",
-                                  "cluster": "cluster-a",
+                                  "clusterId": "cluster-a",
                                   "type": "bridge"
                                 }
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.tunnelId").value(TUNNEL_ID))
-                .andExpect(jsonPath("$.gridName").value(GRID_NAME))
-                .andExpect(jsonPath("$.jwt.tokenType").value("TOKEN"))
-                .andExpect(jsonPath("$.jwt.token").value("token-token"))
+                .andExpect(jsonPath("$.clusterId").value(CLUSTER_ID))
+                .andExpect(jsonPath("$.jwt.connect").value("connect-token"))
+                .andExpect(jsonPath("$.jwt.host").value("host-token"))
                 .andExpect(jsonPath("$.jwt.expiresIn").value(86400))
                 .andExpect(jsonPath("$.data").doesNotExist())
                 .andExpect(jsonPath("$.error_code").doesNotExist());
@@ -101,7 +100,7 @@ class RelayControllerApiTest {
                         .content("""
                                 {
                                   "name": "dev",
-                                  "gridName": "grid-a",
+                                  "clusterId": "cluster-a",
                                   "type": "bridge"
                                 }
                                 """))
@@ -120,7 +119,7 @@ class RelayControllerApiTest {
                         .content("""
                                 {
                                   "name": "dev",
-                                  "gridName": "grid-a",
+                                  "clusterId": "cluster-a",
                                   "type": "default"
                                 }
                                 """))
@@ -137,7 +136,7 @@ class RelayControllerApiTest {
                         .content("""
                                 {
                                   "name": "dev",
-                                  "gridName": "grid-a",
+                                  "clusterId": "cluster-a",
                                   "type": "bridge",
                                   "expiration": 721
                                 }
@@ -174,25 +173,25 @@ class RelayControllerApiTest {
 
     @Test
     void listTunnelsApi() throws Exception {
-        when(tunnelAppService.listTunnels(NAMESPACE, GRID_NAME)).thenReturn(List.of(
+        when(tunnelAppService.listTunnels(NAMESPACE, CLUSTER_ID)).thenReturn(List.of(
                 TunnelListItemResponse.builder()
                         .tunnelId(TUNNEL_ID)
                         .tunnelCode(123456L)
-                        .gridName(GRID_NAME)
+                        .clusterId(CLUSTER_ID)
                         .name("dev")
                         .description("dev tunnel")
                         .expiration(1720086400)
                         .created(1720000000L)
-                        .url("aaaadysa-grid-a-myhuaweicloud.com")
+                        .url("aaaadysa-cluster-a-myhuaweicloud.com")
                         .build()));
 
         mockMvc.perform(get(BASE + "/tunnels")
                         .header("X-Namespace", NAMESPACE)
-                        .param("gridName", GRID_NAME))
+                        .param("clusterId", CLUSTER_ID))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].tunnelId").value(TUNNEL_ID))
-                .andExpect(jsonPath("$[0].gridName").value(GRID_NAME))
+                .andExpect(jsonPath("$[0].clusterId").value(CLUSTER_ID))
                 .andExpect(jsonPath("$[0].name").value("dev"));
     }
 
@@ -202,12 +201,12 @@ class RelayControllerApiTest {
                 .name("dev")
                 .tunnelId(TUNNEL_ID)
                 .tunnelCode(123456L)
-                .gridName(GRID_NAME)
-                .url("aaaadysa-grid-a-myhuaweicloud.com")
+                .clusterId(CLUSTER_ID)
+                .url("aaaadysa-cluster-a-myhuaweicloud.com")
                 .type("bridge")
                 .jwt(JwtResponse.builder()
-                        .tokenType("TOKEN")
-                        .token("token-token")
+                        .connect("connect-token")
+                        .host("host-token")
                         .expiresIn(86400L)
                         .build())
                 .build());
@@ -216,8 +215,9 @@ class RelayControllerApiTest {
                         .header("X-Namespace", NAMESPACE))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.tunnelId").value(TUNNEL_ID))
-                .andExpect(jsonPath("$.gridName").value(GRID_NAME))
-                .andExpect(jsonPath("$.jwt.tokenType").value("TOKEN"))
+                .andExpect(jsonPath("$.clusterId").value(CLUSTER_ID))
+                .andExpect(jsonPath("$.jwt.connect").value("connect-token"))
+                .andExpect(jsonPath("$.jwt.host").value("host-token"))
                 .andExpect(jsonPath("$.jwt.expiresIn").value(86400));
     }
 
@@ -260,10 +260,10 @@ class RelayControllerApiTest {
 
     @Test
     void reportMeteringApi() throws Exception {
-        when(meteringAppService.report(eq(GRID_NAME), any(MeteringReportRequest.class)))
+        when(meteringAppService.report(eq(CLUSTER_ID), any(MeteringReportRequest.class)))
                 .thenReturn(MeteringReportResponse.builder().accepted(true).build());
 
-        mockMvc.perform(post(BASE + "/grids/{gridName}/metering", GRID_NAME)
+        mockMvc.perform(post(BASE + "/clusters/{clusterId}/metering", CLUSTER_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -363,18 +363,18 @@ class RelayControllerApiTest {
 
     @Test
     void getGatewayTunnelPortPolicyApi() throws Exception {
-        when(tunnelPortAppService.getGatewayPortPolicy(GRID_NAME, TUNNEL_ID, 8080L))
+        when(tunnelPortAppService.getGatewayPortPolicy(CLUSTER_ID, TUNNEL_ID, 8080L))
                 .thenReturn(GatewayTunnelPortPolicyResponse.builder()
                         .tunnelId(TUNNEL_ID)
                         .tunnelCode(123456L)
-                        .gridName(GRID_NAME)
+                        .clusterId(CLUSTER_ID)
                         .port(8080L)
                         .allowAnonymous(false)
                         .build());
 
-        mockMvc.perform(get(BASE + "/grids/{gridName}/tunnels/{tunnelId}/ports/{port}", GRID_NAME, TUNNEL_ID, 8080))
+        mockMvc.perform(get(BASE + "/clusters/{clusterId}/tunnels/{tunnelId}/ports/{port}", CLUSTER_ID, TUNNEL_ID, 8080))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.gridName").value(GRID_NAME))
+                .andExpect(jsonPath("$.clusterId").value(CLUSTER_ID))
                 .andExpect(jsonPath("$.allowAnonymous").value(false));
     }
 
@@ -383,16 +383,15 @@ class RelayControllerApiTest {
                 .name("dev")
                 .tunnelId(TUNNEL_ID)
                 .tunnelCode(123456L)
-                .gridName(GRID_NAME)
-                .cluster("cluster-a")
+                .clusterId(CLUSTER_ID)
                 .bandwidthUsed(0L)
                 .expiration(1720086400)
                 .created(1720000000L)
-                .url("aaaadysa-grid-a-myhuaweicloud.com")
+                .url("aaaadysa-cluster-a-myhuaweicloud.com")
                 .type("bridge")
                 .jwt(JwtResponse.builder()
-                        .tokenType("TOKEN")
-                        .token("token-token")
+                        .connect("connect-token")
+                        .host("host-token")
                         .expiresIn(86400L)
                         .build())
                 .build();

@@ -5,13 +5,13 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.huawei.devbridge.relaycontroller.application.service.LocalGridService;
+import com.huawei.devbridge.relaycontroller.application.service.LocalClusterService;
 import com.huawei.devbridge.relaycontroller.application.service.MeteringAppService;
 import com.huawei.devbridge.relaycontroller.common.exception.BizException;
 import com.huawei.devbridge.relaycontroller.common.exception.ErrorCode;
-import com.huawei.devbridge.relaycontroller.domain.model.Grid;
+import com.huawei.devbridge.relaycontroller.domain.model.Cluster;
 import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
-import com.huawei.devbridge.relaycontroller.domain.repository.GridRepository;
+import com.huawei.devbridge.relaycontroller.domain.repository.ClusterRepository;
 import com.huawei.devbridge.relaycontroller.domain.repository.MeteringRepository;
 import com.huawei.devbridge.relaycontroller.domain.repository.TunnelRepository;
 import com.huawei.devbridge.relaycontroller.domain.service.TunnelDomainService;
@@ -27,7 +27,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class MeteringAppServiceTest {
     @Mock
-    private GridRepository gridRepository;
+    private ClusterRepository clusterRepository;
     @Mock
     private TunnelRepository tunnelRepository;
     @Mock
@@ -41,16 +41,16 @@ class MeteringAppServiceTest {
         request.setTunnelCode(123456L);
         request.setUsage(1024L);
 
-        when(gridRepository.findByGridNameAndRegion("grid-a", "region-a"))
-                .thenReturn(Grid.builder().grid("grid-a").region("region-a").build());
+        when(clusterRepository.findByClusterIdAndRegion("cluster-a", "region-a"))
+                .thenReturn(Cluster.builder().clusterId("cluster-a").region("region-a").build());
         when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(Tunnel.builder()
                 .tunnelId("aaaadysa")
                 .tunnelCode(123456L)
-                .gridName("grid-a")
+                .clusterId("cluster-a")
                 .deleted(0)
                 .build());
 
-        MeteringReportResponse response = service.report("grid-a", request);
+        MeteringReportResponse response = service.report("cluster-a", request);
 
         assertThat(response.getAccepted()).isTrue();
         verify(meteringRepository).save(ArgumentMatchers.argThat(metering -> metering.getUsageBytes().equals(1024L)));
@@ -59,23 +59,23 @@ class MeteringAppServiceTest {
     }
 
     @Test
-    void reportRejectsGridOutsideLocalRegion() {
+    void reportRejectsClusterOutsideLocalRegion() {
         MeteringAppService service = newService();
         MeteringReportRequest request = new MeteringReportRequest();
         request.setTunnelId("aaaadysa");
         request.setTunnelCode(123456L);
         request.setUsage(1024L);
 
-        assertThatThrownBy(() -> service.report("grid-b", request))
+        assertThatThrownBy(() -> service.report("cluster-b", request))
                 .isInstanceOf(BizException.class)
                 .extracting("errorCode")
-                .isEqualTo(ErrorCode.GRID_NOT_FOUND);
+                .isEqualTo(ErrorCode.CLUSTER_NOT_FOUND);
     }
 
     private MeteringAppService newService() {
         RelayProperties properties = new RelayProperties();
         return new MeteringAppService(
-                new LocalGridService(gridRepository, properties),
+                new LocalClusterService(clusterRepository, properties),
                 tunnelRepository,
                 meteringRepository,
                 new TunnelDomainService(),

@@ -6,6 +6,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.huawei.devbridge.relaycontroller.domain.model.JwtScope;
 import com.huawei.devbridge.relaycontroller.domain.model.JwtToken;
 import com.huawei.devbridge.relaycontroller.infrastructure.redis.JwtTokenCache;
 import com.huawei.devbridge.relaycontroller.infrastructure.security.SccCrypto;
@@ -27,16 +28,16 @@ class JwtTokenCacheTest {
         SccCrypto crypto = new SccCrypto();
         JwtTokenCache cache = new JwtTokenCache(redisTemplate, crypto);
 
-        cache.setToken("aaaadysa", "jwt-token", 60);
+        cache.setToken("aaaadysa", JwtScope.CONNECT, "jwt-token", 60);
 
         ArgumentCaptor<String> valueCaptor = ArgumentCaptor.forClass(String.class);
-        verify(valueOperations).set(eq("jwt:token:aaaadysa"), valueCaptor.capture(), eq(Duration.ofSeconds(60)));
+        verify(valueOperations).set(eq("jwt:token:aaaadysa:connect"), valueCaptor.capture(), eq(Duration.ofSeconds(60)));
         assertThat(valueCaptor.getValue()).isEqualTo("jwt-token");
 
-        when(valueOperations.get("jwt:token:aaaadysa")).thenReturn("{scc}jwt-token");
-        when(redisTemplate.getExpire("jwt:token:aaaadysa", TimeUnit.SECONDS)).thenReturn(60L);
+        when(valueOperations.get("jwt:token:aaaadysa:connect")).thenReturn("{scc}jwt-token");
+        when(redisTemplate.getExpire("jwt:token:aaaadysa:connect", TimeUnit.SECONDS)).thenReturn(60L);
 
-        JwtToken token = cache.getToken("aaaadysa");
+        JwtToken token = cache.getToken("aaaadysa", JwtScope.CONNECT);
 
         assertThat(token.token()).isEqualTo("jwt-token");
         assertThat(token.expiresIn()).isEqualTo(60);

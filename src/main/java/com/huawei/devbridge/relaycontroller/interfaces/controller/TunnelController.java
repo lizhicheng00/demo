@@ -37,8 +37,8 @@ public class TunnelController implements TunnelApi {
     }
 
     @Override
-    public List<TunnelListItemResponse> listTunnels(String xNamespace, String gridName) {
-        return tunnelAppService.listTunnels(xNamespace, gridName);
+    public List<TunnelListItemResponse> listTunnels(String xNamespace, String clusterId) {
+        return tunnelAppService.listTunnels(xNamespace, clusterId);
     }
 
     @Override

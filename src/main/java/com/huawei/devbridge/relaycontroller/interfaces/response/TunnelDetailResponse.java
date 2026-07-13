@@ -9,8 +9,7 @@ public class TunnelDetailResponse {
     private String name;
     private String tunnelId;
     private Long tunnelCode;
-    private String gridName;
-    private String cluster;
+    private String clusterId;
     private String description;
     private Long bandwidthUsed;
     private Integer expiration;

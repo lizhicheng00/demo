@@ -6,11 +6,11 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
 @Data
-@TableName("grid")
-public class GridEntity {
+@TableName("cluster")
+public class ClusterEntity {
     @TableId(value = "_id", type = IdType.AUTO)
     private Long id;
-    private String grid;
+    private String clusterId;
     private String region;
     private Long createdAt;
     private Long updatedAt;

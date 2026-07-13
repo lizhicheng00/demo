@@ -27,7 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class TunnelPortAppService {
     private final TunnelRepository tunnelRepository;
     private final TunnelPortRepository tunnelPortRepository;
-    private final LocalGridService localGridService;
+    private final LocalClusterService localClusterService;
     private final NamespaceService namespaceService;
     private final TunnelDomainService tunnelDomainService;
     private final TunnelPortDomainService tunnelPortDomainService;
@@ -95,10 +95,10 @@ public class TunnelPortAppService {
         return true;
     }
 
-    public GatewayTunnelPortPolicyResponse getGatewayPortPolicy(String gridName, String tunnelId, Long port) {
-        localGridService.requireLocalGrid(gridName);
+    public GatewayTunnelPortPolicyResponse getGatewayPortPolicy(String clusterId, String tunnelId, Long port) {
+        localClusterService.requireLocalCluster(clusterId);
         Tunnel tunnel = tunnelRepository.findByTunnelIdAndRegion(tunnelId, relayProperties.getRegion());
-        tunnelDomainService.assertInGridAndNotExpired(tunnel, gridName, ErrorCode.TUNNEL_PORT_ACCESS_DENIED);
+        tunnelDomainService.assertInClusterAndNotExpired(tunnel, clusterId, ErrorCode.TUNNEL_PORT_ACCESS_DENIED);
         TunnelPort tunnelPort = findTunnelPort(tunnel.getTunnelCode(), port);
         return TunnelPortAssembler.toGatewayPolicy(tunnel, tunnelPort);
     }

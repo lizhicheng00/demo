@@ -2,9 +2,10 @@ package com.huawei.devbridge.relaycontroller.infrastructure.security;
 
 import com.huawei.devbridge.relaycontroller.common.exception.BizException;
 import com.huawei.devbridge.relaycontroller.common.exception.ErrorCode;
-import com.huawei.devbridge.relaycontroller.common.util.IdUtils;
 import com.huawei.devbridge.relaycontroller.common.util.TimeUtils;
+import com.huawei.devbridge.relaycontroller.domain.model.JwtScope;
 import com.huawei.devbridge.relaycontroller.domain.model.JwtToken;
+import com.huawei.devbridge.relaycontroller.domain.model.JwtTokens;
 import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
 import com.huawei.devbridge.relaycontroller.domain.service.JwtTokenService;
 import com.huawei.devbridge.relaycontroller.infrastructure.config.RelayProperties;
@@ -20,20 +21,22 @@ public class JwtTokenServiceImpl implements JwtTokenService {
     private final RelayProperties relayProperties;
 
     @Override
-    public JwtToken getOrCreateToken(Tunnel tunnel) {
+    public JwtTokens getOrCreateTokens(Tunnel tunnel) {
         long ttlSeconds = resolveTokenTtlSeconds(tunnel);
-        JwtToken cached = jwtTokenCache.getToken(tunnel.getTunnelId());
-        if (cached != null && cached.expiresIn() <= ttlSeconds) {
-            return cached;
+        JwtToken connect = jwtTokenCache.getToken(tunnel.getTunnelId(), JwtScope.CONNECT);
+        JwtToken host = jwtTokenCache.getToken(tunnel.getTunnelId(), JwtScope.HOST);
+        if (isUsable(connect, ttlSeconds) && isUsable(host, ttlSeconds)) {
+            return new JwtTokens(connect.token(), host.token(), Math.min(connect.expiresIn(), host.expiresIn()));
         }
-        String token = createToken(tunnel, ttlSeconds);
-        jwtTokenCache.setToken(tunnel.getTunnelId(), token, ttlSeconds);
-        return new JwtToken(token, ttlSeconds);
+        String connectToken = jwtSigner.signToken(tunnel, JwtScope.CONNECT, ttlSeconds);
+        String hostToken = jwtSigner.signToken(tunnel, JwtScope.HOST, ttlSeconds);
+        jwtTokenCache.setToken(tunnel.getTunnelId(), JwtScope.CONNECT, connectToken, ttlSeconds);
+        jwtTokenCache.setToken(tunnel.getTunnelId(), JwtScope.HOST, hostToken, ttlSeconds);
+        return new JwtTokens(connectToken, hostToken, ttlSeconds);
     }
 
-    private String createToken(Tunnel tunnel, long ttlSeconds) {
-        return jwtSigner.signToken(tunnel, "token:" + tunnel.getTunnelId() + ":" + IdUtils.uuid(),
-                ttlSeconds);
+    private static boolean isUsable(JwtToken token, long ttlSeconds) {
+        return token != null && token.expiresIn() <= ttlSeconds;
     }
 
     @Override

@@ -23,13 +23,13 @@ User story and implementation design: [docs/relay-controller-user-story.md](docs
 
 ```text
 POST   /open-api-inner/v1/relay-controller/tunnels
-GET    /open-api-inner/v1/relay-controller/tunnels?gridName=
+GET    /open-api-inner/v1/relay-controller/tunnels?clusterId=
 DELETE /open-api-inner/v1/relay-controller/tunnels
 GET    /open-api-inner/v1/relay-controller/tunnels/{tunnelId}
 PUT    /open-api-inner/v1/relay-controller/tunnels/{tunnelId}
 DELETE /open-api-inner/v1/relay-controller/tunnels/{tunnelId}
 
-POST   /open-api-inner/v1/relay-controller/grids/{gridName}/metering
+POST   /open-api-inner/v1/relay-controller/clusters/{clusterId}/metering
 
 POST   /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports
 GET    /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports
@@ -37,23 +37,23 @@ DELETE /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports
 GET    /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports/{port}
 PUT    /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports/{port}
 DELETE /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports/{port}
-GET    /open-api-inner/v1/relay-controller/grids/{gridName}/tunnels/{tunnelId}/ports/{port}
+GET    /open-api-inner/v1/relay-controller/clusters/{clusterId}/tunnels/{tunnelId}/ports/{port}
 ```
 
 Namespace-scoped APIs read `X-Namespace` directly and store it as the tunnel namespace.
-Each Relay Controller instance owns one configured region. Configure `relay.region`; tunnel, port, and metering operations only accept grids found under that local region.
+Each Relay Controller instance owns one configured region. Configure `relay.region`; tunnel, port, and metering operations only accept clusters found under that local region.
 Tunnel `type` is restricted to `bridge` or `env`; blank create requests default to `bridge`.
 Tunnel `expiration` in create and update requests is a duration in hours. Blank create requests default to 72 hours. Responses still return expiration as Unix seconds.
 Tunnel `tunnelCode` is a 40-bit `long`; `tunnelId` is the fixed 8-character lowercase base32 encoding of that 40-bit value.
-Tunnel URL format is `{tunnelId}-{gridName}-{relay.domain}`.
+Tunnel URL format is `{tunnelId}-{clusterId}-{relay.domain}`.
 Deleted tunnels are soft-deleted to preserve historical identifiers and metering references. List APIs return only active, non-expired tunnels. Detail, update, port, and metering operations reject expired tunnels; delete APIs can still delete expired tunnels.
 Each namespace can own up to 10 active tunnels by default. Deleted and expired tunnels do not count against this quota. Configure `relay.tunnel.max-per-namespace` to change the limit.
-Tunnel list responses expose stable metadata only: `tunnelId`, `tunnelCode`, `gridName`, `description`, `expiration`, `created`, and `url`. Runtime counters such as host/client connections or current upload/download rate require Gateway reporting and are intentionally not modeled here yet. Port policies remain available through the tunnel port APIs instead of being embedded into every list response.
+Tunnel list responses expose stable metadata only: `tunnelId`, `tunnelCode`, `clusterId`, `description`, `expiration`, `created`, and `url`. Runtime counters such as host/client connections or current upload/download rate require Gateway reporting and are intentionally not modeled here yet. Port policies remain available through the tunnel port APIs instead of being embedded into every list response.
 
-Tunnel detail returns a `jwt` object so callers can get tunnel metadata and connection credentials in one request. Tokens are cached at `jwt:token:{tunnelId}` and expire at the earlier of `relay.jwt.token.ttl-seconds` or the tunnel expiration. `jwt.expiresIn` is the remaining lifetime of the returned token.
+Tunnel create and detail return `jwt.connect` and `jwt.host`. Both tokens expire at the earlier of `relay.jwt.token.ttl-seconds` or the tunnel expiration and are cached separately at `jwt:token:{tunnelId}:{scope}`. Their claims are limited to `iss`, `exp`, `nbf`, `tunnelid`, `clusterid`, and `scp`.
 
 Tunnel port APIs manage the explicit per-port allow list for a tunnel. Unconfigured ports are denied by default. `allowAnonymous` only controls sending-side access to that port; listening-side gateway connection still requires token authentication.
-The gateway port policy API keeps `gridName` in the path intentionally. Gateway callers use it as their grid scope, and Relay Controller verifies the tunnel belongs to that grid before returning the port policy.
+The gateway port policy API keeps `clusterId` in the path intentionally. Gateway callers use it as their cluster scope, and Relay Controller verifies the tunnel belongs to that cluster before returning the port policy.
 
 Business APIs under `/open-api-inner/v1/relay-controller/**` have an in-memory fixed-window rate limit. The key is `X-Namespace` when present, otherwise client IP. The default is 120 requests per minute and can be adjusted with `relay.rate-limit.requests-per-minute` or disabled with `relay.rate-limit.enabled=false`.
 
@@ -74,9 +74,9 @@ DEFAULT CHARACTER SET utf8mb4
 COLLATE utf8mb4_0900_ai_ci;
 ```
 
-Flyway runs on application startup and applies migrations from `src/main/resources/db/migration`. The initial migration creates `grid`, `tunnel`, `metering`, `tunnel_port`, and seeds `grid-a`.
+Flyway runs on application startup and applies migrations from `src/main/resources/db/migration`. The initial migration creates `cluster`, `tunnel`, `metering`, `tunnel_port`, and seeds `cluster-a`.
 
-Database columns use snake_case for compound words, for example `tunnel_id`, `tunnel_code`, `grid_name`, `bandwidth_used`, and `allow_anonymous`. Java fields remain camelCase and rely on MyBatis Plus underscore-to-camel mapping, so entity classes do not carry redundant `@TableField` annotations.
+Database columns use snake_case for compound words, for example `tunnel_id`, `tunnel_code`, `cluster_id`, `bandwidth_used`, and `allow_anonymous`. Java fields remain camelCase and rely on MyBatis Plus underscore-to-camel mapping, so entity classes do not carry redundant `@TableField` annotations.
 
 ## Run
 

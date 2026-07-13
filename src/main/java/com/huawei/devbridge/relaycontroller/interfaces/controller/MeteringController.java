@@ -13,7 +13,7 @@ public class MeteringController implements MeteringApi {
     private final MeteringAppService meteringAppService;
 
     @Override
-    public MeteringReportResponse reportMetering(String gridName, MeteringReportRequest request) {
-        return meteringAppService.report(gridName, request);
+    public MeteringReportResponse reportMetering(String clusterId, MeteringReportRequest request) {
+        return meteringAppService.report(clusterId, request);
     }
 }

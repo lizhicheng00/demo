@@ -1,5 +1,6 @@
 package com.huawei.devbridge.relaycontroller.application.assembler;
 
+import com.huawei.devbridge.relaycontroller.domain.model.JwtTokens;
 import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
 import com.huawei.devbridge.relaycontroller.domain.model.TunnelType;
 import com.huawei.devbridge.relaycontroller.interfaces.response.CreateTunnelResponse;
@@ -11,37 +12,35 @@ public final class TunnelAssembler {
     private TunnelAssembler() {
     }
 
-    public static CreateTunnelResponse toCreateResponse(Tunnel tunnel, String token, long expiresIn) {
+    public static CreateTunnelResponse toCreateResponse(Tunnel tunnel, JwtTokens tokens) {
         return CreateTunnelResponse.builder()
                 .name(tunnel.getName())
                 .tunnelId(tunnel.getTunnelId())
                 .tunnelCode(tunnel.getTunnelCode())
-                .gridName(tunnel.getGridName())
-                .cluster(tunnel.getCluster())
+                .clusterId(tunnel.getClusterId())
                 .description(tunnel.getDescription())
                 .bandwidthUsed(tunnel.getBandwidthUsed())
                 .expiration(tunnel.getExpiration())
                 .created(tunnel.getCreatedAt())
                 .url(tunnel.getUrl())
                 .type(typeValue(tunnel))
-                .jwt(jwtResponse(token, expiresIn))
+                .jwt(jwtResponse(tokens))
                 .build();
     }
 
-    public static TunnelDetailResponse toDetailResponse(Tunnel tunnel, String token, long expiresIn) {
+    public static TunnelDetailResponse toDetailResponse(Tunnel tunnel, JwtTokens tokens) {
         return TunnelDetailResponse.builder()
                 .name(tunnel.getName())
                 .tunnelId(tunnel.getTunnelId())
                 .tunnelCode(tunnel.getTunnelCode())
-                .gridName(tunnel.getGridName())
-                .cluster(tunnel.getCluster())
+                .clusterId(tunnel.getClusterId())
                 .description(tunnel.getDescription())
                 .bandwidthUsed(tunnel.getBandwidthUsed())
                 .expiration(tunnel.getExpiration())
                 .created(tunnel.getCreatedAt())
                 .url(tunnel.getUrl())
                 .type(typeValue(tunnel))
-                .jwt(jwtResponse(token, expiresIn))
+                .jwt(jwtResponse(tokens))
                 .build();
     }
 
@@ -49,7 +48,7 @@ public final class TunnelAssembler {
         return TunnelListItemResponse.builder()
                 .tunnelId(tunnel.getTunnelId())
                 .tunnelCode(tunnel.getTunnelCode())
-                .gridName(tunnel.getGridName())
+                .clusterId(tunnel.getClusterId())
                 .name(tunnel.getName())
                 .description(tunnel.getDescription())
                 .expiration(tunnel.getExpiration())
@@ -63,11 +62,11 @@ public final class TunnelAssembler {
         return type == null ? null : type.value();
     }
 
-    private static JwtResponse jwtResponse(String token, long expiresIn) {
+    private static JwtResponse jwtResponse(JwtTokens tokens) {
         return JwtResponse.builder()
-                .tokenType("TOKEN")
-                .token(token)
-                .expiresIn(expiresIn)
+                .connect(tokens.connect())
+                .host(tokens.host())
+                .expiresIn(tokens.expiresIn())
                 .build();
     }
 }

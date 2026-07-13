@@ -8,7 +8,7 @@ public interface TunnelRepository {
 
     List<Tunnel> findByNamespaceAndRegion(String namespace, String region);
 
-    List<Tunnel> findActiveByNamespaceAndRegion(String namespace, String gridName, String region, long now);
+    List<Tunnel> findActiveByNamespaceAndRegion(String namespace, String clusterId, String region, long now);
 
     List<Tunnel> findAgedByRegion(String region, long expirationCutoff, int limit);
 

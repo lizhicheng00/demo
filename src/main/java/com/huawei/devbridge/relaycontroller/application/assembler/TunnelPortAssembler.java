@@ -22,7 +22,7 @@ public final class TunnelPortAssembler {
         return GatewayTunnelPortPolicyResponse.builder()
                 .tunnelId(tunnel.getTunnelId())
                 .tunnelCode(tunnelPort.getTunnelCode())
-                .gridName(tunnel.getGridName())
+                .clusterId(tunnel.getClusterId())
                 .port(tunnelPort.getPort())
                 .allowAnonymous(tunnelPort.getAllowAnonymous())
                 .build();

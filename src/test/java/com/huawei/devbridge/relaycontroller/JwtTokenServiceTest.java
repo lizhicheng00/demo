@@ -1,13 +1,16 @@
 package com.huawei.devbridge.relaycontroller;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.eq;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.huawei.devbridge.relaycontroller.common.util.TimeUtils;
+import com.huawei.devbridge.relaycontroller.domain.model.JwtScope;
 import com.huawei.devbridge.relaycontroller.domain.model.JwtToken;
+import com.huawei.devbridge.relaycontroller.domain.model.JwtTokens;
 import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
 import com.huawei.devbridge.relaycontroller.infrastructure.config.RelayProperties;
 import com.huawei.devbridge.relaycontroller.infrastructure.redis.JwtTokenCache;
@@ -26,81 +29,77 @@ class JwtTokenServiceTest {
     private JwtSigner jwtSigner;
 
     @Test
-    void getOrCreateTokenReturnsCachedValue() {
-        RelayProperties properties = new RelayProperties();
-        JwtTokenServiceImpl service = new JwtTokenServiceImpl(jwtTokenCache, jwtSigner, properties);
+    void getOrCreateTokensReturnsBothCachedValues() {
+        JwtTokenServiceImpl service = newService(new RelayProperties());
         Tunnel tunnel = Tunnel.builder().tunnelId("aaaadysa").build();
+        when(jwtTokenCache.getToken("aaaadysa", JwtScope.CONNECT))
+                .thenReturn(new JwtToken("cached-connect", 3600L));
+        when(jwtTokenCache.getToken("aaaadysa", JwtScope.HOST))
+                .thenReturn(new JwtToken("cached-host", 3599L));
 
-        when(jwtTokenCache.getToken("aaaadysa")).thenReturn(new JwtToken("cached-token", 3600L));
+        JwtTokens tokens = service.getOrCreateTokens(tunnel);
 
-        JwtToken token = service.getOrCreateToken(tunnel);
-
-        assertThat(token.token()).isEqualTo("cached-token");
-        assertThat(token.expiresIn()).isEqualTo(3600L);
-        verify(jwtSigner, never()).signToken(eq(tunnel), org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyLong());
+        assertThat(tokens.connect()).isEqualTo("cached-connect");
+        assertThat(tokens.host()).isEqualTo("cached-host");
+        assertThat(tokens.expiresIn()).isEqualTo(3599L);
+        verify(jwtSigner, never()).signToken(eq(tunnel), eq(JwtScope.CONNECT), anyLong());
     }
 
     @Test
-    void getOrCreateTokenCreatesAndCachesToken() {
+    void getOrCreateTokensCreatesAndCachesBothScopes() {
         RelayProperties properties = new RelayProperties();
         properties.getJwt().getToken().setTtlSeconds(86400);
-        JwtTokenServiceImpl service = new JwtTokenServiceImpl(jwtTokenCache, jwtSigner, properties);
+        JwtTokenServiceImpl service = newService(properties);
         Tunnel tunnel = Tunnel.builder().tunnelId("aaaadysa").build();
+        when(jwtSigner.signToken(tunnel, JwtScope.CONNECT, 86400L)).thenReturn("new-connect");
+        when(jwtSigner.signToken(tunnel, JwtScope.HOST, 86400L)).thenReturn("new-host");
 
-        when(jwtTokenCache.getToken("aaaadysa")).thenReturn(null);
-        when(jwtSigner.signToken(eq(tunnel), org.mockito.ArgumentMatchers.startsWith("token:aaaadysa:"), eq(86400L)))
-                .thenReturn("new-token");
+        JwtTokens tokens = service.getOrCreateTokens(tunnel);
 
-        JwtToken token = service.getOrCreateToken(tunnel);
-
-        assertThat(token.token()).isEqualTo("new-token");
-        assertThat(token.expiresIn()).isEqualTo(86400L);
-        verify(jwtTokenCache).setToken("aaaadysa", "new-token", 86400L);
+        assertThat(tokens.connect()).isEqualTo("new-connect");
+        assertThat(tokens.host()).isEqualTo("new-host");
+        assertThat(tokens.expiresIn()).isEqualTo(86400L);
+        verify(jwtTokenCache).setToken("aaaadysa", JwtScope.CONNECT, "new-connect", 86400L);
+        verify(jwtTokenCache).setToken("aaaadysa", JwtScope.HOST, "new-host", 86400L);
     }
 
     @Test
-    void getOrCreateTokenCapsTtlByTunnelExpiration() {
+    void getOrCreateTokensCapsTtlByTunnelExpiration() {
         RelayProperties properties = new RelayProperties();
         properties.getJwt().getToken().setTtlSeconds(86400);
-        JwtTokenServiceImpl service = new JwtTokenServiceImpl(jwtTokenCache, jwtSigner, properties);
+        JwtTokenServiceImpl service = newService(properties);
         Tunnel tunnel = Tunnel.builder()
                 .tunnelId("aaaadysa")
                 .expiration(Math.toIntExact(TimeUtils.nowSeconds() + 60))
                 .build();
+        when(jwtSigner.signToken(eq(tunnel), eq(JwtScope.CONNECT), anyLong())).thenReturn("new-connect");
+        when(jwtSigner.signToken(eq(tunnel), eq(JwtScope.HOST), anyLong())).thenReturn("new-host");
 
-        when(jwtTokenCache.getToken("aaaadysa")).thenReturn(null);
-        when(jwtSigner.signToken(eq(tunnel), org.mockito.ArgumentMatchers.startsWith("token:aaaadysa:"),
-                org.mockito.ArgumentMatchers.longThat(ttl -> ttl > 0 && ttl <= 60)))
-                .thenReturn("new-token");
+        JwtTokens tokens = service.getOrCreateTokens(tunnel);
 
-        JwtToken token = service.getOrCreateToken(tunnel);
-
-        assertThat(token.token()).isEqualTo("new-token");
-        assertThat(token.expiresIn()).isBetween(1L, 60L);
-        verify(jwtTokenCache).setToken(eq("aaaadysa"), eq("new-token"),
+        assertThat(tokens.expiresIn()).isBetween(1L, 60L);
+        verify(jwtTokenCache).setToken(eq("aaaadysa"), eq(JwtScope.CONNECT), eq("new-connect"),
+                org.mockito.ArgumentMatchers.longThat(ttl -> ttl > 0 && ttl <= 60));
+        verify(jwtTokenCache).setToken(eq("aaaadysa"), eq(JwtScope.HOST), eq("new-host"),
                 org.mockito.ArgumentMatchers.longThat(ttl -> ttl > 0 && ttl <= 60));
     }
 
     @Test
-    void getOrCreateTokenReplacesCachedTokenBeyondTunnelExpiration() {
-        RelayProperties properties = new RelayProperties();
-        properties.getJwt().getToken().setTtlSeconds(86400);
-        JwtTokenServiceImpl service = new JwtTokenServiceImpl(jwtTokenCache, jwtSigner, properties);
-        Tunnel tunnel = Tunnel.builder()
-                .tunnelId("aaaadysa")
-                .expiration(Math.toIntExact(TimeUtils.nowSeconds() + 60))
-                .build();
+    void getOrCreateTokensRotatesBothWhenOneCachedTokenIsMissing() {
+        JwtTokenServiceImpl service = newService(new RelayProperties());
+        Tunnel tunnel = Tunnel.builder().tunnelId("aaaadysa").build();
+        when(jwtTokenCache.getToken("aaaadysa", JwtScope.CONNECT))
+                .thenReturn(new JwtToken("stale-connect", 3600L));
+        when(jwtSigner.signToken(tunnel, JwtScope.CONNECT, 86400L)).thenReturn("new-connect");
+        when(jwtSigner.signToken(tunnel, JwtScope.HOST, 86400L)).thenReturn("new-host");
 
-        when(jwtTokenCache.getToken("aaaadysa")).thenReturn(new JwtToken("stale-token", 3600L));
-        when(jwtSigner.signToken(eq(tunnel), org.mockito.ArgumentMatchers.startsWith("token:aaaadysa:"),
-                org.mockito.ArgumentMatchers.longThat(ttl -> ttl > 0 && ttl <= 60)))
-                .thenReturn("new-token");
+        JwtTokens tokens = service.getOrCreateTokens(tunnel);
 
-        JwtToken token = service.getOrCreateToken(tunnel);
+        assertThat(tokens.connect()).isEqualTo("new-connect");
+        assertThat(tokens.host()).isEqualTo("new-host");
+    }
 
-        assertThat(token.token()).isEqualTo("new-token");
-        assertThat(token.expiresIn()).isBetween(1L, 60L);
-        verify(jwtTokenCache).setToken(eq("aaaadysa"), eq("new-token"),
-                org.mockito.ArgumentMatchers.longThat(ttl -> ttl > 0 && ttl <= 60));
+    private JwtTokenServiceImpl newService(RelayProperties properties) {
+        return new JwtTokenServiceImpl(jwtTokenCache, jwtSigner, properties);
     }
 }

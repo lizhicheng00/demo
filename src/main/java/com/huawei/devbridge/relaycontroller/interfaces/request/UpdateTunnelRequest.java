@@ -12,7 +12,6 @@ public class UpdateTunnelRequest {
     private String name;
     @Size(max = 512)
     private String description;
-    private String cluster;
     @Min(1)
     @Max(720)
     private Integer expiration;

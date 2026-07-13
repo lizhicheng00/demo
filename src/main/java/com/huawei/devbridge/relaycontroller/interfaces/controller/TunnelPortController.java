@@ -37,8 +37,8 @@ public class TunnelPortController implements TunnelPortApi, GatewayTunnelPortApi
     }
 
     @Override
-    public GatewayTunnelPortPolicyResponse getGatewayTunnelPortPolicy(String gridName, String tunnelId, Long port) {
-        return tunnelPortAppService.getGatewayPortPolicy(gridName, tunnelId, port);
+    public GatewayTunnelPortPolicyResponse getGatewayTunnelPortPolicy(String clusterId, String tunnelId, Long port) {
+        return tunnelPortAppService.getGatewayPortPolicy(clusterId, tunnelId, port);
     }
 
     @Override

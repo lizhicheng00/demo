@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 @Builder
 public class JwtResponse {
-    private String tokenType;
-    private String token;
+    private String connect;
+    private String host;
     private Long expiresIn;
 }
