@@ -13,7 +13,7 @@
 
     <groupId>com.huawei.devbridge</groupId>
     <artifactId>relay-controller</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0</version>
     <name>relay-controller</name>
     <description>Relay Controller control plane service for DevBridge tunnel metadata.</description>
 
