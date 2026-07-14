@@ -2,12 +2,12 @@
 <Configuration status="WARN" monitorInterval="120">
     <Properties>
         <Property name="appName">relay-controller</Property>
-        <Property name="logPath">${env:LOG_PATH:-logs}</Property>
+        <Property name="logPath">${env:LOG_PATH:-/opt/cloud/HDInfraService/logs}</Property>
         <Property name="maxFileSize">${env:LOG_SIZE_POLICY:-20MB}</Property>
         <Property name="maxFiles">${env:LOG_MAX_FILE_COUNT:-30}</Property>
         <Property name="retention">${env:LOG_DELETE_POLICY:-P7D}</Property>
-        <Property name="runningPattern">%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %-5level [%thread] %logger{36} - %message%n%throwable</Property>
-        <Property name="accessPattern">%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %message%n%throwable</Property>
+        <Property name="runningPattern">%d{yyyy/MM/dd HH:mm:ss SSS}|%-5p|%c{2}.%M:%L|[%t]|%X{traceId}|%X{parentSpanId}|%X{spanId}|%enc{%.-512msg}{JSON}%ex{20}%n</Property>
+        <Property name="accessPattern">V1.0|%d{yyyy/MM/dd HH:mm:ss SSS}|%-5p|%X{traceId}|%X{parentSpanId}|%enc{%msg}{JSON}%n</Property>
     </Properties>
 
     <Appenders>
