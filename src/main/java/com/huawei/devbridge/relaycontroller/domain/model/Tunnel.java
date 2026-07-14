@@ -24,4 +24,5 @@ public class Tunnel {
     private Integer deleted;
     private Long createdAt;
     private Long updatedAt;
+    private Long portCount;
 }

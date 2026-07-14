@@ -3,6 +3,7 @@ package com.huawei.devbridge.relaycontroller.infrastructure.persistence.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.huawei.devbridge.relaycontroller.domain.model.TunnelProtocol;
 import lombok.Data;
 
 @Data
@@ -12,5 +13,6 @@ public class TunnelPortEntity {
     private Long id;
     private Long tunnelCode;
     private Long port;
+    private TunnelProtocol protocol;
     private Boolean allowAnonymous;
 }

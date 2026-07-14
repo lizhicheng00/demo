@@ -12,6 +12,7 @@ import com.huawei.devbridge.relaycontroller.common.exception.ErrorCode;
 import com.huawei.devbridge.relaycontroller.domain.model.Cluster;
 import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
 import com.huawei.devbridge.relaycontroller.domain.model.TunnelPort;
+import com.huawei.devbridge.relaycontroller.domain.model.TunnelProtocol;
 import com.huawei.devbridge.relaycontroller.domain.repository.ClusterRepository;
 import com.huawei.devbridge.relaycontroller.domain.repository.TunnelPortRepository;
 import com.huawei.devbridge.relaycontroller.domain.repository.TunnelRepository;
@@ -43,6 +44,7 @@ class TunnelPortAppServiceTest {
         TunnelPortAppService service = newService();
         CreateTunnelPortRequest request = new CreateTunnelPortRequest();
         request.setPort(8080L);
+        request.setProtocol(TunnelProtocol.HTTP);
         request.setAllowAnonymous(false);
 
         when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel("ns-user-001", "cluster-a"));
@@ -54,6 +56,7 @@ class TunnelPortAppServiceTest {
         assertThat(response.getTunnelId()).isEqualTo("aaaadysa");
         assertThat(response.getTunnelCode()).isEqualTo(123456L);
         assertThat(response.getPort()).isEqualTo(8080L);
+        assertThat(response.getProtocol()).isEqualTo(TunnelProtocol.HTTP);
         assertThat(response.getAllowAnonymous()).isFalse();
     }
 
@@ -62,6 +65,7 @@ class TunnelPortAppServiceTest {
         TunnelPortAppService service = newService();
         CreateTunnelPortRequest request = new CreateTunnelPortRequest();
         request.setPort(8080L);
+        request.setProtocol(TunnelProtocol.AUTO);
         request.setAllowAnonymous(false);
 
         when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel("ns-user-001", "cluster-a"));
@@ -78,6 +82,7 @@ class TunnelPortAppServiceTest {
         TunnelPortAppService service = newService();
         CreateTunnelPortRequest request = new CreateTunnelPortRequest();
         request.setPort(65536L);
+        request.setProtocol(TunnelProtocol.AUTO);
         request.setAllowAnonymous(false);
 
         when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel("ns-user-001", "cluster-a"));
@@ -107,6 +112,7 @@ class TunnelPortAppServiceTest {
         TunnelPortAppService service = newService();
         CreateTunnelPortRequest request = new CreateTunnelPortRequest();
         request.setPort(8080L);
+        request.setProtocol(TunnelProtocol.AUTO);
         request.setAllowAnonymous(false);
 
         when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel("ns-user-a", "cluster-a"));
@@ -123,8 +129,8 @@ class TunnelPortAppServiceTest {
 
         when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel("ns-user-001", "cluster-a"));
         when(tunnelPortRepository.findByTunnelCode(123456L)).thenReturn(List.of(
-                TunnelPort.builder().tunnelCode(123456L).port(8080L).allowAnonymous(false).build(),
-                TunnelPort.builder().tunnelCode(123456L).port(8888L).allowAnonymous(true).build()));
+                TunnelPort.builder().tunnelCode(123456L).port(8080L).protocol(TunnelProtocol.HTTP).allowAnonymous(false).build(),
+                TunnelPort.builder().tunnelCode(123456L).port(8888L).protocol(TunnelProtocol.HTTPS).allowAnonymous(true).build()));
 
         List<TunnelPortResponse> response = service.list("ns-user-001", "aaaadysa");
 
@@ -132,19 +138,22 @@ class TunnelPortAppServiceTest {
     }
 
     @Test
-    void updateTunnelPortOnlyChangesAllowAnonymous() {
+    void updateTunnelPortChangesPolicy() {
         TunnelPortAppService service = newService();
         UpdateTunnelPortRequest request = new UpdateTunnelPortRequest();
+        request.setProtocol(TunnelProtocol.HTTPS);
         request.setAllowAnonymous(true);
 
         when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel("ns-user-001", "cluster-a"));
         when(tunnelPortRepository.findByTunnelCodeAndPort(123456L, 8080L))
-                .thenReturn(TunnelPort.builder().tunnelCode(123456L).port(8080L).allowAnonymous(false).build());
+                .thenReturn(TunnelPort.builder().tunnelCode(123456L).port(8080L)
+                        .protocol(TunnelProtocol.HTTP).allowAnonymous(false).build());
 
         TunnelPortResponse response = service.update("ns-user-001", "aaaadysa", 8080L, request);
 
         assertThat(response.getAllowAnonymous()).isTrue();
-        verify(tunnelPortRepository).updateAllowAnonymous(123456L, 8080L, true);
+        assertThat(response.getProtocol()).isEqualTo(TunnelProtocol.HTTPS);
+        verify(tunnelPortRepository).updatePolicy(123456L, 8080L, TunnelProtocol.HTTPS, true);
     }
 
     @Test
@@ -159,18 +168,6 @@ class TunnelPortAppServiceTest {
 
         assertThat(deleted).isTrue();
         verify(tunnelPortRepository).deleteByTunnelCodeAndPort(123456L, 8080L);
-    }
-
-    @Test
-    void deleteAllTunnelPortsRemovesPolicies() {
-        TunnelPortAppService service = newService();
-
-        when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel("ns-user-001", "cluster-a"));
-
-        Boolean deleted = service.deleteAll("ns-user-001", "aaaadysa");
-
-        assertThat(deleted).isTrue();
-        verify(tunnelPortRepository).deleteByTunnelCode(123456L);
     }
 
     @Test
@@ -191,12 +188,14 @@ class TunnelPortAppServiceTest {
         localCluster("cluster-a");
         when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel("ns-user-001", "cluster-a"));
         when(tunnelPortRepository.findByTunnelCodeAndPort(123456L, 8080L))
-                .thenReturn(TunnelPort.builder().tunnelCode(123456L).port(8080L).allowAnonymous(true).build());
+                .thenReturn(TunnelPort.builder().tunnelCode(123456L).port(8080L)
+                        .protocol(TunnelProtocol.AUTO).allowAnonymous(true).build());
 
         GatewayTunnelPortPolicyResponse response = service.getGatewayPortPolicy("cluster-a", "aaaadysa", 8080L);
 
         assertThat(response.getClusterId()).isEqualTo("cluster-a");
         assertThat(response.getAllowAnonymous()).isTrue();
+        assertThat(response.getProtocol()).isEqualTo(TunnelProtocol.AUTO);
     }
 
     @Test

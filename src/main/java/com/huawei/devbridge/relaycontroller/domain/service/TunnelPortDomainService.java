@@ -2,6 +2,7 @@ package com.huawei.devbridge.relaycontroller.domain.service;
 
 import com.huawei.devbridge.relaycontroller.common.exception.BizException;
 import com.huawei.devbridge.relaycontroller.common.exception.ErrorCode;
+import com.huawei.devbridge.relaycontroller.domain.model.TunnelProtocol;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -18,6 +19,12 @@ public class TunnelPortDomainService {
     public void validateAllowAnonymous(Boolean allowAnonymous) {
         if (allowAnonymous == null) {
             throw new BizException(ErrorCode.PARAM_INVALID);
+        }
+    }
+
+    public void validateProtocol(TunnelProtocol protocol) {
+        if (protocol == null) {
+            throw new BizException(ErrorCode.PARAM_INVALID, "protocol is required");
         }
     }
 }

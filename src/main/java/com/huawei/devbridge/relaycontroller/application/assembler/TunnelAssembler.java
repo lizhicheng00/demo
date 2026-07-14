@@ -1,10 +1,8 @@
 package com.huawei.devbridge.relaycontroller.application.assembler;
 
-import com.huawei.devbridge.relaycontroller.domain.model.JwtTokens;
 import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
 import com.huawei.devbridge.relaycontroller.domain.model.TunnelType;
 import com.huawei.devbridge.relaycontroller.interfaces.response.CreateTunnelResponse;
-import com.huawei.devbridge.relaycontroller.interfaces.response.JwtResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelDetailResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelListItemResponse;
 
@@ -12,7 +10,7 @@ public final class TunnelAssembler {
     private TunnelAssembler() {
     }
 
-    public static CreateTunnelResponse toCreateResponse(Tunnel tunnel, JwtTokens tokens) {
+    public static CreateTunnelResponse toCreateResponse(Tunnel tunnel) {
         return CreateTunnelResponse.builder()
                 .name(tunnel.getName())
                 .tunnelId(tunnel.getTunnelId())
@@ -24,11 +22,10 @@ public final class TunnelAssembler {
                 .created(tunnel.getCreatedAt())
                 .url(tunnel.getUrl())
                 .type(typeValue(tunnel))
-                .jwt(jwtResponse(tokens))
                 .build();
     }
 
-    public static TunnelDetailResponse toDetailResponse(Tunnel tunnel, JwtTokens tokens) {
+    public static TunnelDetailResponse toDetailResponse(Tunnel tunnel) {
         return TunnelDetailResponse.builder()
                 .name(tunnel.getName())
                 .tunnelId(tunnel.getTunnelId())
@@ -40,7 +37,6 @@ public final class TunnelAssembler {
                 .created(tunnel.getCreatedAt())
                 .url(tunnel.getUrl())
                 .type(typeValue(tunnel))
-                .jwt(jwtResponse(tokens))
                 .build();
     }
 
@@ -54,19 +50,12 @@ public final class TunnelAssembler {
                 .expiration(tunnel.getExpiration())
                 .created(tunnel.getCreatedAt())
                 .url(tunnel.getUrl())
+                .portCount(tunnel.getPortCount() == null ? 0L : tunnel.getPortCount())
                 .build();
     }
 
     private static String typeValue(Tunnel tunnel) {
         TunnelType type = tunnel.getType();
         return type == null ? null : type.value();
-    }
-
-    private static JwtResponse jwtResponse(JwtTokens tokens) {
-        return JwtResponse.builder()
-                .connect(tokens.connect())
-                .host(tokens.host())
-                .expiresIn(tokens.expiresIn())
-                .build();
     }
 }

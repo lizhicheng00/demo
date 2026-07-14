@@ -5,7 +5,8 @@ import com.huawei.devbridge.relaycontroller.common.exception.BizException;
 import com.huawei.devbridge.relaycontroller.common.exception.ErrorCode;
 import com.huawei.devbridge.relaycontroller.common.util.TimeUtils;
 import com.huawei.devbridge.relaycontroller.domain.model.Cluster;
-import com.huawei.devbridge.relaycontroller.domain.model.JwtTokens;
+import com.huawei.devbridge.relaycontroller.domain.model.JwtScope;
+import com.huawei.devbridge.relaycontroller.domain.model.JwtToken;
 import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
 import com.huawei.devbridge.relaycontroller.domain.model.TunnelType;
 import com.huawei.devbridge.relaycontroller.domain.repository.TunnelPortRepository;
@@ -20,6 +21,7 @@ import com.huawei.devbridge.relaycontroller.interfaces.request.UpdateTunnelReque
 import com.huawei.devbridge.relaycontroller.interfaces.response.CreateTunnelResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelDetailResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelListItemResponse;
+import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelTokenResponse;
 import java.util.Arrays;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -79,8 +81,7 @@ public class TunnelAppService {
         log.info("Tunnel created: tunnelId={}, tunnelCode={}, namespace={}, clusterId={}, type={}, expiration={}",
                 tunnel.getTunnelId(), tunnel.getTunnelCode(), tunnel.getNamespace(), tunnel.getClusterId(),
                 tunnel.getType(), tunnel.getExpiration());
-        JwtTokens jwtTokens = jwtTokenService.getOrCreateTokens(tunnel);
-        return TunnelAssembler.toCreateResponse(tunnel, jwtTokens);
+        return TunnelAssembler.toCreateResponse(tunnel);
     }
 
     private Object createLock(String namespace) {
@@ -111,21 +112,29 @@ public class TunnelAppService {
     public TunnelDetailResponse getTunnelDetail(String rawNamespace, String tunnelId) {
         Tunnel tunnel = findOwnedTunnel(rawNamespace, tunnelId);
         tunnelDomainService.assertNotExpired(tunnel);
-        JwtTokens jwtTokens = jwtTokenService.getOrCreateTokens(tunnel);
-        return TunnelAssembler.toDetailResponse(tunnel, jwtTokens);
+        return TunnelAssembler.toDetailResponse(tunnel);
+    }
+
+    public TunnelTokenResponse issueToken(String rawNamespace, String tunnelId, String scopeValue) {
+        JwtScope scope = parseScope(scopeValue);
+        Tunnel tunnel = findOwnedActiveTunnel(rawNamespace, tunnelId);
+        JwtToken issuedToken = jwtTokenService.issueToken(tunnel, scope);
+        return TunnelTokenResponse.builder()
+                .tunnelId(tunnel.getTunnelId())
+                .scope(scope)
+                .lifetime(issuedToken.lifetime())
+                .expiration(issuedToken.expiration())
+                .token(issuedToken.token())
+                .build();
     }
 
     @Transactional
     public Boolean updateTunnel(String rawNamespace, String tunnelId, UpdateTunnelRequest request) {
         Tunnel tunnel = findOwnedActiveTunnel(rawNamespace, tunnelId);
-        boolean expirationChanged = applyUpdates(tunnel, request);
+        applyUpdates(tunnel, request);
         tunnel.setUpdatedAt(TimeUtils.nowSeconds());
         tunnelRepository.update(tunnel);
-        if (expirationChanged) {
-            jwtTokenService.evictToken(tunnel.getTunnelId());
-        }
-        log.info("Tunnel updated: tunnelId={}, namespace={}, expirationChanged={}",
-                tunnel.getTunnelId(), tunnel.getNamespace(), expirationChanged);
+        log.info("Tunnel updated: tunnelId={}, namespace={}", tunnel.getTunnelId(), tunnel.getNamespace());
         return true;
     }
 
@@ -134,7 +143,6 @@ public class TunnelAppService {
         Tunnel tunnel = findOwnedTunnel(rawNamespace, tunnelId);
         tunnelPortRepository.deleteByTunnelCode(tunnel.getTunnelCode());
         tunnelRepository.deleteByTunnelId(tunnelId);
-        jwtTokenService.evictToken(tunnelId);
         log.info("Tunnel deleted: tunnelId={}, tunnelCode={}, namespace={}",
                 tunnel.getTunnelId(), tunnel.getTunnelCode(), tunnel.getNamespace());
         return true;
@@ -147,14 +155,12 @@ public class TunnelAppService {
         tunnels.forEach(tunnel -> {
             tunnelPortRepository.deleteByTunnelCode(tunnel.getTunnelCode());
             tunnelRepository.deleteByTunnelId(tunnel.getTunnelId());
-            jwtTokenService.evictToken(tunnel.getTunnelId());
         });
         log.info("Tunnels deleted: namespace={}, count={}", namespace, tunnels.size());
         return true;
     }
 
-    private boolean applyUpdates(Tunnel tunnel, UpdateTunnelRequest request) {
-        boolean expirationChanged = false;
+    private void applyUpdates(Tunnel tunnel, UpdateTunnelRequest request) {
         if (request.getName() != null && !request.getName().isBlank()) {
             tunnel.setName(request.getName());
         }
@@ -163,12 +169,10 @@ public class TunnelAppService {
         }
         if (request.getExpiration() != null) {
             tunnel.setExpiration(resolveExpiration(request.getExpiration(), TimeUtils.nowSeconds()));
-            expirationChanged = true;
         }
         if (request.getType() != null) {
             tunnel.setType(request.getType());
         }
-        return expirationChanged;
     }
 
     private TunnelCode allocateTunnelCode() {
@@ -221,6 +225,18 @@ public class TunnelAppService {
             throw new BizException(ErrorCode.PARAM_INVALID, "expiration is too large");
         }
         return Math.toIntExact(expiresAt);
+    }
+
+    private JwtScope parseScope(String scopeValue) {
+        try {
+            JwtScope scope = JwtScope.fromValue(scopeValue);
+            if (scope == null) {
+                throw new IllegalArgumentException();
+            }
+            return scope;
+        } catch (IllegalArgumentException exception) {
+            throw new BizException(ErrorCode.PARAM_INVALID, "scope must be host or connect");
+        }
     }
 
     private String buildTunnelUrl(String tunnelId, Cluster cluster) {

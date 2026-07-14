@@ -1,6 +1,6 @@
 # Relay Controller
 
-Relay Controller is the DevBridge / Relay Tunnel control plane service. It manages tunnel metadata, namespace isolation, reusable JWT signing, metering reports, and port policies.
+Relay Controller is the DevBridge / Relay Tunnel control plane service. It manages tunnel metadata, namespace isolation, JWT signing, metering reports, and port policies.
 
 This service does not implement WebSocket, WebTransport, TCP, or HTTP body forwarding. Real traffic bridging belongs to Relay Gateway.
 
@@ -15,7 +15,6 @@ User story and implementation design: [docs/relay-controller-user-story.md](docs
 - Jetty embedded server
 - Maven
 - MySQL
-- Redis with Jedis client
 - MyBatis Plus
 - Nimbus JOSE JWT
 
@@ -28,12 +27,12 @@ DELETE /open-api-inner/v1/relay-controller/tunnels
 GET    /open-api-inner/v1/relay-controller/tunnels/{tunnelId}
 PUT    /open-api-inner/v1/relay-controller/tunnels/{tunnelId}
 DELETE /open-api-inner/v1/relay-controller/tunnels/{tunnelId}
+POST   /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/token?scope=host|connect
 
 POST   /open-api-inner/v1/relay-controller/clusters/{clusterId}/metering
 
 POST   /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports
 GET    /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports
-DELETE /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports
 GET    /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports/{port}
 PUT    /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports/{port}
 DELETE /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports/{port}
@@ -48,11 +47,11 @@ Tunnel `tunnelCode` is a 40-bit `long`; `tunnelId` is the fixed 8-character lowe
 Tunnel URL format is `{tunnelId}-{clusterId}-{relay.domain}`.
 Deleted tunnels are soft-deleted to preserve historical identifiers and metering references. List APIs return only active, non-expired tunnels. Detail, update, port, and metering operations reject expired tunnels; delete APIs can still delete expired tunnels.
 Each namespace can own up to 10 active tunnels by default. Deleted and expired tunnels do not count against this quota. Configure `relay.tunnel.max-per-namespace` to change the limit.
-Tunnel list responses expose stable metadata only: `tunnelId`, `tunnelCode`, `clusterId`, `description`, `expiration`, `created`, and `url`. Runtime counters such as host/client connections or current upload/download rate require Gateway reporting and are intentionally not modeled here yet. Port policies remain available through the tunnel port APIs instead of being embedded into every list response.
+Tunnel list responses expose stable metadata plus `portCount`. Runtime counters such as host/client connections or current upload/download rate require Gateway reporting and are intentionally not modeled here yet. Port policies remain available through the tunnel port APIs instead of being embedded into every list response.
 
-Tunnel create and detail return `jwt.connect` and `jwt.host`. Both tokens expire at the earlier of `relay.jwt.token.ttl-seconds` or the tunnel expiration and are cached separately at `jwt:token:{tunnelId}:{scope}`. Their claims are limited to `iss`, `exp`, `nbf`, `tunnelId`, `clusterId`, and `scp`.
+Tunnel tokens are issued explicitly with `POST /tunnels/{tunnelId}/token?scope=host|connect`. Every call creates a new token; tokens are not cached. The response contains `tunnelId`, `scope`, `lifetime`, `expiration`, and `token`. Token lifetime is capped by both `relay.jwt.token.ttl-seconds` and the tunnel's remaining lifetime. JWT claims are `iss`, `exp`, `nbf`, `jti`, `tunnelId`, `clusterId`, and `scp`.
 
-Tunnel port APIs manage the explicit per-port allow list for a tunnel. Unconfigured ports are denied by default. `allowAnonymous` only controls sending-side access to that port; listening-side gateway connection still requires token authentication.
+Tunnel port APIs manage the explicit per-port allow list for a tunnel. Each port declares `protocol` as `http`, `https`, or `auto`. Unconfigured ports are denied by default. `allowAnonymous` only controls sending-side access to that port; listening-side gateway connection still requires token authentication.
 The gateway port policy API keeps `clusterId` in the path intentionally. Gateway callers use it as their cluster scope, and Relay Controller verifies the tunnel belongs to that cluster before returning the port policy.
 
 Business APIs under `/open-api-inner/v1/relay-controller/**` have an in-memory fixed-window rate limit. The key is `X-Namespace` when present, otherwise client IP. The default is 120 requests per minute and can be adjusted with `relay.rate-limit.requests-per-minute` or disabled with `relay.rate-limit.enabled=false`.
@@ -76,11 +75,11 @@ COLLATE utf8mb4_0900_ai_ci;
 
 Flyway runs on application startup and applies migrations from `src/main/resources/db/migration`. The initial migration creates `cluster`, `tunnel`, `metering`, `tunnel_port`, and seeds `cluster-a`.
 
-Database columns use snake_case for compound words, for example `tunnel_id`, `tunnel_code`, `cluster_id`, `bandwidth_used`, and `allow_anonymous`. Java fields remain camelCase and rely on MyBatis Plus underscore-to-camel mapping, so entity classes do not carry redundant `@TableField` annotations.
+Database columns use snake_case for compound words, for example `tunnel_id`, `tunnel_code`, `cluster_id`, `bandwidth_used`, and `allow_anonymous`. Java fields remain camelCase and rely on MyBatis Plus underscore-to-camel mapping. The list-only `portCount` projection is explicitly marked as non-persistent.
 
 ## Run
 
-Configure MySQL and Redis in `src/main/resources/application.yml`, then run:
+Configure MySQL in `src/main/resources/application.yml`, then run:
 
 ```bash
 mvn spring-boot:run
@@ -92,24 +91,19 @@ For another local machine, prefer overriding only the datasource URL, username, 
 export DATASOURCE_URL='jdbc:mysql://127.0.0.1:3306/relay_controller?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true'
 export DATASOURCE_USERNAME='root'
 export DATASOURCE_PASSWORD='root'
-export SPRING_DATA_REDIS_HOST='localhost'
-export SPRING_DATA_REDIS_PASSWORD='<redis-password>'
 mvn spring-boot:run
 ```
 
 For IntelliJ IDEA, paste this semicolon-separated template into **Run/Debug Configuration > Environment variables** and fill in each value:
 
 ```text
-SPRING_PROFILES_ACTIVE=;SERVER_PORT=;DATASOURCE_URL=;DATASOURCE_USERNAME=;DATASOURCE_PASSWORD=;SPRING_DATA_REDIS_HOST=;SPRING_DATA_REDIS_PASSWORD=;RELAY_JWT_PRIVATE_KEY=;SERVER_SSL_KEY_STORE_BASE64=;SERVER_SSL_KEY_STORE_PASSWORD=;SERVER_SSL_TRUST_STORE_BASE64=;SERVER_SSL_TRUST_STORE_PASSWORD=
+SPRING_PROFILES_ACTIVE=;SERVER_PORT=;DATASOURCE_URL=;DATASOURCE_USERNAME=;DATASOURCE_PASSWORD=;RELAY_JWT_PRIVATE_KEY=;SERVER_SSL_KEY_STORE_BASE64=;SERVER_SSL_KEY_STORE_PASSWORD=;SERVER_SSL_TRUST_STORE_BASE64=;SERVER_SSL_TRUST_STORE_PASSWORD=
 ```
-
-`SccCrypto` is currently a local test stub used by the JWT token cache. Configuration properties are not decrypted by Relay Controller, so provide consumer-ready values through environment variables or deployment secrets.
 
 Keep these values out of committed YAML:
 
 ```text
 DATASOURCE_PASSWORD
-SPRING_DATA_REDIS_PASSWORD
 RELAY_JWT_PRIVATE_KEY
 SERVER_SSL_KEY_STORE_BASE64
 SERVER_SSL_KEY_STORE_PASSWORD
@@ -130,12 +124,6 @@ The Base64 keystore content is sensitive because it contains the server private 
 
 The project uses `mysql-connector-j`; Spring Boot infers the driver from `DATASOURCE_URL`, so no driver class is configured explicitly.
 
-Run HTTP smoke tests against a running service:
-
-```bash
-bash scripts/http-smoke-test.sh
-```
-
 ## Mutual TLS
 
 Relay Controller can require client certificates at the embedded Jetty layer. Enable the `mtls` profile and provide a Base64-encoded PKCS12 server keystore plus a truststore containing the client CA:
@@ -153,6 +141,6 @@ mvn spring-boot:run
 
 The profile registers `spring.ssl.bundle.jks.mtls` and assigns it through `server.ssl.bundle`. With `server.ssl.client-auth=need`, requests without a trusted client certificate fail during the TLS handshake and never reach the API controllers. Callers must use `https://` and pass a client certificate signed by the CA in the configured truststore.
 
-Use JDK 17 for normal development and deployment. The project uses Jetty instead of Tomcat and Jedis instead of Lettuce/Netty to avoid JDK 26 startup warnings from Tomcat native loading and Netty `Unsafe` access. If Maven itself is run on JDK 26, Maven's own dependencies may still print JVM warnings before the application starts; those are not emitted by the Relay Controller runtime.
+Use JDK 17 for normal development and deployment. The project uses Jetty instead of Tomcat. If Maven itself is run on JDK 26, Maven's own dependencies may still print JVM warnings before the application starts; those are not emitted by the Relay Controller runtime.
 
 If no RSA private key is configured, the service generates an ephemeral RSA key pair at startup for development. Configure `RELAY_JWT_PRIVATE_KEY` for stable production token signing.

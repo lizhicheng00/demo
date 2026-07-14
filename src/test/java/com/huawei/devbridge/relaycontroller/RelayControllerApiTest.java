@@ -27,11 +27,13 @@ import com.huawei.devbridge.relaycontroller.interfaces.request.UpdateTunnelPortR
 import com.huawei.devbridge.relaycontroller.interfaces.request.UpdateTunnelRequest;
 import com.huawei.devbridge.relaycontroller.interfaces.response.CreateTunnelResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.GatewayTunnelPortPolicyResponse;
-import com.huawei.devbridge.relaycontroller.interfaces.response.JwtResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.MeteringReportResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelDetailResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelListItemResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelPortResponse;
+import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelTokenResponse;
+import com.huawei.devbridge.relaycontroller.domain.model.JwtScope;
+import com.huawei.devbridge.relaycontroller.domain.model.TunnelProtocol;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -89,9 +91,7 @@ class RelayControllerApiTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.tunnelId").value(TUNNEL_ID))
                 .andExpect(jsonPath("$.clusterId").value(CLUSTER_ID))
-                .andExpect(jsonPath("$.jwt.connect").value("connect-token"))
-                .andExpect(jsonPath("$.jwt.host").value("host-token"))
-                .andExpect(jsonPath("$.jwt.expiresIn").value(86400))
+                .andExpect(jsonPath("$.jwt").doesNotExist())
                 .andExpect(jsonPath("$.data").doesNotExist())
                 .andExpect(jsonPath("$.error_code").doesNotExist());
     }
@@ -186,6 +186,7 @@ class RelayControllerApiTest {
                         .expiration(1720086400)
                         .created(1720000000L)
                         .url("aaaadysa-cluster-a-myhuaweicloud.com")
+                        .portCount(2L)
                         .build()));
 
         mockMvc.perform(get(BASE + "/tunnels")
@@ -195,7 +196,8 @@ class RelayControllerApiTest {
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].tunnelId").value(TUNNEL_ID))
                 .andExpect(jsonPath("$[0].clusterId").value(CLUSTER_ID))
-                .andExpect(jsonPath("$[0].name").value("dev"));
+                .andExpect(jsonPath("$[0].name").value("dev"))
+                .andExpect(jsonPath("$[0].portCount").value(2));
     }
 
     @Test
@@ -207,11 +209,6 @@ class RelayControllerApiTest {
                 .clusterId(CLUSTER_ID)
                 .url("aaaadysa-cluster-a-myhuaweicloud.com")
                 .type("bridge")
-                .jwt(JwtResponse.builder()
-                        .connect("connect-token")
-                        .host("host-token")
-                        .expiresIn(86400L)
-                        .build())
                 .build());
 
         mockMvc.perform(get(BASE + "/tunnels/{tunnelId}", TUNNEL_ID)
@@ -219,9 +216,50 @@ class RelayControllerApiTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.tunnelId").value(TUNNEL_ID))
                 .andExpect(jsonPath("$.clusterId").value(CLUSTER_ID))
-                .andExpect(jsonPath("$.jwt.connect").value("connect-token"))
-                .andExpect(jsonPath("$.jwt.host").value("host-token"))
-                .andExpect(jsonPath("$.jwt.expiresIn").value(86400));
+                .andExpect(jsonPath("$.jwt").doesNotExist());
+    }
+
+    @Test
+    void issueTunnelTokenApi() throws Exception {
+        when(tunnelAppService.issueToken(NAMESPACE, TUNNEL_ID, "host"))
+                .thenReturn(TunnelTokenResponse.builder()
+                        .tunnelId(TUNNEL_ID)
+                        .scope(JwtScope.HOST)
+                        .lifetime(3600L)
+                        .expiration(1720086400L)
+                        .token("host-token")
+                        .build());
+
+        mockMvc.perform(post(BASE + "/tunnels/{tunnelId}/token", TUNNEL_ID)
+                        .header("X-Namespace", NAMESPACE)
+                        .param("scope", "host"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.tunnelId").value(TUNNEL_ID))
+                .andExpect(jsonPath("$.scope").value("host"))
+                .andExpect(jsonPath("$.lifetime").value(3600))
+                .andExpect(jsonPath("$.expiration").value(1720086400L))
+                .andExpect(jsonPath("$.token").value("host-token"));
+    }
+
+    @Test
+    void issueTunnelTokenWithInvalidScopeReturnsBadRequest() throws Exception {
+        when(tunnelAppService.issueToken(NAMESPACE, TUNNEL_ID, "admin"))
+                .thenThrow(new BizException(ErrorCode.PARAM_INVALID, "scope must be host or connect"));
+
+        mockMvc.perform(post(BASE + "/tunnels/{tunnelId}/token", TUNNEL_ID)
+                        .header("X-Namespace", NAMESPACE)
+                        .param("scope", "admin"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error.code").value("40000"));
+    }
+
+    @Test
+    void issueTunnelTokenWithoutScopeReturnsBadRequest() throws Exception {
+        mockMvc.perform(post(BASE + "/tunnels/{tunnelId}/token", TUNNEL_ID)
+                        .header("X-Namespace", NAMESPACE))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error.code").value("40000"))
+                .andExpect(jsonPath("$.error.target").value("scope"));
     }
 
     @Test
@@ -290,11 +328,13 @@ class RelayControllerApiTest {
                         .content("""
                                 {
                                   "port": 8080,
+                                  "protocol": "http",
                                   "allowAnonymous": false
                                 }
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.port").value(8080))
+                .andExpect(jsonPath("$.protocol").value("http"))
                 .andExpect(jsonPath("$.allowAnonymous").value(false));
     }
 
@@ -306,6 +346,7 @@ class RelayControllerApiTest {
                         .tunnelId(TUNNEL_ID)
                         .tunnelCode(123456L)
                         .port(8888L)
+                        .protocol(TunnelProtocol.HTTPS)
                         .allowAnonymous(true)
                         .build()));
 
@@ -330,18 +371,49 @@ class RelayControllerApiTest {
     @Test
     void updateTunnelPortApi() throws Exception {
         when(tunnelPortAppService.update(eq(NAMESPACE), eq(TUNNEL_ID), eq(8080L), any(UpdateTunnelPortRequest.class)))
-                .thenReturn(tunnelPortResponse(true));
+                .thenReturn(TunnelPortResponse.builder()
+                        .tunnelId(TUNNEL_ID)
+                        .tunnelCode(123456L)
+                        .port(8080L)
+                        .protocol(TunnelProtocol.HTTPS)
+                        .allowAnonymous(true)
+                        .build());
 
         mockMvc.perform(put(BASE + "/tunnels/{tunnelId}/ports/{port}", TUNNEL_ID, 8080)
                         .header("X-Namespace", NAMESPACE)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
+                                  "protocol": "https",
                                   "allowAnonymous": true
                                 }
                                 """))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.protocol").value("https"))
                 .andExpect(jsonPath("$.allowAnonymous").value(true));
+    }
+
+    @Test
+    void createTunnelPortWithInvalidProtocolReturnsBadRequest() throws Exception {
+        mockMvc.perform(post(BASE + "/tunnels/{tunnelId}/ports", TUNNEL_ID)
+                        .header("X-Namespace", NAMESPACE)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "port": 8080,
+                                  "protocol": "tcp",
+                                  "allowAnonymous": false
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error.code").value("40000"));
+    }
+
+    @Test
+    void tunnelPortCollectionDoesNotSupportDelete() throws Exception {
+        mockMvc.perform(delete(BASE + "/tunnels/{tunnelId}/ports", TUNNEL_ID)
+                        .header("X-Namespace", NAMESPACE))
+                .andExpect(status().isMethodNotAllowed());
     }
 
     @Test
@@ -355,16 +427,6 @@ class RelayControllerApiTest {
     }
 
     @Test
-    void deleteTunnelPortsApi() throws Exception {
-        when(tunnelPortAppService.deleteAll(NAMESPACE, TUNNEL_ID)).thenReturn(true);
-
-        mockMvc.perform(delete(BASE + "/tunnels/{tunnelId}/ports", TUNNEL_ID)
-                        .header("X-Namespace", NAMESPACE))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").value(true));
-    }
-
-    @Test
     void getGatewayTunnelPortPolicyApi() throws Exception {
         when(tunnelPortAppService.getGatewayPortPolicy(CLUSTER_ID, TUNNEL_ID, 8080L))
                 .thenReturn(GatewayTunnelPortPolicyResponse.builder()
@@ -372,12 +434,14 @@ class RelayControllerApiTest {
                         .tunnelCode(123456L)
                         .clusterId(CLUSTER_ID)
                         .port(8080L)
+                        .protocol(TunnelProtocol.AUTO)
                         .allowAnonymous(false)
                         .build());
 
         mockMvc.perform(get(BASE + "/clusters/{clusterId}/tunnels/{tunnelId}/ports/{port}", CLUSTER_ID, TUNNEL_ID, 8080))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.clusterId").value(CLUSTER_ID))
+                .andExpect(jsonPath("$.protocol").value("auto"))
                 .andExpect(jsonPath("$.allowAnonymous").value(false));
     }
 
@@ -392,11 +456,6 @@ class RelayControllerApiTest {
                 .created(1720000000L)
                 .url("aaaadysa-cluster-a-myhuaweicloud.com")
                 .type("bridge")
-                .jwt(JwtResponse.builder()
-                        .connect("connect-token")
-                        .host("host-token")
-                        .expiresIn(86400L)
-                        .build())
                 .build();
     }
 
@@ -405,6 +464,7 @@ class RelayControllerApiTest {
                 .tunnelId(TUNNEL_ID)
                 .tunnelCode(123456L)
                 .port(8080L)
+                .protocol(TunnelProtocol.HTTP)
                 .allowAnonymous(allowAnonymous)
                 .build();
     }

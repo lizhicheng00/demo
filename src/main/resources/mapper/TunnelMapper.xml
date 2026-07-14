@@ -26,7 +26,8 @@
 
     <select id="selectActiveByNamespaceAndRegion"
             resultType="com.huawei.devbridge.relaycontroller.infrastructure.persistence.entity.TunnelEntity">
-        SELECT t.*
+        SELECT t.*,
+               (SELECT COUNT(1) FROM tunnel_port tp WHERE tp.tunnel_code = t.tunnel_code) AS port_count
         FROM tunnel t
         INNER JOIN cluster c ON c.cluster_id = t.cluster_id
         WHERE t.namespace = #{namespace}

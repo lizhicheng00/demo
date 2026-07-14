@@ -125,6 +125,30 @@ paths:
                 type: boolean
         default:
           $ref: '#/components/responses/ErrorResponse'
+  /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/token:
+    post:
+      tags: [Tunnel]
+      summary: Issue a new tunnel token
+      description: Issues a new token on every call. Its lifetime does not exceed the tunnel's remaining lifetime.
+      operationId: issueTunnelToken
+      parameters:
+        - $ref: '#/components/parameters/NamespaceHeader'
+        - $ref: '#/components/parameters/TunnelIdPath'
+        - name: scope
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [host, connect]
+      responses:
+        '200':
+          description: Newly issued tunnel token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TunnelTokenResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
   /open-api-inner/v1/relay-controller/clusters/{clusterId}/metering:
     post:
       tags: [Metering]
@@ -186,22 +210,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/TunnelPortResponse'
-        default:
-          $ref: '#/components/responses/ErrorResponse'
-    delete:
-      tags: [Tunnel Port]
-      summary: Delete all tunnel port policies
-      operationId: deleteTunnelPorts
-      parameters:
-        - $ref: '#/components/parameters/NamespaceHeader'
-        - $ref: '#/components/parameters/TunnelIdPath'
-      responses:
-        '200':
-          description: Delete result.
-          content:
-            application/json:
-              schema:
-                type: boolean
         default:
           $ref: '#/components/responses/ErrorResponse'
   /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports/{port}:
@@ -412,19 +420,25 @@ components:
           minimum: 0
     CreateTunnelPortRequest:
       type: object
-      required: [port, allowAnonymous]
+      required: [port, protocol, allowAnonymous]
       properties:
         port:
           type: integer
           format: int64
           minimum: 1
           maximum: 65535
+        protocol:
+          type: string
+          enum: [http, https, auto]
         allowAnonymous:
           type: boolean
     UpdateTunnelPortRequest:
       type: object
-      required: [allowAnonymous]
+      required: [protocol, allowAnonymous]
       properties:
+        protocol:
+          type: string
+          enum: [http, https, auto]
         allowAnonymous:
           type: boolean
     CreateTunnelResponse:
@@ -463,8 +477,6 @@ components:
         type:
           type: string
           enum: [bridge, env]
-        jwt:
-          $ref: '#/components/schemas/JwtResponse'
     TunnelListItemResponse:
       type: object
       properties:
@@ -489,24 +501,35 @@ components:
           format: int64
         url:
           type: string
+        portCount:
+          type: integer
+          format: int64
+          minimum: 0
     MeteringReportResponse:
       type: object
       properties:
         accepted:
           type: boolean
-    JwtResponse:
+    TunnelTokenResponse:
       type: object
-      required: [connect, host, expiresIn]
+      required: [tunnelId, scope, lifetime, expiration, token]
       properties:
-        connect:
+        tunnelId:
           type: string
-          description: JWT with connect scope.
-        host:
+          pattern: '^[a-z2-7]{8}$'
+        scope:
           type: string
-          description: JWT with host scope.
-        expiresIn:
+          enum: [host, connect]
+        lifetime:
           type: integer
           format: int64
+          description: Token lifetime in seconds.
+        expiration:
+          type: integer
+          format: int64
+          description: Token expiration as Unix seconds.
+        token:
+          type: string
     TunnelPortResponse:
       type: object
       properties:
@@ -519,6 +542,9 @@ components:
         port:
           type: integer
           format: int64
+        protocol:
+          type: string
+          enum: [http, https, auto]
         allowAnonymous:
           type: boolean
     GatewayTunnelPortPolicyResponse:
@@ -535,5 +561,8 @@ components:
         port:
           type: integer
           format: int64
+        protocol:
+          type: string
+          enum: [http, https, auto]
         allowAnonymous:
           type: boolean

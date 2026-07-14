@@ -37,6 +37,7 @@ public class TunnelPortAppService {
     public TunnelPortResponse create(String rawNamespace, String tunnelId, CreateTunnelPortRequest request) {
         Tunnel tunnel = ownedTunnel(rawNamespace, tunnelId);
         tunnelPortDomainService.validatePort(request.getPort());
+        tunnelPortDomainService.validateProtocol(request.getProtocol());
         tunnelPortDomainService.validateAllowAnonymous(request.getAllowAnonymous());
         if (tunnelPortRepository.existsByTunnelCodeAndPort(tunnel.getTunnelCode(), request.getPort())) {
             throw new BizException(ErrorCode.TUNNEL_PORT_ALREADY_EXISTS);
@@ -45,10 +46,12 @@ public class TunnelPortAppService {
         TunnelPort tunnelPort = tunnelPortRepository.save(TunnelPort.builder()
                 .tunnelCode(tunnel.getTunnelCode())
                 .port(request.getPort())
+                .protocol(request.getProtocol())
                 .allowAnonymous(request.getAllowAnonymous())
                 .build());
-        log.info("Tunnel port created: tunnelId={}, tunnelCode={}, port={}, allowAnonymous={}",
-                tunnel.getTunnelId(), tunnel.getTunnelCode(), tunnelPort.getPort(), tunnelPort.getAllowAnonymous());
+        log.info("Tunnel port created: tunnelId={}, tunnelCode={}, port={}, protocol={}, allowAnonymous={}",
+                tunnel.getTunnelId(), tunnel.getTunnelCode(), tunnelPort.getPort(), tunnelPort.getProtocol(),
+                tunnelPort.getAllowAnonymous());
         return TunnelPortAssembler.toResponse(tunnel, tunnelPort);
     }
 
@@ -68,12 +71,14 @@ public class TunnelPortAppService {
     @Transactional
     public TunnelPortResponse update(String rawNamespace, String tunnelId, Long port, UpdateTunnelPortRequest request) {
         Tunnel tunnel = ownedTunnel(rawNamespace, tunnelId);
+        tunnelPortDomainService.validateProtocol(request.getProtocol());
         tunnelPortDomainService.validateAllowAnonymous(request.getAllowAnonymous());
         TunnelPort tunnelPort = findTunnelPort(tunnel.getTunnelCode(), port);
-        tunnelPortRepository.updateAllowAnonymous(tunnel.getTunnelCode(), port, request.getAllowAnonymous());
+        tunnelPortRepository.updatePolicy(tunnel.getTunnelCode(), port, request.getProtocol(), request.getAllowAnonymous());
+        tunnelPort.setProtocol(request.getProtocol());
         tunnelPort.setAllowAnonymous(request.getAllowAnonymous());
-        log.info("Tunnel port updated: tunnelId={}, tunnelCode={}, port={}, allowAnonymous={}",
-                tunnel.getTunnelId(), tunnel.getTunnelCode(), port, request.getAllowAnonymous());
+        log.info("Tunnel port updated: tunnelId={}, tunnelCode={}, port={}, protocol={}, allowAnonymous={}",
+                tunnel.getTunnelId(), tunnel.getTunnelCode(), port, request.getProtocol(), request.getAllowAnonymous());
         return TunnelPortAssembler.toResponse(tunnel, tunnelPort);
     }
 
@@ -84,14 +89,6 @@ public class TunnelPortAppService {
         tunnelPortRepository.deleteByTunnelCodeAndPort(tunnel.getTunnelCode(), port);
         log.info("Tunnel port deleted: tunnelId={}, tunnelCode={}, port={}",
                 tunnel.getTunnelId(), tunnel.getTunnelCode(), port);
-        return true;
-    }
-
-    @Transactional
-    public Boolean deleteAll(String rawNamespace, String tunnelId) {
-        Tunnel tunnel = ownedTunnel(rawNamespace, tunnelId);
-        tunnelPortRepository.deleteByTunnelCode(tunnel.getTunnelCode());
-        log.info("Tunnel ports deleted: tunnelId={}, tunnelCode={}", tunnel.getTunnelId(), tunnel.getTunnelCode());
         return true;
     }
 

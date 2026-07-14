@@ -8,7 +8,6 @@ import static org.mockito.Mockito.when;
 import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
 import com.huawei.devbridge.relaycontroller.domain.repository.TunnelPortRepository;
 import com.huawei.devbridge.relaycontroller.domain.repository.TunnelRepository;
-import com.huawei.devbridge.relaycontroller.domain.service.JwtTokenService;
 import com.huawei.devbridge.relaycontroller.infrastructure.config.RelayProperties;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -25,14 +24,12 @@ class TunnelCleanupJobTest {
     private TunnelRepository tunnelRepository;
     @Mock
     private TunnelPortRepository tunnelPortRepository;
-    @Mock
-    private JwtTokenService jwtTokenService;
 
     @Test
     void shouldHardDeleteAgedTunnelsAndCleanRelatedState() {
         RelayProperties properties = new RelayProperties();
         TunnelCleanupJob cleanupJob = new TunnelCleanupJob(
-                tunnelRepository, tunnelPortRepository, jwtTokenService, properties);
+                tunnelRepository, tunnelPortRepository, properties);
         Tunnel tunnel = Tunnel.builder()
                 .tunnelId("aaaadysa")
                 .tunnelCode(123456L)
@@ -46,14 +43,13 @@ class TunnelCleanupJobTest {
         assertThat(deleted).isEqualTo(1);
         verify(tunnelRepository).deleteAgedByTunnelId("aaaadysa", EXPIRATION_CUTOFF);
         verify(tunnelPortRepository).deleteByTunnelCode(123456L);
-        verify(jwtTokenService).evictToken("aaaadysa");
     }
 
     @Test
     void shouldSkipRelatedCleanupWhenTunnelWasRenewed() {
         RelayProperties properties = new RelayProperties();
         TunnelCleanupJob cleanupJob = new TunnelCleanupJob(
-                tunnelRepository, tunnelPortRepository, jwtTokenService, properties);
+                tunnelRepository, tunnelPortRepository, properties);
         Tunnel tunnel = Tunnel.builder()
                 .tunnelId("aaaadysa")
                 .tunnelCode(123456L)
@@ -66,6 +62,5 @@ class TunnelCleanupJobTest {
 
         assertThat(deleted).isZero();
         verify(tunnelPortRepository, never()).deleteByTunnelCode(123456L);
-        verify(jwtTokenService, never()).evictToken("aaaadysa");
     }
 }

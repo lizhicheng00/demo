@@ -14,4 +14,5 @@ public class TunnelListItemResponse {
     private Integer expiration;
     private Long created;
     private String url;
+    private Long portCount;
 }

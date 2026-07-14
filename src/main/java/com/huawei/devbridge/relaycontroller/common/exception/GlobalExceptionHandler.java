@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.MissingRequestHeaderException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -55,6 +56,14 @@ public class GlobalExceptionHandler {
         }
         return failure(HttpStatus.BAD_REQUEST, ErrorCode.PARAM_INVALID,
                 "required request header is missing", exception.getHeaderName());
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ErrorResponse> handleMissingRequestParameter(
+            MissingServletRequestParameterException exception) {
+        log.warn("Missing request parameter: {}", exception.getParameterName());
+        return failure(HttpStatus.BAD_REQUEST, ErrorCode.PARAM_INVALID,
+                "required request parameter is missing", exception.getParameterName());
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)

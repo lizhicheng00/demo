@@ -2,6 +2,7 @@ package com.huawei.devbridge.relaycontroller.infrastructure.persistence.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.huawei.devbridge.relaycontroller.domain.model.TunnelType;
 import lombok.Data;
@@ -24,4 +25,6 @@ public class TunnelEntity {
     private Integer deleted;
     private Long createdAt;
     private Long updatedAt;
+    @TableField(exist = false)
+    private Long portCount;
 }

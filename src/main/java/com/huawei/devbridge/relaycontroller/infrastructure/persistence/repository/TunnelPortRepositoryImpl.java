@@ -3,6 +3,7 @@ package com.huawei.devbridge.relaycontroller.infrastructure.persistence.reposito
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.huawei.devbridge.relaycontroller.domain.model.TunnelPort;
+import com.huawei.devbridge.relaycontroller.domain.model.TunnelProtocol;
 import com.huawei.devbridge.relaycontroller.domain.repository.TunnelPortRepository;
 import com.huawei.devbridge.relaycontroller.infrastructure.persistence.converter.PersistenceConverter;
 import com.huawei.devbridge.relaycontroller.infrastructure.persistence.entity.TunnelPortEntity;
@@ -52,10 +53,11 @@ public class TunnelPortRepositoryImpl implements TunnelPortRepository {
     }
 
     @Override
-    public void updateAllowAnonymous(Long tunnelCode, Long port, Boolean allowAnonymous) {
+    public void updatePolicy(Long tunnelCode, Long port, TunnelProtocol protocol, Boolean allowAnonymous) {
         tunnelPortMapper.update(null, new LambdaUpdateWrapper<TunnelPortEntity>()
                 .eq(TunnelPortEntity::getTunnelCode, tunnelCode)
                 .eq(TunnelPortEntity::getPort, port)
+                .set(TunnelPortEntity::getProtocol, protocol)
                 .set(TunnelPortEntity::getAllowAnonymous, allowAnonymous));
     }
 

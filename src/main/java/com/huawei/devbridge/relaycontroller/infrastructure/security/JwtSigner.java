@@ -14,6 +14,7 @@ import com.nimbusds.jwt.SignedJWT;
 import java.security.interfaces.RSAPrivateKey;
 import java.time.Instant;
 import java.util.Date;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -23,14 +24,13 @@ public class JwtSigner {
     private final RelayProperties relayProperties;
     private final JwtKeyProvider jwtKeyProvider;
 
-    public String signToken(Tunnel tunnel, JwtScope scope, long ttlSeconds) {
+    public String signToken(Tunnel tunnel, JwtScope scope, long issuedAt, long expiration) {
         try {
-            Instant now = Instant.now();
-            Instant expiresAt = now.plusSeconds(ttlSeconds);
             JWTClaimsSet claims = new JWTClaimsSet.Builder()
                     .issuer(relayProperties.getJwt().getIssuer())
-                    .expirationTime(Date.from(expiresAt))
-                    .notBeforeTime(Date.from(now))
+                    .expirationTime(Date.from(Instant.ofEpochSecond(expiration)))
+                    .notBeforeTime(Date.from(Instant.ofEpochSecond(issuedAt)))
+                    .jwtID(UUID.randomUUID().toString())
                     .claim("tunnelId", tunnel.getTunnelId())
                     .claim("clusterId", tunnel.getClusterId())
                     .claim("scp", scope.value())

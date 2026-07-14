@@ -14,6 +14,7 @@ public final class TunnelPortAssembler {
                 .tunnelId(tunnel.getTunnelId())
                 .tunnelCode(tunnelPort.getTunnelCode())
                 .port(tunnelPort.getPort())
+                .protocol(tunnelPort.getProtocol())
                 .allowAnonymous(tunnelPort.getAllowAnonymous())
                 .build();
     }
@@ -24,6 +25,7 @@ public final class TunnelPortAssembler {
                 .tunnelCode(tunnelPort.getTunnelCode())
                 .clusterId(tunnel.getClusterId())
                 .port(tunnelPort.getPort())
+                .protocol(tunnelPort.getProtocol())
                 .allowAnonymous(tunnelPort.getAllowAnonymous())
                 .build();
     }

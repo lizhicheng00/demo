@@ -13,5 +13,6 @@ public class TunnelPort {
     private Long id;
     private Long tunnelCode;
     private Long port;
+    private TunnelProtocol protocol;
     private Boolean allowAnonymous;
 }

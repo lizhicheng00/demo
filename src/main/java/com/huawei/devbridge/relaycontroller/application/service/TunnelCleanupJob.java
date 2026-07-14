@@ -4,7 +4,6 @@ import com.huawei.devbridge.relaycontroller.common.util.TimeUtils;
 import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
 import com.huawei.devbridge.relaycontroller.domain.repository.TunnelPortRepository;
 import com.huawei.devbridge.relaycontroller.domain.repository.TunnelRepository;
-import com.huawei.devbridge.relaycontroller.domain.service.JwtTokenService;
 import com.huawei.devbridge.relaycontroller.infrastructure.config.RelayProperties;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +21,6 @@ public class TunnelCleanupJob {
 
     private final TunnelRepository tunnelRepository;
     private final TunnelPortRepository tunnelPortRepository;
-    private final JwtTokenService jwtTokenService;
     private final RelayProperties relayProperties;
 
     @Scheduled(
@@ -41,7 +39,6 @@ public class TunnelCleanupJob {
             if (tunnelRepository.deleteAgedByTunnelId(tunnel.getTunnelId(), expirationCutoff)) {
                 tunnelPortRepository.deleteByTunnelCode(tunnel.getTunnelCode());
                 deleted++;
-                jwtTokenService.evictToken(tunnel.getTunnelId());
             }
         }
         if (deleted > 0) {

@@ -1,6 +1,7 @@
 package com.huawei.devbridge.relaycontroller.domain.repository;
 
 import com.huawei.devbridge.relaycontroller.domain.model.TunnelPort;
+import com.huawei.devbridge.relaycontroller.domain.model.TunnelProtocol;
 import java.util.List;
 
 public interface TunnelPortRepository {
@@ -12,7 +13,7 @@ public interface TunnelPortRepository {
 
     boolean existsByTunnelCodeAndPort(Long tunnelCode, Long port);
 
-    void updateAllowAnonymous(Long tunnelCode, Long port, Boolean allowAnonymous);
+    void updatePolicy(Long tunnelCode, Long port, TunnelProtocol protocol, Boolean allowAnonymous);
 
     void deleteByTunnelCodeAndPort(Long tunnelCode, Long port);
 

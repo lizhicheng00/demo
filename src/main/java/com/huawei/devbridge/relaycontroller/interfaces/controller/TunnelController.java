@@ -7,6 +7,7 @@ import com.huawei.devbridge.relaycontroller.interfaces.request.UpdateTunnelReque
 import com.huawei.devbridge.relaycontroller.interfaces.response.CreateTunnelResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelDetailResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelListItemResponse;
+import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelTokenResponse;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.RestController;
@@ -34,6 +35,11 @@ public class TunnelController implements TunnelApi {
     @Override
     public TunnelDetailResponse getTunnelDetail(String xNamespace, String tunnelId) {
         return tunnelAppService.getTunnelDetail(xNamespace, tunnelId);
+    }
+
+    @Override
+    public TunnelTokenResponse issueTunnelToken(String xNamespace, String tunnelId, String scope) {
+        return tunnelAppService.issueToken(xNamespace, tunnelId, scope);
     }
 
     @Override

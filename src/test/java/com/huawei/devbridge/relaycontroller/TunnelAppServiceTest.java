@@ -2,7 +2,6 @@ package com.huawei.devbridge.relaycontroller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -16,7 +15,8 @@ import com.huawei.devbridge.relaycontroller.common.exception.ErrorCode;
 import com.huawei.devbridge.relaycontroller.common.util.TimeUtils;
 import com.huawei.devbridge.relaycontroller.application.service.TunnelAppService;
 import com.huawei.devbridge.relaycontroller.domain.model.Cluster;
-import com.huawei.devbridge.relaycontroller.domain.model.JwtTokens;
+import com.huawei.devbridge.relaycontroller.domain.model.JwtScope;
+import com.huawei.devbridge.relaycontroller.domain.model.JwtToken;
 import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
 import com.huawei.devbridge.relaycontroller.domain.model.TunnelType;
 import com.huawei.devbridge.relaycontroller.domain.repository.ClusterRepository;
@@ -31,6 +31,7 @@ import com.huawei.devbridge.relaycontroller.interfaces.request.CreateTunnelReque
 import com.huawei.devbridge.relaycontroller.interfaces.request.UpdateTunnelRequest;
 import com.huawei.devbridge.relaycontroller.interfaces.response.CreateTunnelResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelListItemResponse;
+import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelTokenResponse;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -76,9 +77,6 @@ class TunnelAppServiceTest {
         when(tunnelRepository.existsByTunnelCode(123456L)).thenReturn(false);
         when(tunnelRepository.existsByTunnelId("aaaadysa")).thenReturn(false);
         when(tunnelRepository.save(org.mockito.ArgumentMatchers.any(Tunnel.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(jwtTokenService.getOrCreateTokens(any(Tunnel.class)))
-                .thenReturn(new JwtTokens("connect-token", "host-token", 86400));
-
         CreateTunnelResponse response = service.createTunnel("ns-user-001", request);
         long after = TimeUtils.nowSeconds();
 
@@ -86,9 +84,6 @@ class TunnelAppServiceTest {
         assertThat(response.getTunnelCode()).isEqualTo(123456L);
         assertThat(response.getUrl()).isEqualTo("aaaadysa-cluster-a-myhuaweicloud.com");
         assertThat(response.getType()).isEqualTo("bridge");
-        assertThat(response.getJwt().getConnect()).isEqualTo("connect-token");
-        assertThat(response.getJwt().getHost()).isEqualTo("host-token");
-        assertThat(response.getJwt().getExpiresIn()).isEqualTo(86400);
         assertThat(response.getExpiration())
                 .isBetween(Math.toIntExact(before + 72 * 3600L), Math.toIntExact(after + 72 * 3600L));
     }
@@ -120,9 +115,6 @@ class TunnelAppServiceTest {
         when(tunnelRepository.existsByTunnelCode(123456L)).thenReturn(false);
         when(tunnelRepository.existsByTunnelId("aaaadysa")).thenReturn(false);
         when(tunnelRepository.save(org.mockito.ArgumentMatchers.any(Tunnel.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(jwtTokenService.getOrCreateTokens(any(Tunnel.class)))
-                .thenReturn(new JwtTokens("connect-token", "host-token", 7200));
-
         CreateTunnelResponse response = service.createTunnel("ns-user-001", request);
         long after = TimeUtils.nowSeconds();
 
@@ -213,9 +205,6 @@ class TunnelAppServiceTest {
             activeCount.incrementAndGet();
             return invocation.getArgument(0);
         });
-        when(jwtTokenService.getOrCreateTokens(any(Tunnel.class)))
-                .thenReturn(new JwtTokens("connect-token", "host-token", 86400));
-
         ExecutorService executor = Executors.newFixedThreadPool(8);
         try {
             List<Callable<Boolean>> tasks = IntStream.range(0, 20)
@@ -234,7 +223,7 @@ class TunnelAppServiceTest {
     }
 
     @Test
-    void updateTunnelEvictsTokenWhenExpirationChanges() {
+    void updateTunnelChangesExpiration() {
         TunnelAppService service = newService(new RelayProperties());
         UpdateTunnelRequest request = new UpdateTunnelRequest();
         request.setExpiration(1);
@@ -256,7 +245,6 @@ class TunnelAppServiceTest {
         assertThat(tunnel.getExpiration())
                 .isBetween(Math.toIntExact(before + 3600L), Math.toIntExact(after + 3600L));
         verify(tunnelRepository).update(tunnel);
-        verify(jwtTokenService).evictToken("aaaadysa");
     }
 
     @Test
@@ -267,6 +255,7 @@ class TunnelAppServiceTest {
                 .namespace("ns-user-001")
                 .clusterId("cluster-a")
                 .url("local-cluster-a-myhuaweicloud.com")
+                .portCount(2L)
                 .deleted(0)
                 .build();
 
@@ -277,6 +266,7 @@ class TunnelAppServiceTest {
         List<TunnelListItemResponse> response = service.listTunnels("ns-user-001", null);
 
         assertThat(response).extracting(TunnelListItemResponse::getName).containsExactly("local");
+        assertThat(response.get(0).getPortCount()).isEqualTo(2L);
     }
 
     @Test
@@ -330,7 +320,6 @@ class TunnelAppServiceTest {
         Boolean deleted = service.deleteTunnel("ns-user-001", "aaaadysa");
 
         assertThat(deleted).isTrue();
-        verify(jwtTokenService).evictToken("aaaadysa");
         verify(tunnelPortRepository).deleteByTunnelCode(123456L);
         verify(tunnelRepository).deleteByTunnelId("aaaadysa");
     }
@@ -351,9 +340,39 @@ class TunnelAppServiceTest {
         Boolean deleted = service.deleteTunnels("ns-user-001");
 
         assertThat(deleted).isTrue();
-        verify(jwtTokenService).evictToken("aaaadysa");
         verify(tunnelPortRepository).deleteByTunnelCode(123456L);
         verify(tunnelRepository).deleteByTunnelId("aaaadysa");
+    }
+
+    @Test
+    void issueTokenReturnsRequestedScopeAndLifetime() {
+        TunnelAppService service = newService(new RelayProperties());
+        Tunnel tunnel = Tunnel.builder()
+                .tunnelId("aaaadysa")
+                .namespace("ns-user-001")
+                .expiration(Math.toIntExact(TimeUtils.nowSeconds() + 3600))
+                .build();
+        when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel);
+        when(jwtTokenService.issueToken(tunnel, JwtScope.HOST))
+                .thenReturn(new JwtToken("host-token", 3600L, 200000L));
+
+        TunnelTokenResponse response = service.issueToken("ns-user-001", "aaaadysa", "host");
+
+        assertThat(response.getTunnelId()).isEqualTo("aaaadysa");
+        assertThat(response.getScope()).isEqualTo(JwtScope.HOST);
+        assertThat(response.getLifetime()).isEqualTo(3600L);
+        assertThat(response.getExpiration()).isEqualTo(200000L);
+        assertThat(response.getToken()).isEqualTo("host-token");
+    }
+
+    @Test
+    void issueTokenRejectsUnsupportedScope() {
+        TunnelAppService service = newService(new RelayProperties());
+
+        assertThatThrownBy(() -> service.issueToken("ns-user-001", "aaaadysa", "admin"))
+                .isInstanceOf(BizException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.PARAM_INVALID);
     }
 
     private TunnelAppService newService(RelayProperties properties) {

@@ -27,11 +27,6 @@ public class TunnelPortController implements TunnelPortApi, GatewayTunnelPortApi
     }
 
     @Override
-    public Boolean deleteTunnelPorts(String xNamespace, String tunnelId) {
-        return tunnelPortAppService.deleteAll(xNamespace, tunnelId);
-    }
-
-    @Override
     public TunnelPortResponse getTunnelPort(String xNamespace, String tunnelId, Long port) {
         return tunnelPortAppService.detail(xNamespace, tunnelId, port);
     }

@@ -51,6 +51,7 @@ CREATE TABLE IF NOT EXISTS tunnel_port (
     _id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'primary key',
     tunnel_code BIGINT UNSIGNED NOT NULL COMMENT 'tunnel code',
     port BIGINT UNSIGNED NOT NULL COMMENT 'port, business range 1-65535',
+    protocol VARCHAR(16) NOT NULL DEFAULT 'auto' COMMENT 'application protocol: http/https/auto',
     allow_anonymous TINYINT NOT NULL DEFAULT 0 COMMENT 'allow anonymous access',
     PRIMARY KEY (_id),
     UNIQUE KEY uk_tunnel_code_port (tunnel_code, port),
