@@ -35,7 +35,7 @@ spring:
       pem:
         redis-ca:
           truststore:
-            certificate: file:${SPRING_DATA_REDIS_SSL_TRUST_STORE:/app/resources/redis-ca/ca.crt}
+            certificate: file:${SPRING_DATA_REDIS_SSL_TRUST_STORE:/app/resources/redis-ca-crt/ca.crt}
 
 mybatis-plus:
   mapper-locations: classpath*:mapper/**/*.xml
