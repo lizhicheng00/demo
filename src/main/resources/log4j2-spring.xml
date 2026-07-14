@@ -1,103 +1,78 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="WARN" monitorInterval="120" strict="true" name="log4j-relay-controller">
+<Configuration status="WARN" monitorInterval="120">
     <Properties>
         <Property name="appName">relay-controller</Property>
-        <Property name="delete_policy">${env:LOG_DELETE_POLICY:-P7D}</Property>
-        <Property name="size_policy">${env:LOG_SIZE_POLICY:-20MB}</Property>
-        <Property name="max_file_count">${env:LOG_MAX_FILE_COUNT:-30}</Property>
-        <Property name="log_path">${env:LOG_PATH:-logs}</Property>
-        <Property name="running_file_path">${log_path}/running/${appName}.log</Property>
-        <Property name="running_file_path_archive">${log_path}/running/archive/${appName}-%d{yyyy-MM-dd}-%i.log.gz</Property>
-        <Property name="running_pattern">%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %-5level [%thread] %logger{36} - %message%n%throwable</Property>
-        <Property name="access_file_path">${log_path}/access/${appName}-access.log</Property>
-        <Property name="access_file_path_archive">${log_path}/access/archive/${appName}-access-%d{yyyy-MM-dd}-%i.log.gz</Property>
-        <Property name="access_pattern">%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %message%n%throwable</Property>
+        <Property name="logPath">${env:LOG_PATH:-logs}</Property>
+        <Property name="maxFileSize">${env:LOG_SIZE_POLICY:-20MB}</Property>
+        <Property name="maxFiles">${env:LOG_MAX_FILE_COUNT:-30}</Property>
+        <Property name="retention">${env:LOG_DELETE_POLICY:-P7D}</Property>
+        <Property name="runningPattern">%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %-5level [%thread] %logger{36} - %message%n%throwable</Property>
+        <Property name="accessPattern">%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %message%n%throwable</Property>
     </Properties>
 
     <Appenders>
-        <Appender type="Console" name="Console" target="SYSTEM_OUT">
-            <Layout type="UsPatternLayout" pattern="${running_pattern}"/>
-            <Filter type="DynamicThresholdFilter" key="logLevel" defaultThreshold="INFO"
-                    onMatch="ACCEPT" onMismatch="DENY"/>
-        </Appender>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="${runningPattern}"/>
+        </Console>
 
-        <Appender type="RollingFile" name="RunningRollingFile"
-                  fileName="${running_file_path}" filePattern="${running_file_path_archive}"
-                  filePermissions="rw-r-----">
-            <Layout type="UsPatternLayout" pattern="${running_pattern}"/>
-            <Filter type="DynamicThresholdFilter" key="logLevel" defaultThreshold="INFO"
-                    onMatch="ACCEPT" onMismatch="DENY"/>
+        <RollingFile name="RunningFile"
+                     fileName="${logPath}/running/${appName}.log"
+                     filePattern="${logPath}/running/archive/${appName}-%d{yyyy-MM-dd}-%i.log.gz"
+                     createOnDemand="true">
+            <PatternLayout pattern="${runningPattern}"/>
             <Policies>
-                <Policy type="OnStartupTriggeringPolicy"/>
-                <Policy type="TimeBasedTriggeringPolicy" interval="1" modulate="true"/>
-                <Policy type="SizeBasedTriggeringPolicy" size="${size_policy}"/>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="${maxFileSize}"/>
             </Policies>
-            <RolloverStrategy type="DefaultRolloverStrategy" max="${max_file_count}">
-                <Action type="PosixViewAttribute" basePath="${log_path}" maxDepth="3"
-                        filePermissions="rw-r-----">
-                    <PathCondition type="IfFileName" glob="running/archive/*.log.gz"/>
-                </Action>
-                <Action type="Delete" basePath="${log_path}" maxDepth="3">
-                    <PathCondition type="IfFileName" glob="running/archive/*.log.gz">
-                        <PathCondition type="IfAny">
-                            <PathCondition type="IfLastModified" age="${delete_policy}"/>
-                            <PathCondition type="IfAccumulatedFileCount" exceeds="${max_file_count}"/>
-                        </PathCondition>
-                    </PathCondition>
-                </Action>
-            </RolloverStrategy>
-        </Appender>
+            <DefaultRolloverStrategy max="${maxFiles}">
+                <Delete basePath="${logPath}/running/archive" maxDepth="1">
+                    <IfFileName glob="*.log.gz">
+                        <IfAny>
+                            <IfLastModified age="${retention}"/>
+                            <IfAccumulatedFileCount exceeds="${maxFiles}"/>
+                        </IfAny>
+                    </IfFileName>
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
 
-        <Appender type="RollingFile" name="AccessRollingFile"
-                  fileName="${access_file_path}" filePattern="${access_file_path_archive}"
-                  filePermissions="rw-r-----">
-            <Layout type="UsPatternLayout" pattern="${access_pattern}"/>
-            <Filter type="DynamicThresholdFilter" key="logLevel" defaultThreshold="INFO"
-                    onMatch="ACCEPT" onMismatch="DENY"/>
+        <RollingFile name="AccessFile"
+                     fileName="${logPath}/access/${appName}-access.log"
+                     filePattern="${logPath}/access/archive/${appName}-access-%d{yyyy-MM-dd}-%i.log.gz"
+                     createOnDemand="true">
+            <PatternLayout pattern="${accessPattern}"/>
             <Policies>
-                <Policy type="OnStartupTriggeringPolicy"/>
-                <Policy type="TimeBasedTriggeringPolicy" interval="1" modulate="true"/>
-                <Policy type="SizeBasedTriggeringPolicy" size="${size_policy}"/>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="${maxFileSize}"/>
             </Policies>
-            <RolloverStrategy type="DefaultRolloverStrategy" max="${max_file_count}">
-                <Action type="PosixViewAttribute" basePath="${log_path}" maxDepth="3"
-                        filePermissions="rw-r-----">
-                    <PathCondition type="IfFileName" glob="access/archive/*.log.gz"/>
-                </Action>
-                <Action type="Delete" basePath="${log_path}" maxDepth="3">
-                    <PathCondition type="IfFileName" glob="access/archive/*.log.gz">
-                        <PathCondition type="IfAny">
-                            <PathCondition type="IfLastModified" age="${delete_policy}"/>
-                            <PathCondition type="IfAccumulatedFileCount" exceeds="${max_file_count}"/>
-                        </PathCondition>
-                    </PathCondition>
-                </Action>
-            </RolloverStrategy>
-        </Appender>
-
-        <Appender type="Async" name="AsyncRunning">
-            <AppenderRef ref="RunningRollingFile"/>
-        </Appender>
-        <Appender type="Async" name="AsyncAccess">
-            <AppenderRef ref="AccessRollingFile"/>
-        </Appender>
+            <DefaultRolloverStrategy max="${maxFiles}">
+                <Delete basePath="${logPath}/access/archive" maxDepth="1">
+                    <IfFileName glob="*.log.gz">
+                        <IfAny>
+                            <IfLastModified age="${retention}"/>
+                            <IfAccumulatedFileCount exceeds="${maxFiles}"/>
+                        </IfAny>
+                    </IfFileName>
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
     </Appenders>
 
     <Loggers>
         <Logger name="com.baomidou.mybatisplus.core.toolkit.Sequence" level="OFF"/>
         <Logger name="org.flywaydb.core.internal.database.base.Database" level="ERROR"/>
-        <Logger name="com.huawei.devbridge.relaycontroller.RelayControllerApplication" level="INFO"/>
-        <Logger name="com.huawei.devbridge.relaycontroller.application.service" level="INFO"/>
+        <Logger name="com.huawei.devbridge.relaycontroller" level="INFO"/>
 
-        <Root level="INFO">
-            <AppenderRef ref="Console"/>
-            <AppenderRef ref="AsyncRunning"/>
-        </Root>
         <Logger name="accessLogger" level="INFO" additivity="false">
-            <AppenderRef ref="AsyncAccess"/>
+            <AppenderRef ref="AccessFile"/>
         </Logger>
         <Logger name="interfaceLog" level="INFO" additivity="false">
-            <AppenderRef ref="AsyncAccess"/>
+            <AppenderRef ref="AccessFile"/>
         </Logger>
+
+        <Root level="WARN">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="RunningFile"/>
+        </Root>
     </Loggers>
 </Configuration>
