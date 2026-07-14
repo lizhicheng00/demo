@@ -31,6 +31,31 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.huawei.clouds.wushan</groupId>
+            <artifactId>wushan-scc</artifactId>
+            <version>4.26.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mariadb.jdbc</groupId>
+            <artifactId>mariadb-java-client</artifactId>
+            <version>3.4.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.huawei.apigateway</groupId>
+            <artifactId>java-sdk-core</artifactId>
+            <version>5.0.3.JDK17-RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>com.huaweicloud.cloudspace</groupId>
+            <artifactId>commons-framework</artifactId>
+            <version>1.0.76-jdk21</version>
+        </dependency>
+        <dependency>
+            <groupId>com.huawei.clouds.wushan</groupId>
+            <artifactId>wushan-config</artifactId>
+            <version>4.26.0</version>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
             <exclusions>
