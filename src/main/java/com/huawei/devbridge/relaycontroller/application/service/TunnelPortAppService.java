@@ -3,6 +3,7 @@ package com.huawei.devbridge.relaycontroller.application.service;
 import com.huawei.devbridge.relaycontroller.application.assembler.TunnelPortAssembler;
 import com.huawei.devbridge.relaycontroller.common.exception.BizException;
 import com.huawei.devbridge.relaycontroller.common.exception.ErrorCode;
+import com.huawei.devbridge.relaycontroller.domain.model.Cluster;
 import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
 import com.huawei.devbridge.relaycontroller.domain.model.TunnelPort;
 import com.huawei.devbridge.relaycontroller.domain.repository.TunnelPortRepository;
@@ -18,6 +19,7 @@ import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelPortRespon
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,16 +41,17 @@ public class TunnelPortAppService {
         tunnelPortDomainService.validatePort(request.getPort());
         tunnelPortDomainService.validateProtocol(request.getProtocol());
         tunnelPortDomainService.validateAllowAnonymous(request.getAllowAnonymous());
-        if (tunnelPortRepository.existsByTunnelCodeAndPort(tunnel.getTunnelCode(), request.getPort())) {
+        TunnelPort tunnelPort;
+        try {
+            tunnelPort = tunnelPortRepository.save(TunnelPort.builder()
+                    .tunnelCode(tunnel.getTunnelCode())
+                    .port(request.getPort())
+                    .protocol(request.getProtocol())
+                    .allowAnonymous(request.getAllowAnonymous())
+                    .build());
+        } catch (DuplicateKeyException exception) {
             throw new BizException(ErrorCode.TUNNEL_PORT_ALREADY_EXISTS);
         }
-
-        TunnelPort tunnelPort = tunnelPortRepository.save(TunnelPort.builder()
-                .tunnelCode(tunnel.getTunnelCode())
-                .port(request.getPort())
-                .protocol(request.getProtocol())
-                .allowAnonymous(request.getAllowAnonymous())
-                .build());
         log.info("Tunnel port created: tunnelId={}, tunnelCode={}, port={}, protocol={}, allowAnonymous={}",
                 tunnel.getTunnelId(), tunnel.getTunnelCode(), tunnelPort.getPort(), tunnelPort.getProtocol(),
                 tunnelPort.getAllowAnonymous());
@@ -74,7 +77,10 @@ public class TunnelPortAppService {
         tunnelPortDomainService.validateProtocol(request.getProtocol());
         tunnelPortDomainService.validateAllowAnonymous(request.getAllowAnonymous());
         TunnelPort tunnelPort = findTunnelPort(tunnel.getTunnelCode(), port);
-        tunnelPortRepository.updatePolicy(tunnel.getTunnelCode(), port, request.getProtocol(), request.getAllowAnonymous());
+        if (!tunnelPortRepository.updatePolicy(
+                tunnel.getTunnelCode(), port, request.getProtocol(), request.getAllowAnonymous())) {
+            throw new BizException(ErrorCode.TUNNEL_PORT_NOT_FOUND);
+        }
         tunnelPort.setProtocol(request.getProtocol());
         tunnelPort.setAllowAnonymous(request.getAllowAnonymous());
         log.info("Tunnel port updated: tunnelId={}, tunnelCode={}, port={}, protocol={}, allowAnonymous={}",
@@ -85,17 +91,20 @@ public class TunnelPortAppService {
     @Transactional
     public Boolean delete(String rawNamespace, String tunnelId, Long port) {
         Tunnel tunnel = ownedTunnel(rawNamespace, tunnelId);
-        findTunnelPort(tunnel.getTunnelCode(), port);
-        tunnelPortRepository.deleteByTunnelCodeAndPort(tunnel.getTunnelCode(), port);
+        tunnelPortDomainService.validatePort(port);
+        if (!tunnelPortRepository.deleteByTunnelCodeAndPort(tunnel.getTunnelCode(), port)) {
+            throw new BizException(ErrorCode.TUNNEL_PORT_NOT_FOUND);
+        }
         log.info("Tunnel port deleted: tunnelId={}, tunnelCode={}, port={}",
                 tunnel.getTunnelId(), tunnel.getTunnelCode(), port);
         return true;
     }
 
     public GatewayTunnelPortPolicyResponse getGatewayPortPolicy(String clusterId, String tunnelId, Long port) {
-        localClusterService.requireLocalCluster(clusterId);
+        Cluster cluster = localClusterService.requireLocalCluster(clusterId);
         Tunnel tunnel = tunnelRepository.findByTunnelIdAndRegion(tunnelId, relayProperties.getRegion());
-        tunnelDomainService.assertInClusterAndNotExpired(tunnel, clusterId, ErrorCode.TUNNEL_PORT_ACCESS_DENIED);
+        tunnelDomainService.assertInClusterAndNotExpired(
+                tunnel, cluster.getClusterId(), ErrorCode.TUNNEL_PORT_ACCESS_DENIED);
         TunnelPort tunnelPort = findTunnelPort(tunnel.getTunnelCode(), port);
         return TunnelPortAssembler.toGatewayPolicy(tunnel, tunnelPort);
     }

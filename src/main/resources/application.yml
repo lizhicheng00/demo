@@ -7,8 +7,6 @@ spring:
   main:
     banner-mode: off
     log-startup-info: false
-  profiles:
-    active: dev,mtls
   datasource:
     url: ${DATASOURCE_URL}
     username: ${DATASOURCE_USERNAME}
@@ -71,5 +69,6 @@ relay:
     issuer: devbridge
     key-id: "1"
     private-key: ${RELAY_JWT_PRIVATE_KEY:}
+    allow-ephemeral-key: false
     token:
       ttl-seconds: 86400

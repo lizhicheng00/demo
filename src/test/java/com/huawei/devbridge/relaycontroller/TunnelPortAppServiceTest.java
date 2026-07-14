@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DuplicateKeyException;
 
 @ExtendWith(MockitoExtension.class)
 class TunnelPortAppServiceTest {
@@ -69,7 +70,8 @@ class TunnelPortAppServiceTest {
         request.setAllowAnonymous(false);
 
         when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel("ns-user-001", "cluster-a"));
-        when(tunnelPortRepository.existsByTunnelCodeAndPort(123456L, 8080L)).thenReturn(true);
+        when(tunnelPortRepository.save(org.mockito.ArgumentMatchers.any(TunnelPort.class)))
+                .thenThrow(new DuplicateKeyException("duplicate port"));
 
         assertThatThrownBy(() -> service.create("ns-user-001", "aaaadysa", request))
                 .isInstanceOf(BizException.class)
@@ -148,6 +150,7 @@ class TunnelPortAppServiceTest {
         when(tunnelPortRepository.findByTunnelCodeAndPort(123456L, 8080L))
                 .thenReturn(TunnelPort.builder().tunnelCode(123456L).port(8080L)
                         .protocol(TunnelProtocol.HTTP).allowAnonymous(false).build());
+        when(tunnelPortRepository.updatePolicy(123456L, 8080L, TunnelProtocol.HTTPS, true)).thenReturn(true);
 
         TunnelPortResponse response = service.update("ns-user-001", "aaaadysa", 8080L, request);
 
@@ -161,8 +164,7 @@ class TunnelPortAppServiceTest {
         TunnelPortAppService service = newService();
 
         when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel("ns-user-001", "cluster-a"));
-        when(tunnelPortRepository.findByTunnelCodeAndPort(123456L, 8080L))
-                .thenReturn(TunnelPort.builder().tunnelCode(123456L).port(8080L).allowAnonymous(false).build());
+        when(tunnelPortRepository.deleteByTunnelCodeAndPort(123456L, 8080L)).thenReturn(true);
 
         Boolean deleted = service.delete("ns-user-001", "aaaadysa", 8080L);
 
@@ -191,7 +193,7 @@ class TunnelPortAppServiceTest {
                 .thenReturn(TunnelPort.builder().tunnelCode(123456L).port(8080L)
                         .protocol(TunnelProtocol.AUTO).allowAnonymous(true).build());
 
-        GatewayTunnelPortPolicyResponse response = service.getGatewayPortPolicy("cluster-a", "aaaadysa", 8080L);
+        GatewayTunnelPortPolicyResponse response = service.getGatewayPortPolicy(" cluster-a ", "aaaadysa", 8080L);
 
         assertThat(response.getClusterId()).isEqualTo("cluster-a");
         assertThat(response.getAllowAnonymous()).isTrue();

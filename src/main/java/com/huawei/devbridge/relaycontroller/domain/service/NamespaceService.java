@@ -6,11 +6,16 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class NamespaceService {
+    private static final int MAX_NAMESPACE_LENGTH = 128;
 
     public String requireNamespace(String namespace) {
         if (namespace == null || namespace.isBlank()) {
             throw new BizException(ErrorCode.UNAUTHORIZED);
         }
-        return namespace.trim();
+        String normalized = namespace.trim();
+        if (normalized.length() > MAX_NAMESPACE_LENGTH) {
+            throw new BizException(ErrorCode.PARAM_INVALID, "namespace must not exceed 128 characters");
+        }
+        return normalized;
     }
 }

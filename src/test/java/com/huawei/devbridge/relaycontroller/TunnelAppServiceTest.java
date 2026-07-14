@@ -29,8 +29,8 @@ import com.huawei.devbridge.relaycontroller.domain.service.TunnelDomainService;
 import com.huawei.devbridge.relaycontroller.infrastructure.config.RelayProperties;
 import com.huawei.devbridge.relaycontroller.interfaces.request.CreateTunnelRequest;
 import com.huawei.devbridge.relaycontroller.interfaces.request.UpdateTunnelRequest;
-import com.huawei.devbridge.relaycontroller.interfaces.response.CreateTunnelResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelListItemResponse;
+import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelTokenResponse;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -77,15 +77,15 @@ class TunnelAppServiceTest {
         when(tunnelRepository.existsByTunnelCode(123456L)).thenReturn(false);
         when(tunnelRepository.existsByTunnelId("aaaadysa")).thenReturn(false);
         when(tunnelRepository.save(org.mockito.ArgumentMatchers.any(Tunnel.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        CreateTunnelResponse response = service.createTunnel("ns-user-001", request);
+        TunnelResponse response = service.createTunnel("ns-user-001", request);
         long after = TimeUtils.nowSeconds();
 
         assertThat(response.getTunnelId()).isEqualTo("aaaadysa");
         assertThat(response.getTunnelCode()).isEqualTo(123456L);
         assertThat(response.getUrl()).isEqualTo("aaaadysa-cluster-a-myhuaweicloud.com");
-        assertThat(response.getType()).isEqualTo("bridge");
+        assertThat(response.getType()).isEqualTo(TunnelType.BRIDGE);
         assertThat(response.getExpiration())
-                .isBetween(Math.toIntExact(before + 72 * 3600L), Math.toIntExact(after + 72 * 3600L));
+                .isBetween(before + 72 * 3600L, after + 72 * 3600L);
     }
 
     @Test
@@ -115,11 +115,11 @@ class TunnelAppServiceTest {
         when(tunnelRepository.existsByTunnelCode(123456L)).thenReturn(false);
         when(tunnelRepository.existsByTunnelId("aaaadysa")).thenReturn(false);
         when(tunnelRepository.save(org.mockito.ArgumentMatchers.any(Tunnel.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        CreateTunnelResponse response = service.createTunnel("ns-user-001", request);
+        TunnelResponse response = service.createTunnel("ns-user-001", request);
         long after = TimeUtils.nowSeconds();
 
         assertThat(response.getExpiration())
-                .isBetween(Math.toIntExact(before + 2 * 3600L), Math.toIntExact(after + 2 * 3600L));
+                .isBetween(before + 2 * 3600L, after + 2 * 3600L);
     }
 
     @Test
@@ -232,10 +232,11 @@ class TunnelAppServiceTest {
                 .namespace("ns-user-001")
                 .clusterId("cluster-a")
                 .deleted(0)
-                .expiration(Math.toIntExact(TimeUtils.nowSeconds() + 1800))
+                .expiration(TimeUtils.nowSeconds() + 1800)
                 .build();
 
         when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel);
+        when(tunnelRepository.updateActive(tunnel)).thenReturn(true);
 
         long before = TimeUtils.nowSeconds();
         Boolean updated = service.updateTunnel("ns-user-001", "aaaadysa", request);
@@ -243,8 +244,8 @@ class TunnelAppServiceTest {
 
         assertThat(updated).isTrue();
         assertThat(tunnel.getExpiration())
-                .isBetween(Math.toIntExact(before + 3600L), Math.toIntExact(after + 3600L));
-        verify(tunnelRepository).update(tunnel);
+                .isBetween(before + 3600L, after + 3600L);
+        verify(tunnelRepository).updateActive(tunnel);
     }
 
     @Test
@@ -283,6 +284,16 @@ class TunnelAppServiceTest {
     }
 
     @Test
+    void listTunnelsRejectsBlankClusterFilter() {
+        TunnelAppService service = newService(new RelayProperties());
+
+        assertThatThrownBy(() -> service.listTunnels("ns-user-001", "  "))
+                .isInstanceOf(BizException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.PARAM_INVALID);
+    }
+
+    @Test
     void updateTunnelStoresEnumType() {
         TunnelAppService service = newService(new RelayProperties());
         UpdateTunnelRequest request = new UpdateTunnelRequest();
@@ -296,12 +307,13 @@ class TunnelAppServiceTest {
                 .build();
 
         when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel);
+        when(tunnelRepository.updateActive(tunnel)).thenReturn(true);
 
         Boolean updated = service.updateTunnel("ns-user-001", "aaaadysa", request);
 
         assertThat(updated).isTrue();
         assertThat(tunnel.getType()).isEqualTo(TunnelType.ENV);
-        verify(tunnelRepository).update(tunnel);
+        verify(tunnelRepository).updateActive(tunnel);
     }
 
     @Test
@@ -316,12 +328,13 @@ class TunnelAppServiceTest {
                 .build();
 
         when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel);
+        when(tunnelRepository.softDeleteByTunnelId(eq("aaaadysa"), anyLong())).thenReturn(true);
 
         Boolean deleted = service.deleteTunnel("ns-user-001", "aaaadysa");
 
         assertThat(deleted).isTrue();
         verify(tunnelPortRepository).deleteByTunnelCode(123456L);
-        verify(tunnelRepository).deleteByTunnelId("aaaadysa");
+        verify(tunnelRepository).softDeleteByTunnelId(eq("aaaadysa"), anyLong());
     }
 
     @Test
@@ -336,12 +349,13 @@ class TunnelAppServiceTest {
                 .build();
 
         when(tunnelRepository.findByNamespaceAndRegion("ns-user-001", "region-a")).thenReturn(List.of(first));
+        when(tunnelRepository.softDeleteByTunnelId(eq("aaaadysa"), anyLong())).thenReturn(true);
 
         Boolean deleted = service.deleteTunnels("ns-user-001");
 
         assertThat(deleted).isTrue();
         verify(tunnelPortRepository).deleteByTunnelCode(123456L);
-        verify(tunnelRepository).deleteByTunnelId("aaaadysa");
+        verify(tunnelRepository).softDeleteByTunnelId(eq("aaaadysa"), anyLong());
     }
 
     @Test
@@ -350,7 +364,7 @@ class TunnelAppServiceTest {
         Tunnel tunnel = Tunnel.builder()
                 .tunnelId("aaaadysa")
                 .namespace("ns-user-001")
-                .expiration(Math.toIntExact(TimeUtils.nowSeconds() + 3600))
+                .expiration(TimeUtils.nowSeconds() + 3600)
                 .build();
         when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel);
         when(jwtTokenService.issueToken(tunnel, JwtScope.HOST))

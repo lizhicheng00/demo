@@ -69,5 +69,6 @@
         WHERE t.tunnel_id = #{tunnelId}
           AND c.region = #{region}
           AND t.deleted = 0
+          AND t.expiration &gt; #{updatedAt}
     </update>
 </mapper>

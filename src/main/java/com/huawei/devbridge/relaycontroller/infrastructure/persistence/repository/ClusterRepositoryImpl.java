@@ -19,8 +19,7 @@ public class ClusterRepositoryImpl implements ClusterRepository {
     public Cluster findByClusterIdAndRegion(String clusterId, String region) {
         ClusterEntity entity = clusterMapper.selectOne(new LambdaQueryWrapper<ClusterEntity>()
                 .eq(ClusterEntity::getClusterId, clusterId)
-                .eq(ClusterEntity::getRegion, region)
-                .last("LIMIT 1"));
+                .eq(ClusterEntity::getRegion, region));
         return converter.toDomain(entity);
     }
 }

@@ -15,6 +15,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 @RestControllerAdvice
 @Slf4j
@@ -71,6 +72,13 @@ public class GlobalExceptionHandler {
         log.warn("Request body not readable: {}", ExceptionUtils.anonymousMessage(exception));
         return failure(HttpStatus.BAD_REQUEST, ErrorCode.PARAM_INVALID,
                 "request body is invalid", "requestBody");
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleArgumentTypeMismatch(MethodArgumentTypeMismatchException exception) {
+        log.warn("Request parameter type mismatch: {}", exception.getName());
+        return failure(HttpStatus.BAD_REQUEST, ErrorCode.PARAM_INVALID,
+                "request parameter type is invalid", exception.getName());
     }
 
     @ExceptionHandler(RuntimeException.class)

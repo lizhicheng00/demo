@@ -36,7 +36,7 @@ public class TunnelCleanupJob {
         List<Tunnel> agedTunnels = tunnelRepository.findAgedByRegion(relayProperties.getRegion(), expirationCutoff, BATCH_SIZE);
         int deleted = 0;
         for (Tunnel tunnel : agedTunnels) {
-            if (tunnelRepository.deleteAgedByTunnelId(tunnel.getTunnelId(), expirationCutoff)) {
+            if (tunnelRepository.hardDeleteAgedByTunnelId(tunnel.getTunnelId(), expirationCutoff)) {
                 tunnelPortRepository.deleteByTunnelCode(tunnel.getTunnelCode());
                 deleted++;
             }

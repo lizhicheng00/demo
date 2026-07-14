@@ -23,8 +23,8 @@ public enum TunnelType {
 
     @JsonCreator
     public static TunnelType fromValue(String value) {
-        if (value == null || value.isBlank()) {
-            return BRIDGE;
+        if (value == null) {
+            return null;
         }
         return Arrays.stream(values())
                 .filter(type -> type.value.equalsIgnoreCase(value.trim()))

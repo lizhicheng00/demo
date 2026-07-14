@@ -4,9 +4,8 @@ import com.huawei.devbridge.relaycontroller.application.service.TunnelAppService
 import com.huawei.devbridge.relaycontroller.generated.api.TunnelApi;
 import com.huawei.devbridge.relaycontroller.interfaces.request.CreateTunnelRequest;
 import com.huawei.devbridge.relaycontroller.interfaces.request.UpdateTunnelRequest;
-import com.huawei.devbridge.relaycontroller.interfaces.response.CreateTunnelResponse;
-import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelDetailResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelListItemResponse;
+import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelTokenResponse;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +17,7 @@ public class TunnelController implements TunnelApi {
     private final TunnelAppService tunnelAppService;
 
     @Override
-    public CreateTunnelResponse createTunnel(String xNamespace, CreateTunnelRequest request) {
+    public TunnelResponse createTunnel(String xNamespace, CreateTunnelRequest request) {
         return tunnelAppService.createTunnel(xNamespace, request);
     }
 
@@ -33,7 +32,7 @@ public class TunnelController implements TunnelApi {
     }
 
     @Override
-    public TunnelDetailResponse getTunnelDetail(String xNamespace, String tunnelId) {
+    public TunnelResponse getTunnelDetail(String xNamespace, String tunnelId) {
         return tunnelAppService.getTunnelDetail(xNamespace, tunnelId);
     }
 

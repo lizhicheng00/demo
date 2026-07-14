@@ -15,7 +15,8 @@ public class LocalClusterService {
     private final RelayProperties relayProperties;
 
     public Cluster requireLocalCluster(String clusterId) {
-        Cluster cluster = clusterRepository.findByClusterIdAndRegion(clusterId, relayProperties.getRegion());
+        String normalized = clusterId == null ? null : clusterId.trim();
+        Cluster cluster = clusterRepository.findByClusterIdAndRegion(normalized, relayProperties.getRegion());
         if (cluster == null) {
             throw new BizException(ErrorCode.CLUSTER_NOT_FOUND);
         }

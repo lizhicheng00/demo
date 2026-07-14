@@ -18,9 +18,8 @@ import com.huawei.devbridge.relaycontroller.domain.service.TunnelDomainService;
 import com.huawei.devbridge.relaycontroller.infrastructure.config.RelayProperties;
 import com.huawei.devbridge.relaycontroller.interfaces.request.CreateTunnelRequest;
 import com.huawei.devbridge.relaycontroller.interfaces.request.UpdateTunnelRequest;
-import com.huawei.devbridge.relaycontroller.interfaces.response.CreateTunnelResponse;
-import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelDetailResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelListItemResponse;
+import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelTokenResponse;
 import java.util.Arrays;
 import java.util.List;
@@ -48,22 +47,22 @@ public class TunnelAppService {
     private final Object[] createLocks = createLocks();
 
     @Transactional
-    public CreateTunnelResponse createTunnel(String rawNamespace, CreateTunnelRequest request) {
+    public TunnelResponse createTunnel(String rawNamespace, CreateTunnelRequest request) {
         String namespace = namespaceService.requireNamespace(rawNamespace);
         synchronized (createLock(namespace)) {
             return createTunnelLocked(namespace, request);
         }
     }
 
-    private CreateTunnelResponse createTunnelLocked(String namespace, CreateTunnelRequest request) {
+    private TunnelResponse createTunnelLocked(String namespace, CreateTunnelRequest request) {
         TunnelType type = request.getType() == null ? TunnelType.BRIDGE : request.getType();
         Cluster cluster = localClusterService.requireLocalCluster(request.getClusterId());
         long now = TimeUtils.nowSeconds();
         assertTunnelQuota(namespace, now);
-        int expiration = resolveExpiration(request.getExpiration(), now);
+        long expiration = resolveExpiration(request.getExpiration(), now);
         TunnelCode code = allocateTunnelCode();
         Tunnel tunnel = Tunnel.builder()
-                .name(request.getName())
+                .name(request.getName().trim())
                 .tunnelId(code.tunnelId())
                 .tunnelCode(code.tunnelCode())
                 .clusterId(cluster.getClusterId())
@@ -81,7 +80,7 @@ public class TunnelAppService {
         log.info("Tunnel created: tunnelId={}, tunnelCode={}, namespace={}, clusterId={}, type={}, expiration={}",
                 tunnel.getTunnelId(), tunnel.getTunnelCode(), tunnel.getNamespace(), tunnel.getClusterId(),
                 tunnel.getType(), tunnel.getExpiration());
-        return TunnelAssembler.toCreateResponse(tunnel);
+        return TunnelAssembler.toResponse(tunnel);
     }
 
     private Object createLock(String namespace) {
@@ -97,22 +96,21 @@ public class TunnelAppService {
 
     public List<TunnelListItemResponse> listTunnels(String rawNamespace, String clusterId) {
         String namespace = namespaceService.requireNamespace(rawNamespace);
-        long now = TimeUtils.nowSeconds();
-        if (clusterId != null && !clusterId.isBlank()) {
-            localClusterService.requireLocalCluster(clusterId);
-            return tunnelRepository.findActiveByNamespaceAndRegion(namespace, clusterId, relayProperties.getRegion(), now).stream()
-                    .map(TunnelAssembler::toListItem)
-                    .toList();
+        String clusterFilter = null;
+        if (clusterId != null) {
+            if (clusterId.isBlank()) {
+                throw new BizException(ErrorCode.PARAM_INVALID, "clusterId must not be blank");
+            }
+            clusterFilter = localClusterService.requireLocalCluster(clusterId.trim()).getClusterId();
         }
-        return tunnelRepository.findActiveByNamespaceAndRegion(namespace, null, relayProperties.getRegion(), now).stream()
+        return tunnelRepository.findActiveByNamespaceAndRegion(
+                        namespace, clusterFilter, relayProperties.getRegion(), TimeUtils.nowSeconds()).stream()
                 .map(TunnelAssembler::toListItem)
                 .toList();
     }
 
-    public TunnelDetailResponse getTunnelDetail(String rawNamespace, String tunnelId) {
-        Tunnel tunnel = findOwnedTunnel(rawNamespace, tunnelId);
-        tunnelDomainService.assertNotExpired(tunnel);
-        return TunnelAssembler.toDetailResponse(tunnel);
+    public TunnelResponse getTunnelDetail(String rawNamespace, String tunnelId) {
+        return TunnelAssembler.toResponse(findOwnedActiveTunnel(rawNamespace, tunnelId));
     }
 
     public TunnelTokenResponse issueToken(String rawNamespace, String tunnelId, String scopeValue) {
@@ -133,7 +131,9 @@ public class TunnelAppService {
         Tunnel tunnel = findOwnedActiveTunnel(rawNamespace, tunnelId);
         applyUpdates(tunnel, request);
         tunnel.setUpdatedAt(TimeUtils.nowSeconds());
-        tunnelRepository.update(tunnel);
+        if (!tunnelRepository.updateActive(tunnel)) {
+            throw new BizException(ErrorCode.TUNNEL_NOT_FOUND);
+        }
         log.info("Tunnel updated: tunnelId={}, namespace={}", tunnel.getTunnelId(), tunnel.getNamespace());
         return true;
     }
@@ -141,8 +141,10 @@ public class TunnelAppService {
     @Transactional
     public Boolean deleteTunnel(String rawNamespace, String tunnelId) {
         Tunnel tunnel = findOwnedTunnel(rawNamespace, tunnelId);
+        if (!tunnelRepository.softDeleteByTunnelId(tunnelId, TimeUtils.nowSeconds())) {
+            throw new BizException(ErrorCode.TUNNEL_NOT_FOUND);
+        }
         tunnelPortRepository.deleteByTunnelCode(tunnel.getTunnelCode());
-        tunnelRepository.deleteByTunnelId(tunnelId);
         log.info("Tunnel deleted: tunnelId={}, tunnelCode={}, namespace={}",
                 tunnel.getTunnelId(), tunnel.getTunnelCode(), tunnel.getNamespace());
         return true;
@@ -152,17 +154,21 @@ public class TunnelAppService {
     public Boolean deleteTunnels(String rawNamespace) {
         String namespace = namespaceService.requireNamespace(rawNamespace);
         List<Tunnel> tunnels = tunnelRepository.findByNamespaceAndRegion(namespace, relayProperties.getRegion());
-        tunnels.forEach(tunnel -> {
-            tunnelPortRepository.deleteByTunnelCode(tunnel.getTunnelCode());
-            tunnelRepository.deleteByTunnelId(tunnel.getTunnelId());
-        });
-        log.info("Tunnels deleted: namespace={}, count={}", namespace, tunnels.size());
+        long now = TimeUtils.nowSeconds();
+        int deleted = 0;
+        for (Tunnel tunnel : tunnels) {
+            if (tunnelRepository.softDeleteByTunnelId(tunnel.getTunnelId(), now)) {
+                tunnelPortRepository.deleteByTunnelCode(tunnel.getTunnelCode());
+                deleted++;
+            }
+        }
+        log.info("Tunnels deleted: namespace={}, count={}", namespace, deleted);
         return true;
     }
 
     private void applyUpdates(Tunnel tunnel, UpdateTunnelRequest request) {
-        if (request.getName() != null && !request.getName().isBlank()) {
-            tunnel.setName(request.getName());
+        if (request.getName() != null) {
+            tunnel.setName(request.getName().trim());
         }
         if (request.getDescription() != null) {
             tunnel.setDescription(request.getDescription());
@@ -212,7 +218,7 @@ public class TunnelAppService {
         return tunnel;
     }
 
-    private int resolveExpiration(Integer expirationHours, long now) {
+    private long resolveExpiration(Integer expirationHours, long now) {
         int hours = expirationHours == null ? relayProperties.getDefaultExpirationHours() : expirationHours;
         if (hours <= 0) {
             throw new BizException(ErrorCode.PARAM_INVALID, "expiration must be positive hours");
@@ -220,11 +226,7 @@ public class TunnelAppService {
         if (hours > MAX_EXPIRATION_HOURS) {
             throw new BizException(ErrorCode.PARAM_INVALID, "expiration must be less than or equal to 720 hours");
         }
-        long expiresAt = now + (long) hours * SECONDS_PER_HOUR;
-        if (expiresAt > Integer.MAX_VALUE) {
-            throw new BizException(ErrorCode.PARAM_INVALID, "expiration is too large");
-        }
-        return Math.toIntExact(expiresAt);
+        return now + (long) hours * SECONDS_PER_HOUR;
     }
 
     private JwtScope parseScope(String scopeValue) {

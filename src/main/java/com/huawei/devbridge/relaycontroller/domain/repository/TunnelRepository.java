@@ -20,11 +20,11 @@ public interface TunnelRepository {
 
     Tunnel save(Tunnel tunnel);
 
-    void update(Tunnel tunnel);
+    boolean updateActive(Tunnel tunnel);
 
-    boolean deleteAgedByTunnelId(String tunnelId, long expirationCutoff);
+    boolean hardDeleteAgedByTunnelId(String tunnelId, long expirationCutoff);
 
-    boolean deleteByTunnelId(String tunnelId);
+    boolean softDeleteByTunnelId(String tunnelId, long updatedAt);
 
-    void increaseBandwidthUsed(String tunnelId, String region, long usageBytes, long updatedAt);
+    boolean increaseBandwidthUsed(String tunnelId, String region, long usageBytes, long updatedAt);
 }

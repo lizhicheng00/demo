@@ -1,6 +1,7 @@
 package com.huawei.devbridge.relaycontroller.infrastructure.persistence.repository;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
 import com.huawei.devbridge.relaycontroller.domain.repository.TunnelRepository;
 import com.huawei.devbridge.relaycontroller.infrastructure.persistence.converter.PersistenceConverter;
@@ -68,26 +69,36 @@ public class TunnelRepositoryImpl implements TunnelRepository {
     }
 
     @Override
-    public void update(Tunnel tunnel) {
-        tunnelMapper.updateById(converter.toEntity(tunnel));
+    public boolean updateActive(Tunnel tunnel) {
+        return tunnelMapper.update(null, new LambdaUpdateWrapper<TunnelEntity>()
+                .eq(TunnelEntity::getId, tunnel.getId())
+                .eq(TunnelEntity::getDeleted, 0)
+                .set(TunnelEntity::getName, tunnel.getName())
+                .set(TunnelEntity::getDescription, tunnel.getDescription())
+                .set(TunnelEntity::getExpiration, tunnel.getExpiration())
+                .set(TunnelEntity::getType, tunnel.getType())
+                .set(TunnelEntity::getUpdatedAt, tunnel.getUpdatedAt())) > 0;
     }
 
     @Override
-    public boolean deleteAgedByTunnelId(String tunnelId, long expirationCutoff) {
+    public boolean hardDeleteAgedByTunnelId(String tunnelId, long expirationCutoff) {
         return tunnelMapper.delete(new LambdaQueryWrapper<TunnelEntity>()
                 .eq(TunnelEntity::getTunnelId, tunnelId)
                 .le(TunnelEntity::getExpiration, expirationCutoff)) > 0;
     }
 
     @Override
-    public boolean deleteByTunnelId(String tunnelId) {
-        return tunnelMapper.delete(new LambdaQueryWrapper<TunnelEntity>()
-                .eq(TunnelEntity::getTunnelId, tunnelId)) > 0;
+    public boolean softDeleteByTunnelId(String tunnelId, long updatedAt) {
+        return tunnelMapper.update(null, new LambdaUpdateWrapper<TunnelEntity>()
+                .eq(TunnelEntity::getTunnelId, tunnelId)
+                .eq(TunnelEntity::getDeleted, 0)
+                .set(TunnelEntity::getDeleted, 1)
+                .set(TunnelEntity::getUpdatedAt, updatedAt)) > 0;
     }
 
     @Override
-    public void increaseBandwidthUsed(String tunnelId, String region, long usageBytes, long updatedAt) {
-        tunnelMapper.increaseBandwidthUsed(tunnelId, region, usageBytes, updatedAt);
+    public boolean increaseBandwidthUsed(String tunnelId, String region, long usageBytes, long updatedAt) {
+        return tunnelMapper.increaseBandwidthUsed(tunnelId, region, usageBytes, updatedAt) > 0;
     }
 
 }

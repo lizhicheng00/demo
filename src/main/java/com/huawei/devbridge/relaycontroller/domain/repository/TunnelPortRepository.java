@@ -11,11 +11,9 @@ public interface TunnelPortRepository {
 
     TunnelPort findByTunnelCodeAndPort(Long tunnelCode, Long port);
 
-    boolean existsByTunnelCodeAndPort(Long tunnelCode, Long port);
+    boolean updatePolicy(Long tunnelCode, Long port, TunnelProtocol protocol, Boolean allowAnonymous);
 
-    void updatePolicy(Long tunnelCode, Long port, TunnelProtocol protocol, Boolean allowAnonymous);
-
-    void deleteByTunnelCodeAndPort(Long tunnelCode, Long port);
+    boolean deleteByTunnelCodeAndPort(Long tunnelCode, Long port);
 
     void deleteByTunnelCode(Long tunnelCode);
 }

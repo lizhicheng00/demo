@@ -30,7 +30,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CreateTunnelResponse'
+                $ref: '#/components/schemas/TunnelResponse'
         default:
           $ref: '#/components/responses/ErrorResponse'
     get:
@@ -44,6 +44,8 @@ paths:
           required: false
           schema:
             type: string
+            minLength: 1
+            maxLength: 128
       responses:
         '200':
           description: Namespace tunnel list.
@@ -84,7 +86,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TunnelDetailResponse'
+                $ref: '#/components/schemas/TunnelResponse'
         default:
           $ref: '#/components/responses/ErrorResponse'
     put:
@@ -303,12 +305,16 @@ components:
       required: true
       schema:
         type: string
+        minLength: 1
+        maxLength: 128
     TunnelIdPath:
       name: tunnelId
       in: path
       required: true
       schema:
         type: string
+        minLength: 8
+        maxLength: 8
         pattern: '^[a-z2-7]{8}$'
         description: Lowercase base32 encoded 40-bit tunnel code.
     ClusterIdPath:
@@ -317,6 +323,8 @@ components:
       required: true
       schema:
         type: string
+        minLength: 1
+        maxLength: 128
     PortPath:
       name: port
       in: path
@@ -369,12 +377,15 @@ components:
       properties:
         name:
           type: string
+          minLength: 1
           maxLength: 128
         description:
           type: string
           maxLength: 512
         clusterId:
           type: string
+          minLength: 1
+          maxLength: 128
           description: Cluster identifier.
         expiration:
           type: integer
@@ -391,6 +402,7 @@ components:
       properties:
         name:
           type: string
+          minLength: 1
           maxLength: 128
         description:
           type: string
@@ -441,13 +453,7 @@ components:
           enum: [http, https, auto]
         allowAnonymous:
           type: boolean
-    CreateTunnelResponse:
-      allOf:
-        - $ref: '#/components/schemas/Tunnel'
-    TunnelDetailResponse:
-      allOf:
-        - $ref: '#/components/schemas/Tunnel'
-    Tunnel:
+    TunnelResponse:
       type: object
       properties:
         name:
@@ -467,7 +473,7 @@ components:
           format: int64
         expiration:
           type: integer
-          format: int32
+          format: int64
           description: Expiration Unix seconds.
         created:
           type: integer
@@ -494,7 +500,7 @@ components:
           type: string
         expiration:
           type: integer
-          format: int32
+          format: int64
           description: Expiration Unix seconds.
         created:
           type: integer

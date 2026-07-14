@@ -67,7 +67,7 @@ Gateway reads a port policy using its `clusterId`. Relay Controller verifies tha
 
 Gateway can report usage only for a local cluster and a matching active tunnel. Usage updates tunnel bandwidth totals and writes a metering record.
 
-Expired tunnels remain recoverable for the configured retention period. The hourly cleanup job hard-deletes aged tunnel metadata and related port policies in bounded batches.
+Expired tunnels remain stored for audit and delayed cleanup, but cannot be renewed. The hourly cleanup job hard-deletes aged tunnel metadata and related port policies in bounded batches.
 
 ## 6. Acceptance Criteria
 
