@@ -60,7 +60,7 @@
 
     <Loggers>
         <Logger name="com.baomidou.mybatisplus.core.toolkit.Sequence" level="OFF"/>
-        <Logger name="com.huawei.clouds.wushan.integration.auth.iam.DefaultValidateTokenCertsProvider" level="OFF"/>
+        <Logger name="com.huawei.clouds.wushan.pkitoken.iam" level="OFF" additivity="false"/>
         <Logger name="org.flywaydb.core.internal.database.base.Database" level="ERROR"/>
         <Logger name="com.huawei.devbridge.relaycontroller" level="INFO"/>
 

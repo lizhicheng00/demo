@@ -49,6 +49,7 @@ logging:
   level:
     root: WARN
     com.baomidou.mybatisplus.core.toolkit.Sequence: OFF
+    com.huawei.clouds.wushan.pkitoken.iam: OFF
     org.flywaydb.core.internal.database.base.Database: ERROR
     com.huawei.devbridge.relaycontroller.RelayControllerApplication: INFO
     com.huawei.devbridge.relaycontroller.application.service: INFO
