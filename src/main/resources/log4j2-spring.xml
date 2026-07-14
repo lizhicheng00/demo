@@ -12,14 +12,14 @@
 
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout pattern="${runningPattern}"/>
+            <UsPatternLayout pattern="${runningPattern}"/>
         </Console>
 
         <RollingFile name="RunningFile"
                      fileName="${logPath}/running/${appName}.log"
                      filePattern="${logPath}/running/archive/${appName}-%d{yyyy-MM-dd}-%i.log.gz"
                      createOnDemand="true">
-            <PatternLayout pattern="${runningPattern}"/>
+            <UsPatternLayout pattern="${runningPattern}"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
                 <SizeBasedTriggeringPolicy size="${maxFileSize}"/>
@@ -40,7 +40,7 @@
                      fileName="${logPath}/access/${appName}-access.log"
                      filePattern="${logPath}/access/archive/${appName}-access-%d{yyyy-MM-dd}-%i.log.gz"
                      createOnDemand="true">
-            <PatternLayout pattern="${accessPattern}"/>
+            <UsPatternLayout pattern="${accessPattern}"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
                 <SizeBasedTriggeringPolicy size="${maxFileSize}"/>
