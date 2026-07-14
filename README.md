@@ -92,15 +92,16 @@ For another local machine, prefer overriding only the datasource URL, username, 
 export DATASOURCE_URL='jdbc:mysql://127.0.0.1:3306/relay_controller?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true'
 export DATASOURCE_USERNAME='root'
 export DATASOURCE_PASSWORD='root'
-export SPRING_DATA_REDIS_HOST='localhost'
-export SPRING_DATA_REDIS_PASSWORD='<redis-password>'
+export REDIS_ADDRESS='localhost'
+export REDIS_PASSWORD='<redis-password>'
+export REDIS_SSL_ENABLE='false'
 mvn spring-boot:run
 ```
 
 For IntelliJ IDEA, paste this semicolon-separated template into **Run/Debug Configuration > Environment variables** and fill in each value:
 
 ```text
-SPRING_PROFILES_ACTIVE=;SERVER_PORT=;DATASOURCE_URL=;DATASOURCE_USERNAME=;DATASOURCE_PASSWORD=;SPRING_DATA_REDIS_HOST=;SPRING_DATA_REDIS_PASSWORD=;RELAY_JWT_PRIVATE_KEY=;SERVER_SSL_KEY_STORE_BASE64=;SERVER_SSL_KEY_STORE_PASSWORD=;SERVER_SSL_TRUST_STORE_BASE64=;SERVER_SSL_TRUST_STORE_PASSWORD=
+SPRING_PROFILES_ACTIVE=;SERVER_PORT=;DATASOURCE_URL=;DATASOURCE_USERNAME=;DATASOURCE_PASSWORD=;REDIS_ADDRESS=;REDIS_PASSWORD=;REDIS_SSL_ENABLE=;REDIS_SSL_TRUST_STORE=;RELAY_JWT_PRIVATE_KEY=;SERVER_SSL_KEY_STORE_BASE64=;SERVER_SSL_KEY_STORE_PASSWORD=;SERVER_SSL_TRUST_STORE_BASE64=;SERVER_SSL_TRUST_STORE_PASSWORD=
 ```
 
 `SccCrypto` is currently a local test stub used by the JWT token cache. Configuration properties are not decrypted by Relay Controller, so provide consumer-ready values through environment variables or deployment secrets.
@@ -109,7 +110,7 @@ Keep these values out of committed YAML:
 
 ```text
 DATASOURCE_PASSWORD
-SPRING_DATA_REDIS_PASSWORD
+REDIS_PASSWORD
 RELAY_JWT_PRIVATE_KEY
 SERVER_SSL_KEY_STORE_BASE64
 SERVER_SSL_KEY_STORE_PASSWORD

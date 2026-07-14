@@ -957,9 +957,18 @@ spring:
   data:
     redis:
       client-type: jedis
-      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      host: ${REDIS_ADDRESS:localhost}
       port: 6379
-      password: ${SPRING_DATA_REDIS_PASSWORD}
+      password: ${REDIS_PASSWORD}
+      ssl:
+        enabled: ${REDIS_SSL_ENABLE:true}
+        bundle: redis-ca
+  ssl:
+    bundle:
+      pem:
+        redis-ca:
+          truststore:
+            certificate: file:${REDIS_SSL_TRUST_STORE:/app/resources/redis-ca/ca.crt}
 
 relay:
   domain: myhuaweicloud.com
