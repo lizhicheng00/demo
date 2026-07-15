@@ -36,12 +36,12 @@ class TunnelCleanupJobTest {
                 .build();
 
         when(tunnelRepository.findAgedByRegion("region-a", EXPIRATION_CUTOFF, 100)).thenReturn(List.of(tunnel));
-        when(tunnelRepository.hardDeleteAgedByTunnelId("aaaadysa", EXPIRATION_CUTOFF)).thenReturn(true);
+        when(tunnelRepository.deleteAgedByTunnelId("aaaadysa", EXPIRATION_CUTOFF)).thenReturn(true);
 
         int deleted = cleanupJob.cleanupAgedTunnels(NOW);
 
         assertThat(deleted).isEqualTo(1);
-        verify(tunnelRepository).hardDeleteAgedByTunnelId("aaaadysa", EXPIRATION_CUTOFF);
+        verify(tunnelRepository).deleteAgedByTunnelId("aaaadysa", EXPIRATION_CUTOFF);
         verify(tunnelPortRepository).deleteByTunnelCode(123456L);
     }
 
@@ -56,7 +56,7 @@ class TunnelCleanupJobTest {
                 .build();
 
         when(tunnelRepository.findAgedByRegion("region-a", EXPIRATION_CUTOFF, 100)).thenReturn(List.of(tunnel));
-        when(tunnelRepository.hardDeleteAgedByTunnelId("aaaadysa", EXPIRATION_CUTOFF)).thenReturn(false);
+        when(tunnelRepository.deleteAgedByTunnelId("aaaadysa", EXPIRATION_CUTOFF)).thenReturn(false);
 
         int deleted = cleanupJob.cleanupAgedTunnels(NOW);
 

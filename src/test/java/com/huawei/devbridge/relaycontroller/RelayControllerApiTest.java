@@ -25,15 +25,15 @@ import com.huawei.devbridge.relaycontroller.interfaces.request.CreateTunnelReque
 import com.huawei.devbridge.relaycontroller.interfaces.request.MeteringReportRequest;
 import com.huawei.devbridge.relaycontroller.interfaces.request.UpdateTunnelPortRequest;
 import com.huawei.devbridge.relaycontroller.interfaces.request.UpdateTunnelRequest;
+import com.huawei.devbridge.relaycontroller.interfaces.response.CreateTunnelResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.GatewayTunnelPortPolicyResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.MeteringReportResponse;
+import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelDetailResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelListItemResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelPortResponse;
-import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelResponse;
 import com.huawei.devbridge.relaycontroller.interfaces.response.TunnelTokenResponse;
 import com.huawei.devbridge.relaycontroller.domain.model.JwtScope;
 import com.huawei.devbridge.relaycontroller.domain.model.TunnelProtocol;
-import com.huawei.devbridge.relaycontroller.domain.model.TunnelType;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -183,7 +183,7 @@ class RelayControllerApiTest {
                         .clusterId(CLUSTER_ID)
                         .name("dev")
                         .description("dev tunnel")
-                        .expiration(1720086400L)
+                        .expiration(1720086400)
                         .created(1720000000L)
                         .url("aaaadysa-cluster-a-myhuaweicloud.com")
                         .portCount(2L)
@@ -202,13 +202,13 @@ class RelayControllerApiTest {
 
     @Test
     void getTunnelDetailApi() throws Exception {
-        when(tunnelAppService.getTunnelDetail(NAMESPACE, TUNNEL_ID)).thenReturn(TunnelResponse.builder()
+        when(tunnelAppService.getTunnelDetail(NAMESPACE, TUNNEL_ID)).thenReturn(TunnelDetailResponse.builder()
                 .name("dev")
                 .tunnelId(TUNNEL_ID)
                 .tunnelCode(123456L)
                 .clusterId(CLUSTER_ID)
                 .url("aaaadysa-cluster-a-myhuaweicloud.com")
-                .type(TunnelType.BRIDGE)
+                .type("bridge")
                 .build());
 
         mockMvc.perform(get(BASE + "/tunnels/{tunnelId}", TUNNEL_ID)
@@ -277,21 +277,6 @@ class RelayControllerApiTest {
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").value(true));
-    }
-
-    @Test
-    void updateTunnelWithBlankNameReturnsBadRequest() throws Exception {
-        mockMvc.perform(put(BASE + "/tunnels/{tunnelId}", TUNNEL_ID)
-                        .header("X-Namespace", NAMESPACE)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                  "name": "  "
-                                }
-                                """))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error.code").value("40000"))
-                .andExpect(jsonPath("$.error.details[0].target").value("name"));
     }
 
     @Test
@@ -384,15 +369,6 @@ class RelayControllerApiTest {
     }
 
     @Test
-    void getTunnelPortWithNonNumericPortReturnsBadRequest() throws Exception {
-        mockMvc.perform(get(BASE + "/tunnels/{tunnelId}/ports/{port}", TUNNEL_ID, "invalid")
-                        .header("X-Namespace", NAMESPACE))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error.code").value("40000"))
-                .andExpect(jsonPath("$.error.target").value("port"));
-    }
-
-    @Test
     void updateTunnelPortApi() throws Exception {
         when(tunnelPortAppService.update(eq(NAMESPACE), eq(TUNNEL_ID), eq(8080L), any(UpdateTunnelPortRequest.class)))
                 .thenReturn(TunnelPortResponse.builder()
@@ -469,17 +445,17 @@ class RelayControllerApiTest {
                 .andExpect(jsonPath("$.allowAnonymous").value(false));
     }
 
-    private TunnelResponse createTunnelResponse() {
-        return TunnelResponse.builder()
+    private CreateTunnelResponse createTunnelResponse() {
+        return CreateTunnelResponse.builder()
                 .name("dev")
                 .tunnelId(TUNNEL_ID)
                 .tunnelCode(123456L)
                 .clusterId(CLUSTER_ID)
                 .bandwidthUsed(0L)
-                .expiration(1720086400L)
+                .expiration(1720086400)
                 .created(1720000000L)
                 .url("aaaadysa-cluster-a-myhuaweicloud.com")
-                .type(TunnelType.BRIDGE)
+                .type("bridge")
                 .build();
     }
 

@@ -47,9 +47,9 @@ class JwtTokenServiceTest {
         RelayProperties properties = new RelayProperties();
         properties.getJwt().getToken().setTtlSeconds(86400);
         JwtTokenServiceImpl service = new JwtTokenServiceImpl(jwtSigner, properties);
-        long tunnelExpiration = TimeUtils.nowSeconds() + 60;
+        int tunnelExpiration = Math.toIntExact(TimeUtils.nowSeconds() + 60);
         Tunnel tunnel = Tunnel.builder().tunnelId("aaaadysa").expiration(tunnelExpiration).build();
-        when(jwtSigner.signToken(eq(tunnel), eq(JwtScope.CONNECT), anyLong(), eq(tunnelExpiration)))
+        when(jwtSigner.signToken(eq(tunnel), eq(JwtScope.CONNECT), anyLong(), eq((long) tunnelExpiration)))
                 .thenReturn("connect-token");
 
         JwtToken token = service.issueToken(tunnel, JwtScope.CONNECT);

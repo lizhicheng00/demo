@@ -40,24 +40,32 @@ public class TunnelPortRepositoryImpl implements TunnelPortRepository {
     public TunnelPort findByTunnelCodeAndPort(Long tunnelCode, Long port) {
         TunnelPortEntity entity = tunnelPortMapper.selectOne(new LambdaQueryWrapper<TunnelPortEntity>()
                 .eq(TunnelPortEntity::getTunnelCode, tunnelCode)
-                .eq(TunnelPortEntity::getPort, port));
+                .eq(TunnelPortEntity::getPort, port)
+                .last("LIMIT 1"));
         return converter.toDomain(entity);
     }
 
     @Override
-    public boolean updatePolicy(Long tunnelCode, Long port, TunnelProtocol protocol, Boolean allowAnonymous) {
-        return tunnelPortMapper.update(null, new LambdaUpdateWrapper<TunnelPortEntity>()
+    public boolean existsByTunnelCodeAndPort(Long tunnelCode, Long port) {
+        return tunnelPortMapper.exists(new LambdaQueryWrapper<TunnelPortEntity>()
                 .eq(TunnelPortEntity::getTunnelCode, tunnelCode)
-                .eq(TunnelPortEntity::getPort, port)
-                .set(TunnelPortEntity::getProtocol, protocol)
-                .set(TunnelPortEntity::getAllowAnonymous, allowAnonymous)) > 0;
+                .eq(TunnelPortEntity::getPort, port));
     }
 
     @Override
-    public boolean deleteByTunnelCodeAndPort(Long tunnelCode, Long port) {
-        return tunnelPortMapper.delete(new LambdaQueryWrapper<TunnelPortEntity>()
+    public void updatePolicy(Long tunnelCode, Long port, TunnelProtocol protocol, Boolean allowAnonymous) {
+        tunnelPortMapper.update(null, new LambdaUpdateWrapper<TunnelPortEntity>()
                 .eq(TunnelPortEntity::getTunnelCode, tunnelCode)
-                .eq(TunnelPortEntity::getPort, port)) > 0;
+                .eq(TunnelPortEntity::getPort, port)
+                .set(TunnelPortEntity::getProtocol, protocol)
+                .set(TunnelPortEntity::getAllowAnonymous, allowAnonymous));
+    }
+
+    @Override
+    public void deleteByTunnelCodeAndPort(Long tunnelCode, Long port) {
+        tunnelPortMapper.delete(new LambdaQueryWrapper<TunnelPortEntity>()
+                .eq(TunnelPortEntity::getTunnelCode, tunnelCode)
+                .eq(TunnelPortEntity::getPort, port));
     }
 
     @Override

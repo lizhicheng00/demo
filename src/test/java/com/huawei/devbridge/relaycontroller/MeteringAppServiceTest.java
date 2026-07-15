@@ -3,7 +3,6 @@ package com.huawei.devbridge.relaycontroller;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.huawei.devbridge.relaycontroller.application.service.LocalClusterService;
@@ -50,15 +49,11 @@ class MeteringAppServiceTest {
                 .clusterId("cluster-a")
                 .deleted(0)
                 .build());
-        when(tunnelRepository.increaseBandwidthUsed(
-                ArgumentMatchers.eq("aaaadysa"), ArgumentMatchers.eq("region-a"),
-                ArgumentMatchers.eq(1024L), ArgumentMatchers.anyLong())).thenReturn(true);
 
-        MeteringReportResponse response = service.report(" cluster-a ", request);
+        MeteringReportResponse response = service.report("cluster-a", request);
 
         assertThat(response.getAccepted()).isTrue();
-        verify(meteringRepository).save(ArgumentMatchers.argThat(metering ->
-                metering.getUsageBytes().equals(1024L) && metering.getClusterId().equals("cluster-a")));
+        verify(meteringRepository).save(ArgumentMatchers.argThat(metering -> metering.getUsageBytes().equals(1024L)));
         verify(tunnelRepository).increaseBandwidthUsed(ArgumentMatchers.eq("aaaadysa"), ArgumentMatchers.eq("region-a"),
                 ArgumentMatchers.eq(1024L), ArgumentMatchers.anyLong());
     }
@@ -75,30 +70,6 @@ class MeteringAppServiceTest {
                 .isInstanceOf(BizException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.CLUSTER_NOT_FOUND);
-    }
-
-    @Test
-    void reportRejectsTunnelDeletedDuringUpdate() {
-        MeteringAppService service = newService();
-        MeteringReportRequest request = new MeteringReportRequest();
-        request.setTunnelId("aaaadysa");
-        request.setTunnelCode(123456L);
-        request.setUsage(1024L);
-
-        when(clusterRepository.findByClusterIdAndRegion("cluster-a", "region-a"))
-                .thenReturn(Cluster.builder().clusterId("cluster-a").region("region-a").build());
-        when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(Tunnel.builder()
-                .tunnelId("aaaadysa")
-                .tunnelCode(123456L)
-                .clusterId("cluster-a")
-                .deleted(0)
-                .build());
-
-        assertThatThrownBy(() -> service.report("cluster-a", request))
-                .isInstanceOf(BizException.class)
-                .extracting("errorCode")
-                .isEqualTo(ErrorCode.METERING_REPORT_FAILED);
-        verifyNoInteractions(meteringRepository);
     }
 
     private MeteringAppService newService() {

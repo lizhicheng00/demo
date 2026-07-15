@@ -5,7 +5,6 @@ import com.huawei.devbridge.relaycontroller.common.exception.ErrorCode;
 import com.huawei.devbridge.relaycontroller.infrastructure.config.RelayProperties;
 import jakarta.annotation.PostConstruct;
 import java.security.KeyFactory;
-import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
@@ -24,9 +23,6 @@ public class JwtKeyProvider {
     public void init() {
         String configuredPrivateKey = relayProperties.getJwt().getPrivateKey();
         if (configuredPrivateKey == null || configuredPrivateKey.isBlank()) {
-            if (!relayProperties.getJwt().isAllowEphemeralKey()) {
-                throw new BizException(ErrorCode.JWT_KEY_INVALID, "relay.jwt.private-key is required");
-            }
             initEphemeralKeyPair();
             return;
         }
@@ -43,7 +39,7 @@ public class JwtKeyProvider {
             generator.initialize(2048);
             KeyPair keyPair = generator.generateKeyPair();
             this.privateKey = keyPair.getPrivate();
-        } catch (GeneralSecurityException exception) {
+        } catch (Exception exception) {
             throw new BizException(ErrorCode.JWT_KEY_INVALID, "failed to initialize jwt key pair");
         }
     }
@@ -55,7 +51,7 @@ public class JwtKeyProvider {
                     .replaceAll("\\s", "");
             byte[] bytes = Base64.getDecoder().decode(content);
             return KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(bytes));
-        } catch (GeneralSecurityException | IllegalArgumentException exception) {
+        } catch (Exception exception) {
             throw new BizException(ErrorCode.JWT_KEY_INVALID);
         }
     }

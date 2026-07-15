@@ -24,24 +24,26 @@ public class TunnelDomainService {
     }
 
     public void assertOwnedAndNotExpired(Tunnel tunnel, String namespace) {
-        assertActive(tunnel);
-        if (!namespace.equals(tunnel.getNamespace())) {
-            throw new BizException(ErrorCode.TUNNEL_ACCESS_DENIED);
-        }
-        assertExpiration(tunnel);
+        assertOwnedBy(tunnel, namespace);
+        assertNotExpired(tunnel);
     }
 
-    public void assertInClusterAndNotExpired(Tunnel tunnel, String clusterId, ErrorCode mismatchErrorCode) {
+    public void assertNotExpired(Tunnel tunnel) {
+        assertActive(tunnel);
+        if (tunnel.getExpiration() != null && tunnel.getExpiration() <= TimeUtils.nowSeconds()) {
+            throw new BizException(ErrorCode.TUNNEL_EXPIRED);
+        }
+    }
+
+    public void assertInCluster(Tunnel tunnel, String clusterId, ErrorCode mismatchErrorCode) {
         assertActive(tunnel);
         if (!Objects.equals(clusterId, tunnel.getClusterId())) {
             throw new BizException(mismatchErrorCode);
         }
-        assertExpiration(tunnel);
     }
 
-    private void assertExpiration(Tunnel tunnel) {
-        if (tunnel.getExpiration() != null && tunnel.getExpiration() <= TimeUtils.nowSeconds()) {
-            throw new BizException(ErrorCode.TUNNEL_EXPIRED);
-        }
+    public void assertInClusterAndNotExpired(Tunnel tunnel, String clusterId, ErrorCode mismatchErrorCode) {
+        assertInCluster(tunnel, clusterId, mismatchErrorCode);
+        assertNotExpired(tunnel);
     }
 }

@@ -93,7 +93,6 @@ Required configuration:
 - `RELAY_JWT_PRIVATE_KEY` for stable production signing
 
 mTLS additionally requires the server keystore and client-CA truststore variables documented in `README.md`. Redis configuration is intentionally absent.
-Only the `dev` profile permits an ephemeral JWT key; other profiles require `RELAY_JWT_PRIVATE_KEY` and fail startup when it is missing.
 
 ## 7. Verification
 

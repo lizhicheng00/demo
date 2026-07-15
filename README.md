@@ -82,7 +82,6 @@ Database columns use snake_case for compound words, for example `tunnel_id`, `tu
 Configure MySQL in `src/main/resources/application.yml`, then run:
 
 ```bash
-export SPRING_PROFILES_ACTIVE=dev
 mvn spring-boot:run
 ```
 
@@ -92,7 +91,6 @@ For another local machine, prefer overriding only the datasource URL, username, 
 export DATASOURCE_URL='jdbc:mysql://127.0.0.1:3306/relay_controller?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true'
 export DATASOURCE_USERNAME='root'
 export DATASOURCE_PASSWORD='root'
-export SPRING_PROFILES_ACTIVE=dev
 mvn spring-boot:run
 ```
 
@@ -145,4 +143,4 @@ The profile registers `spring.ssl.bundle.jks.mtls` and assigns it through `serve
 
 Use JDK 17 for normal development and deployment. The project uses Jetty instead of Tomcat. If Maven itself is run on JDK 26, Maven's own dependencies may still print JVM warnings before the application starts; those are not emitted by the Relay Controller runtime.
 
-The `dev` profile allows an ephemeral RSA key when `RELAY_JWT_PRIVATE_KEY` is absent. Other profiles fail startup without a private key so token signatures cannot change silently after a restart.
+If no RSA private key is configured, the service generates an ephemeral RSA key pair at startup for development. Configure `RELAY_JWT_PRIVATE_KEY` for stable production token signing.

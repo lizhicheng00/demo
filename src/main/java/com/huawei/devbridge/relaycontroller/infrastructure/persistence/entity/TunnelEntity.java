@@ -16,7 +16,7 @@ public class TunnelEntity {
     private String tunnelId;
     private Long tunnelCode;
     private String clusterId;
-    private Long expiration;
+    private Integer expiration;
     private String namespace;
     private String description;
     private Long bandwidthUsed;
