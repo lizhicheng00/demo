@@ -126,7 +126,7 @@ paths:
         default:
           $ref: '#/components/responses/ErrorResponse'
   /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/token:
-    get:
+    post:
       tags: [Tunnel]
       summary: Issue a new tunnel token
       description: Issues a new token on every call. Its lifetime does not exceed the tunnel's remaining lifetime.

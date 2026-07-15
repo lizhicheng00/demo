@@ -237,7 +237,7 @@ class RelayControllerApiTest {
                         .token("host-token")
                         .build());
 
-        mockMvc.perform(get(BASE + "/tunnels/{tunnelId}/token", TUNNEL_ID)
+        mockMvc.perform(post(BASE + "/tunnels/{tunnelId}/token", TUNNEL_ID)
                         .header("X-Namespace", NAMESPACE)
                         .param("scope", "host"))
                 .andExpect(status().isOk())
@@ -253,7 +253,7 @@ class RelayControllerApiTest {
         when(tunnelAppService.issueToken(NAMESPACE, TUNNEL_ID, "admin"))
                 .thenThrow(new BizException(ErrorCode.PARAM_INVALID, "scope must be host or connect"));
 
-        mockMvc.perform(get(BASE + "/tunnels/{tunnelId}/token", TUNNEL_ID)
+        mockMvc.perform(post(BASE + "/tunnels/{tunnelId}/token", TUNNEL_ID)
                         .header("X-Namespace", NAMESPACE)
                         .param("scope", "admin"))
                 .andExpect(status().isBadRequest())
@@ -262,7 +262,7 @@ class RelayControllerApiTest {
 
     @Test
     void issueTunnelTokenWithoutScopeReturnsBadRequest() throws Exception {
-        mockMvc.perform(get(BASE + "/tunnels/{tunnelId}/token", TUNNEL_ID)
+        mockMvc.perform(post(BASE + "/tunnels/{tunnelId}/token", TUNNEL_ID)
                         .header("X-Namespace", NAMESPACE))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error.code").value("40000"))
