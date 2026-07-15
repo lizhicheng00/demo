@@ -91,6 +91,8 @@ class RelayControllerApiTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.tunnelId").value(TUNNEL_ID))
                 .andExpect(jsonPath("$.clusterId").value(CLUSTER_ID))
+                .andExpect(jsonPath("$.tunnelExpiration").value(1720086400))
+                .andExpect(jsonPath("$.expiration").doesNotExist())
                 .andExpect(jsonPath("$.jwt").doesNotExist())
                 .andExpect(jsonPath("$.data").doesNotExist())
                 .andExpect(jsonPath("$.error_code").doesNotExist());
@@ -183,7 +185,7 @@ class RelayControllerApiTest {
                         .clusterId(CLUSTER_ID)
                         .name("dev")
                         .description("dev tunnel")
-                        .expiration(1720086400)
+                        .tunnelExpiration(1720086400)
                         .created(1720000000L)
                         .url("aaaadysa-cluster-a-myhuaweicloud.com")
                         .portCount(2L)
@@ -197,6 +199,8 @@ class RelayControllerApiTest {
                 .andExpect(jsonPath("$[0].tunnelId").value(TUNNEL_ID))
                 .andExpect(jsonPath("$[0].clusterId").value(CLUSTER_ID))
                 .andExpect(jsonPath("$[0].name").value("dev"))
+                .andExpect(jsonPath("$[0].tunnelExpiration").value(1720086400))
+                .andExpect(jsonPath("$[0].expiration").doesNotExist())
                 .andExpect(jsonPath("$[0].portCount").value(2));
     }
 
@@ -207,6 +211,7 @@ class RelayControllerApiTest {
                 .tunnelId(TUNNEL_ID)
                 .tunnelCode(123456L)
                 .clusterId(CLUSTER_ID)
+                .tunnelExpiration(1720086400)
                 .url("aaaadysa-cluster-a-myhuaweicloud.com")
                 .type("bridge")
                 .build());
@@ -216,6 +221,8 @@ class RelayControllerApiTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.tunnelId").value(TUNNEL_ID))
                 .andExpect(jsonPath("$.clusterId").value(CLUSTER_ID))
+                .andExpect(jsonPath("$.tunnelExpiration").value(1720086400))
+                .andExpect(jsonPath("$.expiration").doesNotExist())
                 .andExpect(jsonPath("$.jwt").doesNotExist());
     }
 
@@ -230,7 +237,7 @@ class RelayControllerApiTest {
                         .token("host-token")
                         .build());
 
-        mockMvc.perform(post(BASE + "/tunnels/{tunnelId}/token", TUNNEL_ID)
+        mockMvc.perform(get(BASE + "/tunnels/{tunnelId}/token", TUNNEL_ID)
                         .header("X-Namespace", NAMESPACE)
                         .param("scope", "host"))
                 .andExpect(status().isOk())
@@ -246,7 +253,7 @@ class RelayControllerApiTest {
         when(tunnelAppService.issueToken(NAMESPACE, TUNNEL_ID, "admin"))
                 .thenThrow(new BizException(ErrorCode.PARAM_INVALID, "scope must be host or connect"));
 
-        mockMvc.perform(post(BASE + "/tunnels/{tunnelId}/token", TUNNEL_ID)
+        mockMvc.perform(get(BASE + "/tunnels/{tunnelId}/token", TUNNEL_ID)
                         .header("X-Namespace", NAMESPACE)
                         .param("scope", "admin"))
                 .andExpect(status().isBadRequest())
@@ -255,7 +262,7 @@ class RelayControllerApiTest {
 
     @Test
     void issueTunnelTokenWithoutScopeReturnsBadRequest() throws Exception {
-        mockMvc.perform(post(BASE + "/tunnels/{tunnelId}/token", TUNNEL_ID)
+        mockMvc.perform(get(BASE + "/tunnels/{tunnelId}/token", TUNNEL_ID)
                         .header("X-Namespace", NAMESPACE))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error.code").value("40000"))
@@ -452,7 +459,7 @@ class RelayControllerApiTest {
                 .tunnelCode(123456L)
                 .clusterId(CLUSTER_ID)
                 .bandwidthUsed(0L)
-                .expiration(1720086400)
+                .tunnelExpiration(1720086400)
                 .created(1720000000L)
                 .url("aaaadysa-cluster-a-myhuaweicloud.com")
                 .type("bridge")

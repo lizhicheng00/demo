@@ -27,7 +27,7 @@ DELETE /open-api-inner/v1/relay-controller/tunnels
 GET    /open-api-inner/v1/relay-controller/tunnels/{tunnelId}
 PUT    /open-api-inner/v1/relay-controller/tunnels/{tunnelId}
 DELETE /open-api-inner/v1/relay-controller/tunnels/{tunnelId}
-POST   /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/token?scope=host|connect
+GET    /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/token?scope=host|connect
 
 POST   /open-api-inner/v1/relay-controller/clusters/{clusterId}/metering
 
@@ -42,14 +42,14 @@ GET    /open-api-inner/v1/relay-controller/clusters/{clusterId}/tunnels/{tunnelI
 Namespace-scoped APIs read `X-Namespace` directly and store it as the tunnel namespace.
 Each Relay Controller instance owns one configured region. Configure `relay.region`; tunnel, port, and metering operations only accept clusters found under that local region.
 Tunnel `type` is restricted to `bridge` or `env`; blank create requests default to `bridge`.
-Tunnel `expiration` in create and update requests is a duration in hours. Blank create requests default to 72 hours. Responses still return expiration as Unix seconds.
+Tunnel `expiration` in create and update requests is a duration in hours. Blank create requests default to 72 hours. Tunnel responses return `tunnelExpiration` as Unix seconds.
 Tunnel `tunnelCode` is a 40-bit `long`; `tunnelId` is the fixed 8-character lowercase base32 encoding of that 40-bit value.
 Tunnel URL format is `{tunnelId}-{clusterId}-{relay.domain}`.
 Deleted tunnels are soft-deleted to preserve historical identifiers and metering references. List APIs return only active, non-expired tunnels. Detail, update, port, and metering operations reject expired tunnels; delete APIs can still delete expired tunnels.
 Each namespace can own up to 10 active tunnels by default. Deleted and expired tunnels do not count against this quota. Configure `relay.tunnel.max-per-namespace` to change the limit.
 Tunnel list responses expose stable metadata plus `portCount`. Runtime counters such as host/client connections or current upload/download rate require Gateway reporting and are intentionally not modeled here yet. Port policies remain available through the tunnel port APIs instead of being embedded into every list response.
 
-Tunnel tokens are issued explicitly with `POST /tunnels/{tunnelId}/token?scope=host|connect`. Every call creates a new token; tokens are not cached. The response contains `tunnelId`, `scope`, `lifetime`, `expiration`, and `token`. Token lifetime is capped by both `relay.jwt.token.ttl-seconds` and the tunnel's remaining lifetime. JWT claims are `iss`, `exp`, `nbf`, `jti`, `tunnelId`, `clusterId`, and `scp`.
+Tunnel tokens are issued explicitly with `GET /tunnels/{tunnelId}/token?scope=host|connect`. Every call creates a new token; tokens are not cached. The response contains `tunnelId`, `scope`, `lifetime`, `expiration`, and `token`. Token lifetime is capped by both `relay.jwt.token.ttl-seconds` and the tunnel's remaining lifetime. JWT claims are `iss`, `exp`, `nbf`, `jti`, `tunnelId`, `clusterId`, and `scp`.
 
 Tunnel port APIs manage the explicit per-port allow list for a tunnel. Each port declares `protocol` as `http`, `https`, or `auto`. Unconfigured ports are denied by default. `allowAnonymous` only controls sending-side access to that port; listening-side gateway connection still requires token authentication.
 The gateway port policy API keeps `clusterId` in the path intentionally. Gateway callers use it as their cluster scope, and Relay Controller verifies the tunnel belongs to that cluster before returning the port policy.

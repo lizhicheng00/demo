@@ -63,7 +63,7 @@ DELETE /open-api-inner/v1/relay-controller/tunnels
 GET    /open-api-inner/v1/relay-controller/tunnels/{tunnelId}
 PUT    /open-api-inner/v1/relay-controller/tunnels/{tunnelId}
 DELETE /open-api-inner/v1/relay-controller/tunnels/{tunnelId}
-POST   /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/token?scope=host|connect
+GET    /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/token?scope=host|connect
 
 POST   /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports
 GET    /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports

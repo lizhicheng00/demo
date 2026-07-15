@@ -32,7 +32,7 @@ Business rules:
 The client calls:
 
 ```text
-POST /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/token?scope=host|connect
+GET /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/token?scope=host|connect
 ```
 
 The response contains:

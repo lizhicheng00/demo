@@ -126,7 +126,7 @@ paths:
         default:
           $ref: '#/components/responses/ErrorResponse'
   /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/token:
-    post:
+    get:
       tags: [Tunnel]
       summary: Issue a new tunnel token
       description: Issues a new token on every call. Its lifetime does not exceed the tunnel's remaining lifetime.
@@ -465,10 +465,10 @@ components:
         bandwidthUsed:
           type: integer
           format: int64
-        expiration:
+        tunnelExpiration:
           type: integer
           format: int32
-          description: Expiration Unix seconds.
+          description: Tunnel expiration as Unix seconds.
         created:
           type: integer
           format: int64
@@ -492,10 +492,10 @@ components:
           type: string
         description:
           type: string
-        expiration:
+        tunnelExpiration:
           type: integer
           format: int32
-          description: Expiration Unix seconds.
+          description: Tunnel expiration as Unix seconds.
         created:
           type: integer
           format: int64

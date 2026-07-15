@@ -84,7 +84,7 @@ class TunnelAppServiceTest {
         assertThat(response.getTunnelCode()).isEqualTo(123456L);
         assertThat(response.getUrl()).isEqualTo("aaaadysa-cluster-a-myhuaweicloud.com");
         assertThat(response.getType()).isEqualTo("bridge");
-        assertThat(response.getExpiration())
+        assertThat(response.getTunnelExpiration())
                 .isBetween(Math.toIntExact(before + 72 * 3600L), Math.toIntExact(after + 72 * 3600L));
     }
 
@@ -118,7 +118,7 @@ class TunnelAppServiceTest {
         CreateTunnelResponse response = service.createTunnel("ns-user-001", request);
         long after = TimeUtils.nowSeconds();
 
-        assertThat(response.getExpiration())
+        assertThat(response.getTunnelExpiration())
                 .isBetween(Math.toIntExact(before + 2 * 3600L), Math.toIntExact(after + 2 * 3600L));
     }
 
