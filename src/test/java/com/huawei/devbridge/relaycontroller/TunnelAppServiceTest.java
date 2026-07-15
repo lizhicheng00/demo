@@ -70,22 +70,18 @@ class TunnelAppServiceTest {
         CreateTunnelRequest request = new CreateTunnelRequest();
         request.setName("dev");
         request.setClusterId("cluster-a");
-        long before = TimeUtils.nowSeconds();
-
         when(clusterRepository.findByClusterIdAndRegion("cluster-a", "region-a"))
                 .thenReturn(Cluster.builder().clusterId("cluster-a").region("region-a").build());
         when(tunnelRepository.existsByTunnelCode(123456L)).thenReturn(false);
         when(tunnelRepository.existsByTunnelId("aaaadysa")).thenReturn(false);
         when(tunnelRepository.save(org.mockito.ArgumentMatchers.any(Tunnel.class))).thenAnswer(invocation -> invocation.getArgument(0));
         CreateTunnelResponse response = service.createTunnel("ns-user-001", request);
-        long after = TimeUtils.nowSeconds();
 
         assertThat(response.getTunnelId()).isEqualTo("aaaadysa");
         assertThat(response.getTunnelCode()).isEqualTo(123456L);
         assertThat(response.getUrl()).isEqualTo("aaaadysa-cluster-a-myhuaweicloud.com");
         assertThat(response.getType()).isEqualTo("bridge");
-        assertThat(response.getTunnelExpiration())
-                .isBetween(Math.toIntExact(before + 72 * 3600L), Math.toIntExact(after + 72 * 3600L));
+        assertThat(response.getTunnelExpiration()).isEqualTo(72);
     }
 
     @Test
@@ -108,18 +104,14 @@ class TunnelAppServiceTest {
         request.setName("dev");
         request.setClusterId("cluster-a");
         request.setExpiration(2);
-        long before = TimeUtils.nowSeconds();
-
         when(clusterRepository.findByClusterIdAndRegion("cluster-a", "region-a"))
                 .thenReturn(Cluster.builder().clusterId("cluster-a").region("region-a").build());
         when(tunnelRepository.existsByTunnelCode(123456L)).thenReturn(false);
         when(tunnelRepository.existsByTunnelId("aaaadysa")).thenReturn(false);
         when(tunnelRepository.save(org.mockito.ArgumentMatchers.any(Tunnel.class))).thenAnswer(invocation -> invocation.getArgument(0));
         CreateTunnelResponse response = service.createTunnel("ns-user-001", request);
-        long after = TimeUtils.nowSeconds();
 
-        assertThat(response.getTunnelExpiration())
-                .isBetween(Math.toIntExact(before + 2 * 3600L), Math.toIntExact(after + 2 * 3600L));
+        assertThat(response.getTunnelExpiration()).isEqualTo(2);
     }
 
     @Test
@@ -244,6 +236,7 @@ class TunnelAppServiceTest {
         assertThat(updated).isTrue();
         assertThat(tunnel.getExpiration())
                 .isBetween(Math.toIntExact(before + 3600L), Math.toIntExact(after + 3600L));
+        assertThat(tunnel.getExpirationHours()).isEqualTo(1);
         verify(tunnelRepository).update(tunnel);
     }
 

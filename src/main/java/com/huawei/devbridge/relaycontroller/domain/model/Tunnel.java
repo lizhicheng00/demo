@@ -16,6 +16,7 @@ public class Tunnel {
     private Long tunnelCode;
     private String clusterId;
     private Integer expiration;
+    private Integer expirationHours;
     private String namespace;
     private String description;
     private Long bandwidthUsed;

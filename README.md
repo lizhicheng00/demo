@@ -42,7 +42,7 @@ GET    /open-api-inner/v1/relay-controller/clusters/{clusterId}/tunnels/{tunnelI
 Namespace-scoped APIs read `X-Namespace` directly and store it as the tunnel namespace.
 Each Relay Controller instance owns one configured region. Configure `relay.region`; tunnel, port, and metering operations only accept clusters found under that local region.
 Tunnel `type` is restricted to `bridge` or `env`; blank create requests default to `bridge`.
-Tunnel `expiration` in create and update requests is a duration in hours. Blank create requests default to 72 hours. Tunnel responses return `tunnelExpiration` as Unix seconds.
+Tunnel `expiration` in create and update requests is a duration in hours. Blank create requests default to 72 hours. Tunnel responses return the same fixed duration as `tunnelExpiration`; the server keeps the absolute expiration time internally.
 Tunnel `tunnelCode` is a 40-bit `long`; `tunnelId` is the fixed 8-character lowercase base32 encoding of that 40-bit value.
 Tunnel URL format is `{tunnelId}-{clusterId}-{relay.domain}`.
 Deleted tunnels are soft-deleted to preserve historical identifiers and metering references. List APIs return only active, non-expired tunnels. Detail, update, port, and metering operations reject expired tunnels; delete APIs can still delete expired tunnels.

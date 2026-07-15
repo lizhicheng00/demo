@@ -468,7 +468,9 @@ components:
         tunnelExpiration:
           type: integer
           format: int32
-          description: Tunnel expiration as Unix seconds.
+          minimum: 1
+          maximum: 720
+          description: Configured tunnel expiration duration in hours.
         created:
           type: integer
           format: int64
@@ -495,7 +497,9 @@ components:
         tunnelExpiration:
           type: integer
           format: int32
-          description: Tunnel expiration as Unix seconds.
+          minimum: 1
+          maximum: 720
+          description: Configured tunnel expiration duration in hours.
         created:
           type: integer
           format: int64

@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS tunnel (
     tunnel_code BIGINT UNSIGNED NOT NULL COMMENT '40bit tunnel code',
     cluster_id VARCHAR(128) NOT NULL COMMENT 'cluster identifier',
     expiration INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'expiration unix seconds',
+    expiration_hours SMALLINT UNSIGNED NOT NULL DEFAULT 72 COMMENT 'configured expiration duration in hours',
     namespace VARCHAR(128) NOT NULL COMMENT 'namespace',
     description VARCHAR(512) DEFAULT NULL COMMENT 'description',
     bandwidth_used BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'used bytes',

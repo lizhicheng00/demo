@@ -60,14 +60,15 @@ public class TunnelAppService {
         Cluster cluster = localClusterService.requireLocalCluster(request.getClusterId());
         long now = TimeUtils.nowSeconds();
         assertTunnelQuota(namespace, now);
-        int expiration = resolveExpiration(request.getExpiration(), now);
+        TunnelExpiration expiration = resolveExpiration(request.getExpiration(), now);
         TunnelCode code = allocateTunnelCode();
         Tunnel tunnel = Tunnel.builder()
                 .name(request.getName())
                 .tunnelId(code.tunnelId())
                 .tunnelCode(code.tunnelCode())
                 .clusterId(cluster.getClusterId())
-                .expiration(expiration)
+                .expiration(expiration.expiresAt())
+                .expirationHours(expiration.hours())
                 .namespace(namespace)
                 .description(request.getDescription())
                 .bandwidthUsed(0L)
@@ -168,7 +169,9 @@ public class TunnelAppService {
             tunnel.setDescription(request.getDescription());
         }
         if (request.getExpiration() != null) {
-            tunnel.setExpiration(resolveExpiration(request.getExpiration(), TimeUtils.nowSeconds()));
+            TunnelExpiration expiration = resolveExpiration(request.getExpiration(), TimeUtils.nowSeconds());
+            tunnel.setExpiration(expiration.expiresAt());
+            tunnel.setExpirationHours(expiration.hours());
         }
         if (request.getType() != null) {
             tunnel.setType(request.getType());
@@ -212,7 +215,7 @@ public class TunnelAppService {
         return tunnel;
     }
 
-    private int resolveExpiration(Integer expirationHours, long now) {
+    private TunnelExpiration resolveExpiration(Integer expirationHours, long now) {
         int hours = expirationHours == null ? relayProperties.getDefaultExpirationHours() : expirationHours;
         if (hours <= 0) {
             throw new BizException(ErrorCode.PARAM_INVALID, "expiration must be positive hours");
@@ -224,7 +227,7 @@ public class TunnelAppService {
         if (expiresAt > Integer.MAX_VALUE) {
             throw new BizException(ErrorCode.PARAM_INVALID, "expiration is too large");
         }
-        return Math.toIntExact(expiresAt);
+        return new TunnelExpiration(hours, Math.toIntExact(expiresAt));
     }
 
     private JwtScope parseScope(String scopeValue) {
@@ -244,5 +247,8 @@ public class TunnelAppService {
     }
 
     private record TunnelCode(long tunnelCode, String tunnelId) {
+    }
+
+    private record TunnelExpiration(int hours, int expiresAt) {
     }
 }
