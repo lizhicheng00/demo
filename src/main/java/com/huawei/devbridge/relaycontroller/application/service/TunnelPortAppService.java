@@ -72,14 +72,18 @@ public class TunnelPortAppService {
     @Transactional
     public TunnelPortResponse update(String rawNamespace, String tunnelId, Long port, UpdateTunnelPortRequest request) {
         Tunnel tunnel = ownedTunnel(rawNamespace, tunnelId);
-        tunnelPortDomainService.validateAllowAnonymous(request.getAllowAnonymous());
         TunnelPort tunnelPort = findTunnelPort(tunnel.getTunnelCode(), port);
         TunnelProtocol protocol = request.getProtocol() == null ? tunnelPort.getProtocol() : request.getProtocol();
-        tunnelPortRepository.updatePolicy(tunnel.getTunnelCode(), port, protocol, request.getAllowAnonymous());
+        Boolean allowAnonymous = request.getAllowAnonymous() == null
+                ? tunnelPort.getAllowAnonymous()
+                : request.getAllowAnonymous();
+        if (request.getProtocol() != null || request.getAllowAnonymous() != null) {
+            tunnelPortRepository.updatePolicy(tunnel.getTunnelCode(), port, protocol, allowAnonymous);
+            log.info("Tunnel port updated: tunnelId={}, tunnelCode={}, port={}, protocol={}, allowAnonymous={}",
+                    tunnel.getTunnelId(), tunnel.getTunnelCode(), port, protocol, allowAnonymous);
+        }
         tunnelPort.setProtocol(protocol);
-        tunnelPort.setAllowAnonymous(request.getAllowAnonymous());
-        log.info("Tunnel port updated: tunnelId={}, tunnelCode={}, port={}, protocol={}, allowAnonymous={}",
-                tunnel.getTunnelId(), tunnel.getTunnelCode(), port, protocol, request.getAllowAnonymous());
+        tunnelPort.setAllowAnonymous(allowAnonymous);
         return TunnelPortAssembler.toResponse(tunnel, tunnelPort);
     }
 

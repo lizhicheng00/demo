@@ -434,7 +434,6 @@ components:
           type: boolean
     UpdateTunnelPortRequest:
       type: object
-      required: [allowAnonymous]
       properties:
         protocol:
           type: string

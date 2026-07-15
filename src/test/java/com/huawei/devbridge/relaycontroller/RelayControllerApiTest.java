@@ -382,8 +382,8 @@ class RelayControllerApiTest {
                         .tunnelId(TUNNEL_ID)
                         .tunnelCode(123456L)
                         .port(8080L)
-                        .protocol(TunnelProtocol.HTTP)
-                        .allowAnonymous(true)
+                        .protocol(TunnelProtocol.HTTPS)
+                        .allowAnonymous(false)
                         .build());
 
         mockMvc.perform(put(BASE + "/tunnels/{tunnelId}/ports/{port}", TUNNEL_ID, 8080)
@@ -391,12 +391,12 @@ class RelayControllerApiTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "allowAnonymous": true
+                                  "protocol": "https"
                                 }
                                 """))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.protocol").value("http"))
-                .andExpect(jsonPath("$.allowAnonymous").value(true));
+                .andExpect(jsonPath("$.protocol").value("https"))
+                .andExpect(jsonPath("$.allowAnonymous").value(false));
     }
 
     @Test
