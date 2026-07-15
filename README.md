@@ -88,7 +88,7 @@ mvn spring-boot:run
 For another local machine, prefer overriding only the datasource URL, username, and password:
 
 ```bash
-export DATASOURCE_URL='jdbc:mysql://127.0.0.1:3306/relay_controller?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true'
+export DATASOURCE_URL='jdbc:mariadb://127.0.0.1:3306/relay_controller'
 export DATASOURCE_USERNAME='root'
 export DATASOURCE_PASSWORD='root'
 mvn spring-boot:run
@@ -122,7 +122,7 @@ SERVER_SSL_TRUST_STORE_PASSWORD
 
 The Base64 keystore content is sensitive because it contains the server private key. The truststore usually contains only trusted client CA certificates, but it must still be protected from unauthorized replacement. Base64 is transport encoding, not encryption; keep both values in deployment secret storage.
 
-The project uses `mysql-connector-j`; Spring Boot infers the driver from `DATASOURCE_URL`, so no driver class is configured explicitly.
+The project uses MariaDB Connector/J. Use a `jdbc:mariadb://` datasource URL; Spring Boot infers the driver, so no driver class is configured explicitly.
 
 ## Mutual TLS
 
