@@ -3,6 +3,10 @@ spring:
     init:
       mode: never
 
+relay:
+  jwt:
+    allow-ephemeral-key: true
+
 logging:
   level:
     root: WARN

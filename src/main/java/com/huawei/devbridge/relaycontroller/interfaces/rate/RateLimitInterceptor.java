@@ -20,6 +20,8 @@ public class RateLimitInterceptor implements HandlerInterceptor {
     private static final long WINDOW_MILLIS = 60_000L;
     private static final long COUNTER_TTL_MILLIS = WINDOW_MILLIS * 2;
     private static final String NAMESPACE_HEADER = "X-Namespace";
+    private static final int MAX_NAMESPACE_LENGTH = 128;
+    private static final int MAX_COUNTERS = 10_000;
 
     private final RelayProperties relayProperties;
     private final ObjectMapper objectMapper;
@@ -35,7 +37,11 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         }
         long now = System.currentTimeMillis();
         cleanupCounters(now);
-        WindowCounter counter = counters.computeIfAbsent(rateKey(request), ignored -> new WindowCounter());
+        WindowCounter counter = counterFor(rateKey(request));
+        if (counter == null) {
+            writeRateLimitedResponse(response);
+            return false;
+        }
         if (counter.allow(now, rateLimit.getRequestsPerMinute())) {
             return true;
         }
@@ -45,10 +51,33 @@ public class RateLimitInterceptor implements HandlerInterceptor {
 
     private String rateKey(HttpServletRequest request) {
         String namespace = request.getHeader(NAMESPACE_HEADER);
-        if (namespace != null && !namespace.isBlank()) {
-            return "namespace:" + namespace.trim();
+        if (namespace != null) {
+            String normalized = namespace.trim();
+            if (!normalized.isEmpty() && normalized.length() <= MAX_NAMESPACE_LENGTH
+                    && normalized.chars().noneMatch(Character::isISOControl)) {
+                return "namespace:" + normalized;
+            }
         }
         return "ip:" + request.getRemoteAddr();
+    }
+
+    private WindowCounter counterFor(String key) {
+        WindowCounter existing = counters.get(key);
+        if (existing != null) {
+            return existing;
+        }
+        synchronized (counters) {
+            existing = counters.get(key);
+            if (existing != null) {
+                return existing;
+            }
+            if (counters.size() >= MAX_COUNTERS) {
+                return null;
+            }
+            WindowCounter created = new WindowCounter();
+            counters.put(key, created);
+            return created;
+        }
     }
 
     private void cleanupCounters(long now) {

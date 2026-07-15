@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.huawei.devbridge.relaycontroller.application.service.MeteringAppService;
@@ -20,6 +21,7 @@ import com.huawei.devbridge.relaycontroller.common.exception.GlobalExceptionHand
 import com.huawei.devbridge.relaycontroller.interfaces.controller.MeteringController;
 import com.huawei.devbridge.relaycontroller.interfaces.controller.TunnelController;
 import com.huawei.devbridge.relaycontroller.interfaces.controller.TunnelPortController;
+import com.huawei.devbridge.relaycontroller.interfaces.config.SensitiveResponseAdvice;
 import com.huawei.devbridge.relaycontroller.interfaces.request.CreateTunnelPortRequest;
 import com.huawei.devbridge.relaycontroller.interfaces.request.CreateTunnelRequest;
 import com.huawei.devbridge.relaycontroller.interfaces.request.MeteringReportRequest;
@@ -67,7 +69,7 @@ class RelayControllerApiTest {
                         new TunnelController(tunnelAppService),
                         new MeteringController(meteringAppService),
                         new TunnelPortController(tunnelPortAppService))
-                .setControllerAdvice(new GlobalExceptionHandler())
+                .setControllerAdvice(new GlobalExceptionHandler(), new SensitiveResponseAdvice())
                 .setMessageConverters(new MappingJackson2HttpMessageConverter())
                 .defaultRequest(get("/").accept(MediaType.APPLICATION_JSON))
                 .build();
@@ -245,7 +247,9 @@ class RelayControllerApiTest {
                 .andExpect(jsonPath("$.scope").value("host"))
                 .andExpect(jsonPath("$.lifetime").value(3600))
                 .andExpect(jsonPath("$.expiration").value(1720086400L))
-                .andExpect(jsonPath("$.token").value("host-token"));
+                .andExpect(jsonPath("$.token").value("host-token"))
+                .andExpect(header().string("Cache-Control", "no-store"))
+                .andExpect(header().string("Pragma", "no-cache"));
     }
 
     @Test
@@ -322,6 +326,22 @@ class RelayControllerApiTest {
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accepted").value(true));
+    }
+
+    @Test
+    void reportMeteringWithInvalidTunnelIdReturnsParamInvalid() throws Exception {
+        mockMvc.perform(post(BASE + "/clusters/{clusterId}/metering", CLUSTER_ID)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "tunnelCode": 123456,
+                                  "tunnelId": "not-valid",
+                                  "usage": 1024
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error.code").value("40000"))
+                .andExpect(jsonPath("$.error.details[0].target").value("tunnelId"));
     }
 
     @Test

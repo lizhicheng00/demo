@@ -32,6 +32,7 @@ public class RelayProperties {
         private String issuer = "devbridge";
         private String keyId = "1";
         private String privateKey;
+        private boolean allowEphemeralKey;
         private TokenTtl token = new TokenTtl(86400);
     }
 

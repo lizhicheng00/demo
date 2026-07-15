@@ -66,4 +66,42 @@ class RateLimitInterceptorTest {
 
         assertThat(counters).hasSize(1);
     }
+
+    @Test
+    void shouldNotUseOversizedNamespaceAsCounterKey() throws Exception {
+        RelayProperties properties = new RelayProperties();
+        properties.getRateLimit().setRequestsPerMinute(1);
+        RateLimitInterceptor interceptor = new RateLimitInterceptor(properties, new ObjectMapper());
+
+        MockHttpServletRequest first = new MockHttpServletRequest();
+        first.setRemoteAddr("10.0.0.1");
+        first.addHeader("X-Namespace", "a".repeat(129));
+        MockHttpServletRequest second = new MockHttpServletRequest();
+        second.setRemoteAddr("10.0.0.1");
+        second.addHeader("X-Namespace", "b".repeat(129));
+
+        assertThat(interceptor.preHandle(first, new MockHttpServletResponse(), new Object())).isTrue();
+        assertThat(interceptor.preHandle(second, new MockHttpServletResponse(), new Object())).isFalse();
+    }
+
+    @Test
+    void shouldRejectNewKeysWhenCounterCapacityIsReached() throws Exception {
+        RelayProperties properties = new RelayProperties();
+        properties.getRateLimit().setRequestsPerMinute(1);
+        RateLimitInterceptor interceptor = new RateLimitInterceptor(properties, new ObjectMapper());
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        for (int index = 0; index < 10_000; index++) {
+            MockHttpServletRequest request = new MockHttpServletRequest();
+            request.setRemoteAddr("10.0." + index);
+            assertThat(interceptor.preHandle(request, response, new Object())).isTrue();
+        }
+
+        MockHttpServletRequest overflow = new MockHttpServletRequest();
+        overflow.setRemoteAddr("capacity-exceeded");
+        MockHttpServletResponse limitedResponse = new MockHttpServletResponse();
+
+        assertThat(interceptor.preHandle(overflow, limitedResponse, new Object())).isFalse();
+        assertThat(limitedResponse.getStatus()).isEqualTo(429);
+    }
 }

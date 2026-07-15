@@ -23,6 +23,8 @@
         <nimbus-jose-jwt.version>10.8</nimbus-jose-jwt.version>
         <swagger-annotations.version>2.2.52</swagger-annotations.version>
         <openapi-generator.version>7.14.0</openapi-generator.version>
+        <log4j2.version>2.25.4</log4j2.version>
+        <jackson-bom.version>2.21.5</jackson-bom.version>
         <lombok.version>1.18.46</lombok.version>
         <mapstruct.version>1.6.3</mapstruct.version>
         <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
@@ -38,6 +40,12 @@
             <groupId>org.mariadb.jdbc</groupId>
             <artifactId>mariadb-java-client</artifactId>
             <version>3.4.1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.github.waffle</groupId>
+                    <artifactId>waffle-jna</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.huawei.apigateway</groupId>
@@ -260,6 +268,9 @@
                     <exists>${user.home}/.m2/repository/local/devbridge/stubs/.enabled</exists>
                 </file>
             </activation>
+            <properties>
+                <spring-boot.repackage.skip>true</spring-boot.repackage.skip>
+            </properties>
             <dependencies>
                 <dependency>
                     <groupId>local.devbridge.stubs</groupId>

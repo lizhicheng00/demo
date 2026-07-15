@@ -38,6 +38,8 @@ class JwtSignerTest {
         SignedJWT jwt = SignedJWT.parse(signer.signToken(tunnel, JwtScope.CONNECT, issuedAt, expiration));
 
         assertThat(jwt.verify(new RSASSAVerifier((RSAPublicKey) keyPair.getPublic()))).isTrue();
+        assertThat(jwt.getHeader().getAlgorithm().getName()).isEqualTo("RS256");
+        assertThat(jwt.getHeader().getType().getType()).isEqualTo("JWT");
         assertThat(jwt.getHeader().getKeyID()).isEqualTo("1");
         assertThat(jwt.getJWTClaimsSet().getClaims().keySet())
                 .isEqualTo(Set.of("iss", "exp", "nbf", "jti", "tunnelId", "clusterId", "scp"));

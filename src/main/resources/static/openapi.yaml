@@ -4,7 +4,7 @@ info:
   version: v1
   description: Control plane APIs for DevBridge relay tunnels. Relay Controller does not forward traffic.
 servers:
-  - url: http://localhost:8080
+  - url: https://localhost:8443
 tags:
   - name: Tunnel
   - name: Metering
@@ -44,6 +44,8 @@ paths:
           required: false
           schema:
             type: string
+            minLength: 1
+            maxLength: 128
       responses:
         '200':
           description: Namespace tunnel list.
@@ -143,6 +145,12 @@ paths:
       responses:
         '200':
           description: Newly issued tunnel token.
+          headers:
+            Cache-Control:
+              description: Prevents storage of the issued token response.
+              schema:
+                type: string
+                example: no-store
           content:
             application/json:
               schema:
@@ -303,6 +311,8 @@ components:
       required: true
       schema:
         type: string
+        minLength: 1
+        maxLength: 128
     TunnelIdPath:
       name: tunnelId
       in: path
@@ -317,6 +327,8 @@ components:
       required: true
       schema:
         type: string
+        minLength: 1
+        maxLength: 128
     PortPath:
       name: port
       in: path
@@ -375,6 +387,8 @@ components:
           maxLength: 512
         clusterId:
           type: string
+          minLength: 1
+          maxLength: 128
           description: Cluster identifier.
         expiration:
           type: integer
@@ -411,6 +425,8 @@ components:
         tunnelCode:
           type: integer
           format: int64
+          minimum: 1
+          maximum: 1099511627775
         tunnelId:
           type: string
           pattern: '^[a-z2-7]{8}$'

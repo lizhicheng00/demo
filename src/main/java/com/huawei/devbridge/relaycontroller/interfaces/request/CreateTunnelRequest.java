@@ -15,6 +15,7 @@ public class CreateTunnelRequest {
     @Size(max = 512)
     private String description;
     @NotBlank
+    @Size(max = 128)
     private String clusterId;
     @Min(1)
     @Max(720)

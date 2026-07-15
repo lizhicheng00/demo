@@ -45,7 +45,7 @@ Tunnel `type` is restricted to `bridge` or `env`; blank create requests default 
 Tunnel `expiration` in create and update requests is a duration in hours. Blank create requests default to 72 hours. Tunnel responses return the same fixed duration as `tunnelExpiration`; the server keeps the absolute expiration time internally.
 Tunnel `tunnelCode` is a 40-bit `long`; `tunnelId` is the fixed 8-character lowercase base32 encoding of that 40-bit value.
 Tunnel URL format is `{tunnelId}-{clusterId}-{relay.domain}`.
-Deleted tunnels are soft-deleted to preserve historical identifiers and metering references. List APIs return only active, non-expired tunnels. Detail, update, port, and metering operations reject expired tunnels; delete APIs can still delete expired tunnels.
+Delete operations physically remove tunnels and their port policies. List APIs return only active, non-expired tunnels. Detail, update, port, and metering operations reject expired tunnels; expired records are physically removed after the configured retention period.
 Each namespace can own up to 10 active tunnels by default. Deleted and expired tunnels do not count against this quota. Configure `relay.tunnel.max-per-namespace` to change the limit.
 Tunnel list responses expose stable metadata plus `portCount`. Runtime counters such as host/client connections or current upload/download rate require Gateway reporting and are intentionally not modeled here yet. Port policies remain available through the tunnel port APIs instead of being embedded into every list response.
 
@@ -54,7 +54,7 @@ Tunnel tokens are issued explicitly with `POST /tunnels/{tunnelId}/token?scope=h
 Tunnel port APIs manage the explicit per-port allow list for a tunnel. Each port declares `protocol` as `http`, `https`, or `auto`. Unconfigured ports are denied by default. `allowAnonymous` only controls sending-side access to that port; listening-side gateway connection still requires token authentication.
 The gateway port policy API keeps `clusterId` in the path intentionally. Gateway callers use it as their cluster scope, and Relay Controller verifies the tunnel belongs to that cluster before returning the port policy.
 
-Business APIs under `/open-api-inner/v1/relay-controller/**` have an in-memory fixed-window rate limit. The key is `X-Namespace` when present, otherwise client IP. The default is 120 requests per minute and can be adjusted with `relay.rate-limit.requests-per-minute` or disabled with `relay.rate-limit.enabled=false`.
+Business APIs under `/open-api-inner/v1/relay-controller/**` have an in-memory fixed-window rate limit. The key is `X-Namespace` when present, otherwise client IP. The default is 120 requests per minute and can be adjusted with `relay.rate-limit.requests-per-minute` or disabled with `relay.rate-limit.enabled=false`. The in-memory counter table is bounded and old entries are removed automatically.
 
 OpenAPI is maintained as YAML at `src/main/resources/static/openapi.yaml`. Maven uses this YAML during `generate-sources` to generate Spring API interfaces under `target/generated-sources/openapi`; controllers implement those generated interfaces and do not declare request mappings by hand.
 The same YAML is served directly as a static resource:
@@ -90,7 +90,7 @@ For another local machine, prefer overriding only the datasource URL, username, 
 ```bash
 export DATASOURCE_URL='jdbc:mariadb://127.0.0.1:3306/relay_controller'
 export DATASOURCE_USERNAME='root'
-export DATASOURCE_PASSWORD='root'
+export DATASOURCE_PASSWORD='<secret>'
 mvn spring-boot:run
 ```
 
@@ -126,10 +126,10 @@ The project uses MariaDB Connector/J. Use a `jdbc:mariadb://` datasource URL; Sp
 
 ## Mutual TLS
 
-Relay Controller can require client certificates at the embedded Jetty layer. Enable the `mtls` profile and provide a Base64-encoded PKCS12 server keystore plus a truststore containing the client CA:
+Relay Controller requires client certificates at the embedded Jetty layer. The `dev` and `prod` profile groups both activate `mtls`; provide a Base64-encoded PKCS12 server keystore plus a truststore containing the client CA:
 
 ```bash
-export SPRING_PROFILES_ACTIVE=dev,mtls
+export SPRING_PROFILES_ACTIVE=dev
 export SERVER_PORT=8443
 export SERVER_SSL_KEY_STORE_BASE64="$(base64 < /path/to/server.p12 | tr -d '\n')"
 export SERVER_SSL_KEY_STORE_PASSWORD='<secret>'
@@ -139,8 +139,14 @@ export RELAY_JWT_PRIVATE_KEY='<private-key-pem>'
 mvn spring-boot:run
 ```
 
-The profile registers `spring.ssl.bundle.jks.mtls` and assigns it through `server.ssl.bundle`. With `server.ssl.client-auth=need`, requests without a trusted client certificate fail during the TLS handshake and never reach the API controllers. Callers must use `https://` and pass a client certificate signed by the CA in the configured truststore.
+The profile registers `spring.ssl.bundle.jks.mtls` and assigns it through `server.ssl.bundle`. With `server.ssl.client-auth=need`, requests without a trusted client certificate fail during the TLS handshake and never reach the API controllers. Only TLS 1.2 and 1.3 are enabled. Callers must use `https://` and pass a client certificate signed by the CA in the configured truststore.
 
 Use JDK 17 for normal development and deployment. The project uses Jetty instead of Tomcat. If Maven itself is run on JDK 26, Maven's own dependencies may still print JVM warnings before the application starts; those are not emitted by the Relay Controller runtime.
 
-If no RSA private key is configured, the service generates an ephemeral RSA key pair at startup for development. Configure `RELAY_JWT_PRIVATE_KEY` for stable production token signing.
+The optional `local-company-library-stubs` profile supports local IDE and `spring-boot:run` use only. It disables Spring Boot executable-JAR repackaging so a build containing fake SCC, random, or exception utilities is not mistaken for a deployable artifact.
+
+Development may generate an ephemeral RSA key through `relay.jwt.allow-ephemeral-key=true`. Production rejects startup without `RELAY_JWT_PRIVATE_KEY`. The decrypted value must be a PKCS#8 RSA private key of at least 2048 bits; rotate it through `relay.jwt.key-id` and the verifier's public-key set.
+
+## Security boundary
+
+mTLS authenticates the calling certificate, while `X-Namespace` currently remains a caller-supplied tenancy value. The deployment identity layer must authorize that certificate for the requested namespace; Relay Controller does not derive the namespace from the certificate. The same rule applies to cluster-scoped gateway and metering calls. Do not expose these internal APIs directly to clients that may choose arbitrary namespace or cluster identifiers.
