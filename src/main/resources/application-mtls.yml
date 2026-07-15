@@ -12,9 +12,9 @@ spring:
         mtls:
           keystore:
             location: base64:${SERVER_SSL_KEY_STORE_BASE64}
-            password: ${SERVER_SSL_KEY_STORE_PASSWORD}
+            password: ${ENC(${SERVER_SSL_KEY_STORE_PASSWORD})}
             type: PKCS12
           truststore:
             location: base64:${SERVER_SSL_TRUST_STORE_BASE64}
-            password: ${SERVER_SSL_TRUST_STORE_PASSWORD}
+            password: ${ENC(${SERVER_SSL_TRUST_STORE_PASSWORD})}
             type: PKCS12
