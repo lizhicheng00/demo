@@ -5,6 +5,7 @@ import com.huawei.devbridge.relaycontroller.common.exception.BizException;
 import com.huawei.devbridge.relaycontroller.common.exception.ErrorCode;
 import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
 import com.huawei.devbridge.relaycontroller.domain.model.TunnelPort;
+import com.huawei.devbridge.relaycontroller.domain.model.TunnelProtocol;
 import com.huawei.devbridge.relaycontroller.domain.repository.TunnelPortRepository;
 import com.huawei.devbridge.relaycontroller.domain.repository.TunnelRepository;
 import com.huawei.devbridge.relaycontroller.domain.service.NamespaceService;
@@ -71,14 +72,14 @@ public class TunnelPortAppService {
     @Transactional
     public TunnelPortResponse update(String rawNamespace, String tunnelId, Long port, UpdateTunnelPortRequest request) {
         Tunnel tunnel = ownedTunnel(rawNamespace, tunnelId);
-        tunnelPortDomainService.validateProtocol(request.getProtocol());
         tunnelPortDomainService.validateAllowAnonymous(request.getAllowAnonymous());
         TunnelPort tunnelPort = findTunnelPort(tunnel.getTunnelCode(), port);
-        tunnelPortRepository.updatePolicy(tunnel.getTunnelCode(), port, request.getProtocol(), request.getAllowAnonymous());
-        tunnelPort.setProtocol(request.getProtocol());
+        TunnelProtocol protocol = request.getProtocol() == null ? tunnelPort.getProtocol() : request.getProtocol();
+        tunnelPortRepository.updatePolicy(tunnel.getTunnelCode(), port, protocol, request.getAllowAnonymous());
+        tunnelPort.setProtocol(protocol);
         tunnelPort.setAllowAnonymous(request.getAllowAnonymous());
         log.info("Tunnel port updated: tunnelId={}, tunnelCode={}, port={}, protocol={}, allowAnonymous={}",
-                tunnel.getTunnelId(), tunnel.getTunnelCode(), port, request.getProtocol(), request.getAllowAnonymous());
+                tunnel.getTunnelId(), tunnel.getTunnelCode(), port, protocol, request.getAllowAnonymous());
         return TunnelPortAssembler.toResponse(tunnel, tunnelPort);
     }
 

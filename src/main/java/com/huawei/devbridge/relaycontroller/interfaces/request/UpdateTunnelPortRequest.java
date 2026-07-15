@@ -6,7 +6,6 @@ import lombok.Data;
 
 @Data
 public class UpdateTunnelPortRequest {
-    @NotNull
     private TunnelProtocol protocol;
     @NotNull
     private Boolean allowAnonymous;

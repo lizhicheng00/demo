@@ -382,7 +382,7 @@ class RelayControllerApiTest {
                         .tunnelId(TUNNEL_ID)
                         .tunnelCode(123456L)
                         .port(8080L)
-                        .protocol(TunnelProtocol.HTTPS)
+                        .protocol(TunnelProtocol.HTTP)
                         .allowAnonymous(true)
                         .build());
 
@@ -391,12 +391,11 @@ class RelayControllerApiTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "protocol": "https",
                                   "allowAnonymous": true
                                 }
                                 """))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.protocol").value("https"))
+                .andExpect(jsonPath("$.protocol").value("http"))
                 .andExpect(jsonPath("$.allowAnonymous").value(true));
     }
 

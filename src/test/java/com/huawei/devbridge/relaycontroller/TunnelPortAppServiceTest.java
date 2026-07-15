@@ -157,6 +157,25 @@ class TunnelPortAppServiceTest {
     }
 
     @Test
+    void updateTunnelPortKeepsProtocolWhenOmitted() {
+        TunnelPortAppService service = newService();
+        UpdateTunnelPortRequest request = new UpdateTunnelPortRequest();
+        request.setAllowAnonymous(true);
+
+        when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a"))
+                .thenReturn(tunnel("ns-user-001", "cluster-a"));
+        when(tunnelPortRepository.findByTunnelCodeAndPort(123456L, 8080L))
+                .thenReturn(TunnelPort.builder().tunnelCode(123456L).port(8080L)
+                        .protocol(TunnelProtocol.HTTP).allowAnonymous(false).build());
+
+        TunnelPortResponse response = service.update("ns-user-001", "aaaadysa", 8080L, request);
+
+        assertThat(response.getProtocol()).isEqualTo(TunnelProtocol.HTTP);
+        assertThat(response.getAllowAnonymous()).isTrue();
+        verify(tunnelPortRepository).updatePolicy(123456L, 8080L, TunnelProtocol.HTTP, true);
+    }
+
+    @Test
     void deleteTunnelPortRemovesPolicy() {
         TunnelPortAppService service = newService();
 
