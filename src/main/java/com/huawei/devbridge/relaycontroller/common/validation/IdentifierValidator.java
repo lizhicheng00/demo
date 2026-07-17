@@ -1,5 +1,6 @@
 package com.huawei.devbridge.relaycontroller.common.validation;
 
+import com.huawei.clouds.wushan.security.redos.TimeoutRegexCharSequence;
 import java.util.regex.Pattern;
 
 public final class IdentifierValidator {
@@ -11,6 +12,6 @@ public final class IdentifierValidator {
     }
 
     public static boolean isValid(String value) {
-        return value != null && PATTERN.matcher(value).matches();
+        return value != null && PATTERN.matcher(new TimeoutRegexCharSequence(value)).matches();
     }
 }
