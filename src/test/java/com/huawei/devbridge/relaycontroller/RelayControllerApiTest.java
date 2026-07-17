@@ -21,7 +21,7 @@ import com.huawei.devbridge.relaycontroller.common.exception.GlobalExceptionHand
 import com.huawei.devbridge.relaycontroller.interfaces.controller.MeteringController;
 import com.huawei.devbridge.relaycontroller.interfaces.controller.TunnelController;
 import com.huawei.devbridge.relaycontroller.interfaces.controller.TunnelPortController;
-import com.huawei.devbridge.relaycontroller.interfaces.config.SensitiveResponseAdvice;
+import com.huawei.devbridge.relaycontroller.interfaces.config.TokenCacheControlAdvice;
 import com.huawei.devbridge.relaycontroller.interfaces.request.CreateTunnelPortRequest;
 import com.huawei.devbridge.relaycontroller.interfaces.request.CreateTunnelRequest;
 import com.huawei.devbridge.relaycontroller.interfaces.request.MeteringReportRequest;
@@ -69,7 +69,7 @@ class RelayControllerApiTest {
                         new TunnelController(tunnelAppService),
                         new MeteringController(meteringAppService),
                         new TunnelPortController(tunnelPortAppService))
-                .setControllerAdvice(new GlobalExceptionHandler(), new SensitiveResponseAdvice())
+                .setControllerAdvice(new GlobalExceptionHandler(), new TokenCacheControlAdvice())
                 .setMessageConverters(new MappingJackson2HttpMessageConverter())
                 .defaultRequest(get("/").accept(MediaType.APPLICATION_JSON))
                 .build();
@@ -248,8 +248,7 @@ class RelayControllerApiTest {
                 .andExpect(jsonPath("$.lifetime").value(3600))
                 .andExpect(jsonPath("$.expiration").value(1720086400L))
                 .andExpect(jsonPath("$.token").value("host-token"))
-                .andExpect(header().string("Cache-Control", "no-store"))
-                .andExpect(header().string("Pragma", "no-cache"));
+                .andExpect(header().string("Cache-Control", "no-store"));
     }
 
     @Test

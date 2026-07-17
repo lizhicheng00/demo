@@ -47,7 +47,7 @@ The response contains:
 }
 ```
 
-Every call signs a new JWT. Tokens are not cached and Redis is not required. `lifetime` is the smaller of the configured token TTL and the tunnel's remaining lifetime. JWT claims are `iss`, `exp`, `nbf`, `jti`, `tunnelId`, `clusterId`, and `scp`.
+Every call signs a new JWT. Tokens are not cached and Redis is not required. `lifetime` is the fixed configured token TTL and does not follow the tunnel expiration. JWT claims are `iss`, `exp`, `nbf`, `jti`, `tunnelId`, `clusterId`, and `scp`.
 
 ## 4. Tunnel Port
 

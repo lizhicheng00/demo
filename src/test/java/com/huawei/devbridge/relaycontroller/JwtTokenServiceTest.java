@@ -1,11 +1,14 @@
 package com.huawei.devbridge.relaycontroller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.huawei.devbridge.relaycontroller.common.exception.BizException;
+import com.huawei.devbridge.relaycontroller.common.exception.ErrorCode;
 import com.huawei.devbridge.relaycontroller.common.util.TimeUtils;
 import com.huawei.devbridge.relaycontroller.domain.model.JwtScope;
 import com.huawei.devbridge.relaycontroller.domain.model.JwtToken;
@@ -43,19 +46,31 @@ class JwtTokenServiceTest {
     }
 
     @Test
-    void issueTokenCapsLifetimeByTunnelExpiration() {
+    void issueTokenUsesConfiguredLifetimeRegardlessOfTunnelExpiration() {
         RelayProperties properties = new RelayProperties();
         properties.getJwt().getToken().setTtlSeconds(86400);
         JwtTokenServiceImpl service = new JwtTokenServiceImpl(jwtSigner, properties);
         int tunnelExpiration = Math.toIntExact(TimeUtils.nowSeconds() + 60);
         Tunnel tunnel = Tunnel.builder().tunnelId("aaaadysa").expiration(tunnelExpiration).build();
-        when(jwtSigner.signToken(eq(tunnel), eq(JwtScope.CONNECT), anyLong(), eq((long) tunnelExpiration)))
+        when(jwtSigner.signToken(eq(tunnel), eq(JwtScope.CONNECT), anyLong(), anyLong()))
                 .thenReturn("connect-token");
 
         JwtToken token = service.issueToken(tunnel, JwtScope.CONNECT);
 
         assertThat(token.token()).isEqualTo("connect-token");
-        assertThat(token.lifetime()).isBetween(1L, 60L);
-        assertThat(token.expiration()).isEqualTo(tunnelExpiration);
+        assertThat(token.lifetime()).isEqualTo(86400L);
+        assertThat(token.expiration()).isGreaterThan(tunnelExpiration);
+    }
+
+    @Test
+    void issueTokenRejectsNonPositiveConfiguredLifetime() {
+        RelayProperties properties = new RelayProperties();
+        properties.getJwt().getToken().setTtlSeconds(0);
+        JwtTokenServiceImpl service = new JwtTokenServiceImpl(jwtSigner, properties);
+
+        assertThatThrownBy(() -> service.issueToken(Tunnel.builder().build(), JwtScope.HOST))
+                .isInstanceOf(BizException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.JWT_GENERATE_FAILED);
     }
 }

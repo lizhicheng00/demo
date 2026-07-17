@@ -16,13 +16,21 @@ import org.junit.jupiter.api.Test;
 class InputBoundaryTest {
 
     @Test
-    void shouldNormalizeValidNamespace() {
-        assertThat(new NamespaceService().requireNamespace(" namespace-a ")).isEqualTo("namespace-a");
+    void shouldAcceptValidNamespace() {
+        assertThat(new NamespaceService().requireNamespace("namespace-a")).isEqualTo("namespace-a");
     }
 
     @Test
     void shouldRejectOversizedNamespace() {
         assertThatThrownBy(() -> new NamespaceService().requireNamespace("a".repeat(129)))
+                .isInstanceOf(BizException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.PARAM_INVALID);
+    }
+
+    @Test
+    void shouldRejectNamespaceOutsideIdentifierPattern() {
+        assertThatThrownBy(() -> new NamespaceService().requireNamespace(" namespace-a "))
                 .isInstanceOf(BizException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.PARAM_INVALID);
@@ -46,6 +54,18 @@ class InputBoundaryTest {
         LocalClusterService service = new LocalClusterService(repository, new RelayProperties());
 
         assertThatThrownBy(() -> service.requireLocalCluster(" cluster-a "))
+                .isInstanceOf(BizException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.PARAM_INVALID);
+        verifyNoInteractions(repository);
+    }
+
+    @Test
+    void shouldRejectClusterOutsideIdentifierPattern() {
+        ClusterRepository repository = mock(ClusterRepository.class);
+        LocalClusterService service = new LocalClusterService(repository, new RelayProperties());
+
+        assertThatThrownBy(() -> service.requireLocalCluster("cluster/a"))
                 .isInstanceOf(BizException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.PARAM_INVALID);

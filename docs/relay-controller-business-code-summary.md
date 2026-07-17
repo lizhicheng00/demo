@@ -44,7 +44,7 @@ The repository returns only active local-region rows and computes `portCount`. E
 
 1. Verify namespace ownership, local region, and expiration.
 2. Validate `scope` as `host` or `connect`.
-3. Set expiration to `min(configured TTL, tunnel remaining lifetime)`.
+3. Set expiration from the fixed configured token TTL.
 4. Add a random `jti` and sign a new RS256 JWT.
 5. Return `tunnelId`, `scope`, `lifetime`, `expiration`, and `token`.
 

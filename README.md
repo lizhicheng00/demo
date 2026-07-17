@@ -49,7 +49,7 @@ Delete operations physically remove tunnels and their port policies. List APIs r
 Each namespace can own up to 10 active tunnels by default. Deleted and expired tunnels do not count against this quota. Configure `relay.tunnel.max-per-namespace` to change the limit.
 Tunnel list responses expose stable metadata plus `portCount`. Runtime counters such as host/client connections or current upload/download rate require Gateway reporting and are intentionally not modeled here yet. Port policies remain available through the tunnel port APIs instead of being embedded into every list response.
 
-Tunnel tokens are issued explicitly with `POST /tunnels/{tunnelId}/token?scope=host|connect`. Every call creates a new token; tokens are not cached. The response contains `tunnelId`, `scope`, `lifetime`, `expiration`, and `token`. Token lifetime is capped by both `relay.jwt.token.ttl-seconds` and the tunnel's remaining lifetime. JWT claims are `iss`, `exp`, `nbf`, `jti`, `tunnelId`, `clusterId`, and `scp`.
+Tunnel tokens are issued explicitly with `POST /tunnels/{tunnelId}/token?scope=host|connect`. Every call creates a new token; tokens are not cached. The response contains `tunnelId`, `scope`, `lifetime`, `expiration`, and `token`. Token lifetime is fixed by `relay.jwt.token.ttl-seconds` and does not follow the tunnel expiration. JWT claims are `iss`, `exp`, `nbf`, `jti`, `tunnelId`, `clusterId`, and `scp`.
 
 Tunnel port APIs manage the explicit per-port allow list for a tunnel. Each port declares `protocol` as `http`, `https`, or `auto`. Unconfigured ports are denied by default. `allowAnonymous` only controls sending-side access to that port; listening-side gateway connection still requires token authentication.
 The gateway port policy API keeps `clusterId` in the path intentionally. Gateway callers use it as their cluster scope, and Relay Controller verifies the tunnel belongs to that cluster before returning the port policy.
@@ -135,7 +135,7 @@ export SERVER_SSL_KEY_STORE_BASE64="$(base64 < /path/to/server.p12 | tr -d '\n')
 export SERVER_SSL_KEY_STORE_PASSWORD='<secret>'
 export SERVER_SSL_TRUST_STORE_BASE64="$(base64 < /path/to/server-truststore.p12 | tr -d '\n')"
 export SERVER_SSL_TRUST_STORE_PASSWORD='<secret>'
-export RELAY_JWT_PRIVATE_KEY='<private-key-pem>'
+export RELAY_JWT_PRIVATE_KEY='<PKCS#8 PEM or Base64>'
 mvn spring-boot:run
 ```
 
@@ -145,7 +145,7 @@ Use JDK 17 for normal development and deployment. The project uses Jetty instead
 
 The optional `local-company-library-stubs` profile supports local IDE and `spring-boot:run` use only. It disables Spring Boot executable-JAR repackaging so a build containing fake SCC, random, or exception utilities is not mistaken for a deployable artifact.
 
-Development may generate an ephemeral RSA key through `relay.jwt.allow-ephemeral-key=true`. Production rejects startup without `RELAY_JWT_PRIVATE_KEY`. The decrypted value must be a PKCS#8 RSA private key of at least 2048 bits; rotate it through `relay.jwt.key-id` and the verifier's public-key set.
+All environments reject startup without `RELAY_JWT_PRIVATE_KEY`. The decrypted value must be a PKCS#8 RSA private key of at least 2048 bits; rotate it through `relay.jwt.key-id` and the verifier's public-key set.
 
 ## Security boundary
 

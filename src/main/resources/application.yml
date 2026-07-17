@@ -74,6 +74,5 @@ relay:
     issuer: devbridge
     key-id: "1"
     private-key: ${RELAY_JWT_PRIVATE_KEY:}
-    allow-ephemeral-key: false
     token:
       ttl-seconds: 86400

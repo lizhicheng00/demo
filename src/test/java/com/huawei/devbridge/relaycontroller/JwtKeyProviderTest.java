@@ -28,10 +28,16 @@ class JwtKeyProviderTest {
     }
 
     @Test
-    void shouldGenerate2048BitDevelopmentKeyWhenExplicitlyAllowed() {
+    void shouldLoadConfigured2048BitKey() throws Exception {
+        KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
+        generator.initialize(2048);
+        String encodedKey = Base64.getEncoder().encodeToString(generator.generateKeyPair().getPrivate().getEncoded());
+
         RelayProperties properties = new RelayProperties();
-        properties.getJwt().setAllowEphemeralKey(true);
-        JwtKeyProvider provider = new JwtKeyProvider(properties, mock(SccCrypto.class));
+        properties.getJwt().setPrivateKey("encrypted-key");
+        SccCrypto sccCrypto = mock(SccCrypto.class);
+        when(sccCrypto.decrypt("encrypted-key")).thenReturn(encodedKey);
+        JwtKeyProvider provider = new JwtKeyProvider(properties, sccCrypto);
 
         provider.init();
 

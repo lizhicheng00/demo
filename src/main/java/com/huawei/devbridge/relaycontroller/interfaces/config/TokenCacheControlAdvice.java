@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
 @RestControllerAdvice(assignableTypes = TunnelController.class)
-public class SensitiveResponseAdvice implements ResponseBodyAdvice<TunnelTokenResponse> {
+public class TokenCacheControlAdvice implements ResponseBodyAdvice<TunnelTokenResponse> {
 
     @Override
     public boolean supports(
@@ -29,7 +29,6 @@ public class SensitiveResponseAdvice implements ResponseBodyAdvice<TunnelTokenRe
             ServerHttpRequest request,
             ServerHttpResponse response) {
         response.getHeaders().setCacheControl(CacheControl.noStore());
-        response.getHeaders().setPragma("no-cache");
         return body;
     }
 }

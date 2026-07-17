@@ -44,8 +44,7 @@ paths:
           required: false
           schema:
             type: string
-            minLength: 1
-            maxLength: 128
+            pattern: '^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$'
       responses:
         '200':
           description: Namespace tunnel list.
@@ -131,7 +130,7 @@ paths:
     post:
       tags: [Tunnel]
       summary: Issue a new tunnel token
-      description: Issues a new token on every call. Its lifetime does not exceed the tunnel's remaining lifetime.
+      description: Issues a new token on every call. Its lifetime is configured by relay.jwt.token.ttl-seconds.
       operationId: issueTunnelToken
       parameters:
         - $ref: '#/components/parameters/NamespaceHeader'
@@ -311,8 +310,7 @@ components:
       required: true
       schema:
         type: string
-        minLength: 1
-        maxLength: 128
+        pattern: '^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$'
     TunnelIdPath:
       name: tunnelId
       in: path
@@ -327,8 +325,7 @@ components:
       required: true
       schema:
         type: string
-        minLength: 1
-        maxLength: 128
+        pattern: '^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$'
     PortPath:
       name: port
       in: path
@@ -387,8 +384,7 @@ components:
           maxLength: 512
         clusterId:
           type: string
-          minLength: 1
-          maxLength: 128
+          pattern: '^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$'
           description: Cluster identifier.
         expiration:
           type: integer

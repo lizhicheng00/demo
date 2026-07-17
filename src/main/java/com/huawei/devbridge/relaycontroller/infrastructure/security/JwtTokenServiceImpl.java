@@ -20,24 +20,12 @@ public class JwtTokenServiceImpl implements JwtTokenService {
     @Override
     public JwtToken issueToken(Tunnel tunnel, JwtScope scope) {
         long issuedAt = TimeUtils.nowSeconds();
-        long expiration = resolveTokenExpiration(tunnel, issuedAt);
-        long lifetime = expiration - issuedAt;
-        String token = jwtSigner.signToken(tunnel, scope, issuedAt, expiration);
-        return new JwtToken(token, lifetime, expiration);
-    }
-
-    private long resolveTokenExpiration(Tunnel tunnel, long issuedAt) {
-        long configuredTtl = relayProperties.getJwt().getToken().getTtlSeconds();
-        if (configuredTtl <= 0) {
+        long lifetime = relayProperties.getJwt().getToken().getTtlSeconds();
+        if (lifetime <= 0) {
             throw new BizException(ErrorCode.JWT_GENERATE_FAILED);
         }
-        if (tunnel.getExpiration() == null) {
-            return issuedAt + configuredTtl;
-        }
-        long remainingSeconds = tunnel.getExpiration() - issuedAt;
-        if (remainingSeconds <= 0) {
-            throw new BizException(ErrorCode.TUNNEL_EXPIRED);
-        }
-        return issuedAt + Math.min(configuredTtl, remainingSeconds);
+        long expiration = issuedAt + lifetime;
+        String token = jwtSigner.signToken(tunnel, scope, issuedAt, expiration);
+        return new JwtToken(token, lifetime, expiration);
     }
 }

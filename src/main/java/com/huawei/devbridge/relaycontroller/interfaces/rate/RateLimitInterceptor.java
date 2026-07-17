@@ -3,6 +3,7 @@ package com.huawei.devbridge.relaycontroller.interfaces.rate;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.huawei.devbridge.relaycontroller.common.exception.ErrorCode;
 import com.huawei.devbridge.relaycontroller.common.model.ErrorResponse;
+import com.huawei.devbridge.relaycontroller.common.validation.IdentifierValidator;
 import com.huawei.devbridge.relaycontroller.infrastructure.config.RelayProperties;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -20,7 +21,6 @@ public class RateLimitInterceptor implements HandlerInterceptor {
     private static final long WINDOW_MILLIS = 60_000L;
     private static final long COUNTER_TTL_MILLIS = WINDOW_MILLIS * 2;
     private static final String NAMESPACE_HEADER = "X-Namespace";
-    private static final int MAX_NAMESPACE_LENGTH = 128;
     private static final int MAX_COUNTERS = 10_000;
 
     private final RelayProperties relayProperties;
@@ -51,12 +51,8 @@ public class RateLimitInterceptor implements HandlerInterceptor {
 
     private String rateKey(HttpServletRequest request) {
         String namespace = request.getHeader(NAMESPACE_HEADER);
-        if (namespace != null) {
-            String normalized = namespace.trim();
-            if (!normalized.isEmpty() && normalized.length() <= MAX_NAMESPACE_LENGTH
-                    && normalized.chars().noneMatch(Character::isISOControl)) {
-                return "namespace:" + normalized;
-            }
+        if (IdentifierValidator.isValid(namespace)) {
+            return "namespace:" + namespace;
         }
         return "ip:" + request.getRemoteAddr();
     }
