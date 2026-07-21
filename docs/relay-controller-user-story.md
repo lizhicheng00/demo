@@ -20,7 +20,7 @@ Business rules:
 
 - `tunnelCode` is a random 40-bit positive `long`.
 - `tunnelId` is the fixed eight-character lowercase Base32 encoding of `tunnelCode`.
-- tunnel URL is `{tunnelId}-{clusterId}-{relay.domain}`.
+- tunnel URL is `{tunnelId}.{clusterId}.{relay.domain}`.
 - default expiration is 72 hours and the maximum is 720 hours.
 - a namespace owns at most 10 active tunnels by default.
 - list returns only non-deleted, non-expired tunnels and includes `portCount`.

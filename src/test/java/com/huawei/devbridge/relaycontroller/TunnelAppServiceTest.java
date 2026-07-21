@@ -80,7 +80,7 @@ class TunnelAppServiceTest {
 
         assertThat(response.getTunnelId()).isEqualTo("aaaadysa");
         assertThat(response.getTunnelCode()).isEqualTo(123456L);
-        assertThat(response.getUrl()).isEqualTo("aaaadysa-cluster-a-myhuaweicloud.com");
+        assertThat(response.getUrl()).isEqualTo("aaaadysa.cluster-a.myhuaweicloud.com");
         assertThat(response.getType()).isEqualTo("bridge");
         assertThat(response.getTunnelExpiration()).isEqualTo(72);
     }

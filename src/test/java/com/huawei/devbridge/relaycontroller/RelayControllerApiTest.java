@@ -189,7 +189,7 @@ class RelayControllerApiTest {
                         .description("dev tunnel")
                         .tunnelExpiration(720)
                         .created(1720000000L)
-                        .url("aaaadysa-cluster-a-myhuaweicloud.com")
+                        .url("aaaadysa.cluster-a.myhuaweicloud.com")
                         .portCount(2L)
                         .build()));
 
@@ -214,7 +214,7 @@ class RelayControllerApiTest {
                 .tunnelCode(123456L)
                 .clusterId(CLUSTER_ID)
                 .tunnelExpiration(720)
-                .url("aaaadysa-cluster-a-myhuaweicloud.com")
+                .url("aaaadysa.cluster-a.myhuaweicloud.com")
                 .type("bridge")
                 .build());
 
@@ -479,7 +479,7 @@ class RelayControllerApiTest {
                 .bandwidthUsed(0L)
                 .tunnelExpiration(720)
                 .created(1720000000L)
-                .url("aaaadysa-cluster-a-myhuaweicloud.com")
+                .url("aaaadysa.cluster-a.myhuaweicloud.com")
                 .type("bridge")
                 .build();
     }

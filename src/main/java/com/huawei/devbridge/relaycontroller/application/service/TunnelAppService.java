@@ -243,7 +243,7 @@ public class TunnelAppService {
     }
 
     private String buildTunnelUrl(String tunnelId, Cluster cluster) {
-        return tunnelId + "-" + cluster.getClusterId() + "-" + relayProperties.getDomain();
+        return tunnelId + "." + cluster.getClusterId() + "." + relayProperties.getDomain();
     }
 
     private record TunnelCode(long tunnelCode, String tunnelId) {
