@@ -69,7 +69,7 @@ relay:
     cleanup-interval-ms: 3600000
   rate-limit:
     enabled: true
-    requests-per-minute: 120
+    requests-per-minute: ${RELAY_RATE_LIMIT_REQUESTS_PER_MINUTE}
   jwt:
     issuer: devbridge
     key-id: "1"

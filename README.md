@@ -54,7 +54,7 @@ Tunnel tokens are issued explicitly with `POST /tunnels/{tunnelId}/token?scope=h
 Tunnel port APIs manage the explicit per-port allow list for a tunnel. Each port declares `protocol` as `http`, `https`, or `auto`. Unconfigured ports are denied by default. `allowAnonymous` only controls sending-side access to that port; listening-side gateway connection still requires token authentication.
 The gateway port policy API keeps `clusterId` in the path intentionally. Gateway callers use it as their cluster scope, and Relay Controller verifies the tunnel belongs to that cluster before returning the port policy.
 
-Business APIs under `/open-api-inner/v1/relay-controller/**` have an in-memory fixed-window rate limit. The key is `X-Namespace` when present, otherwise client IP. The default is 120 requests per minute and can be adjusted with `relay.rate-limit.requests-per-minute` or disabled with `relay.rate-limit.enabled=false`. The in-memory counter table is bounded and old entries are removed automatically.
+Business APIs under `/open-api-inner/v1/relay-controller/**` have an in-memory fixed-window rate limit. The key is `X-Namespace` when present, otherwise client IP. Set the per-instance limit with `RELAY_RATE_LIMIT_REQUESTS_PER_MINUTE`; rate limiting can be disabled with `relay.rate-limit.enabled=false`. The in-memory counter table is bounded and old entries are removed automatically.
 
 OpenAPI is maintained as YAML at `src/main/resources/static/openapi.yaml`. Maven uses this YAML during `generate-sources` to generate Spring API interfaces under `target/generated-sources/openapi`; controllers implement those generated interfaces and do not declare request mappings by hand.
 The same YAML is served directly as a static resource:
@@ -137,6 +137,7 @@ export SERVER_SSL_TRUST_STORE_BASE64="$(base64 < /path/to/server-truststore.p12 
 export SERVER_SSL_TRUST_STORE_PASSWORD='<secret>'
 export RELAY_DOMAIN='myhuaweicloud.com'
 export RELAY_REGION='cn-north-4'
+export RELAY_RATE_LIMIT_REQUESTS_PER_MINUTE='120'
 export RELAY_JWT_PRIVATE_KEY='<PKCS#8 PEM or Base64>'
 mvn spring-boot:run
 ```

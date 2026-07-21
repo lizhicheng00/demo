@@ -24,7 +24,7 @@ public class RelayProperties {
     @Data
     public static class RateLimit {
         private boolean enabled = true;
-        private int requestsPerMinute = 120;
+        private int requestsPerMinute;
     }
 
     @Data

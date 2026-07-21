@@ -90,6 +90,7 @@ Required configuration:
 - `DATASOURCE_PASSWORD`
 - `RELAY_REGION`
 - `RELAY_DOMAIN`
+- `RELAY_RATE_LIMIT_REQUESTS_PER_MINUTE`
 - `RELAY_JWT_PRIVATE_KEY` for stable production signing
 
 mTLS additionally requires the server keystore and client-CA truststore variables documented in `README.md`. Redis configuration is intentionally absent.
