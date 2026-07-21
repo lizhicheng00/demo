@@ -58,6 +58,7 @@ class TunnelAppServiceTest {
     @Test
     void createTunnelAllocatesCodeAndReturnsMetadata() {
         RelayProperties properties = new RelayProperties();
+        properties.setDomain("myhuaweicloud.com");
         TunnelAppService service = new TunnelAppService(
                 tunnelRepository,
                 new LocalClusterService(clusterRepository, properties),
