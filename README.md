@@ -40,7 +40,7 @@ GET    /open-api-inner/v1/relay-controller/clusters/{clusterId}/tunnels/{tunnelI
 ```
 
 Namespace-scoped APIs read `X-Namespace` directly and store it as the tunnel namespace.
-Each Relay Controller instance owns one configured region. Configure `relay.region`; tunnel, port, and metering operations only accept clusters found under that local region.
+Each Relay Controller instance owns one configured region. Set `RELAY_REGION`; tunnel, port, and metering operations only accept clusters found under that local region. Set `RELAY_DOMAIN` to the tunnel URL suffix.
 Tunnel `type` is restricted to `bridge` or `env`; blank create requests default to `bridge`.
 Tunnel `expiration` in create and update requests is a duration in hours. Blank create requests default to 72 hours. Tunnel responses return the same fixed duration as `tunnelExpiration`; the server keeps the absolute expiration time internally.
 Tunnel `tunnelCode` is a 40-bit `long`; `tunnelId` is the fixed 8-character lowercase base32 encoding of that 40-bit value.
@@ -135,6 +135,8 @@ export SERVER_SSL_KEY_STORE_BASE64="$(base64 < /path/to/server.p12 | tr -d '\n')
 export SERVER_SSL_KEY_STORE_PASSWORD='<secret>'
 export SERVER_SSL_TRUST_STORE_BASE64="$(base64 < /path/to/server-truststore.p12 | tr -d '\n')"
 export SERVER_SSL_TRUST_STORE_PASSWORD='<secret>'
+export RELAY_DOMAIN='myhuaweicloud.com'
+export RELAY_REGION='cn-north-4'
 export RELAY_JWT_PRIVATE_KEY='<PKCS#8 PEM or Base64>'
 mvn spring-boot:run
 ```

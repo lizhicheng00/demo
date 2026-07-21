@@ -59,8 +59,8 @@ wushan:
       default-algorithm: ALG_AES256_GCM
 
 relay:
-  domain: myhuaweicloud.com
-  region: region-a
+  domain: ${RELAY_DOMAIN}
+  region: ${RELAY_REGION}
   default-expiration-hours: 72
   tunnel:
     max-per-namespace: 10
