@@ -60,7 +60,7 @@ public class TunnelAppService {
         Cluster cluster = localClusterService.requireLocalCluster(request.getClusterId());
         long now = TimeUtils.nowSeconds();
         assertTunnelQuota(namespace, now);
-        TunnelExpiration expiration = resolveExpiration(request.getExpiration(), now);
+        TunnelExpiration expiration = resolveExpiration(request.getExpirationHours(), now);
         TunnelCode code = allocateTunnelCode();
         Tunnel tunnel = Tunnel.builder()
                 .name(request.getName())
@@ -68,7 +68,7 @@ public class TunnelAppService {
                 .tunnelCode(code.tunnelCode())
                 .clusterId(cluster.getClusterId())
                 .expiration(expiration.expiresAt())
-                .expirationHours(expiration.hours())
+                .expirationHours(expiration.expirationHours())
                 .namespace(namespace)
                 .description(request.getDescription())
                 .bandwidthUsed(0L)
@@ -79,7 +79,7 @@ public class TunnelAppService {
                 .updatedAt(now)
                 .build();
         tunnelRepository.save(tunnel);
-        log.info("Tunnel created: tunnelId={}, tunnelCode={}, namespace={}, clusterId={}, type={}, expiration={}",
+        log.info("Tunnel created: tunnelId={}, tunnelCode={}, namespace={}, clusterId={}, type={}, expiresAt={}",
                 tunnel.getTunnelId(), tunnel.getTunnelCode(), tunnel.getNamespace(), tunnel.getClusterId(),
                 tunnel.getType(), tunnel.getExpiration());
         return TunnelAssembler.toCreateResponse(tunnel);
@@ -168,10 +168,10 @@ public class TunnelAppService {
         if (request.getDescription() != null) {
             tunnel.setDescription(request.getDescription());
         }
-        if (request.getExpiration() != null) {
-            TunnelExpiration expiration = resolveExpiration(request.getExpiration(), TimeUtils.nowSeconds());
+        if (request.getExpirationHours() != null) {
+            TunnelExpiration expiration = resolveExpiration(request.getExpirationHours(), TimeUtils.nowSeconds());
             tunnel.setExpiration(expiration.expiresAt());
-            tunnel.setExpirationHours(expiration.hours());
+            tunnel.setExpirationHours(expiration.expirationHours());
         }
         if (request.getType() != null) {
             tunnel.setType(request.getType());
@@ -218,14 +218,14 @@ public class TunnelAppService {
     private TunnelExpiration resolveExpiration(Integer expirationHours, long now) {
         int hours = expirationHours == null ? relayProperties.getDefaultExpirationHours() : expirationHours;
         if (hours <= 0) {
-            throw new BizException(ErrorCode.PARAM_INVALID, "expiration must be positive hours");
+            throw new BizException(ErrorCode.PARAM_INVALID, "expirationHours must be positive");
         }
         if (hours > MAX_EXPIRATION_HOURS) {
-            throw new BizException(ErrorCode.PARAM_INVALID, "expiration must be less than or equal to 720 hours");
+            throw new BizException(ErrorCode.PARAM_INVALID, "expirationHours must be less than or equal to 720");
         }
         long expiresAt = now + (long) hours * SECONDS_PER_HOUR;
         if (expiresAt > Integer.MAX_VALUE) {
-            throw new BizException(ErrorCode.PARAM_INVALID, "expiration is too large");
+            throw new BizException(ErrorCode.PARAM_INVALID, "expirationHours is too large");
         }
         return new TunnelExpiration(hours, Math.toIntExact(expiresAt));
     }
@@ -249,6 +249,6 @@ public class TunnelAppService {
     private record TunnelCode(long tunnelCode, String tunnelId) {
     }
 
-    private record TunnelExpiration(int hours, int expiresAt) {
+    private record TunnelExpiration(int expirationHours, int expiresAt) {
     }
 }

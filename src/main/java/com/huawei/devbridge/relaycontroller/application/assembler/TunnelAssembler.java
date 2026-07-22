@@ -18,7 +18,8 @@ public final class TunnelAssembler {
                 .clusterId(tunnel.getClusterId())
                 .description(tunnel.getDescription())
                 .bandwidthUsed(tunnel.getBandwidthUsed())
-                .tunnelExpiration(tunnel.getExpirationHours())
+                .expirationHours(tunnel.getExpirationHours())
+                .expiresAt(expiresAt(tunnel))
                 .created(tunnel.getCreatedAt())
                 .url(tunnel.getUrl())
                 .type(typeValue(tunnel))
@@ -33,7 +34,8 @@ public final class TunnelAssembler {
                 .clusterId(tunnel.getClusterId())
                 .description(tunnel.getDescription())
                 .bandwidthUsed(tunnel.getBandwidthUsed())
-                .tunnelExpiration(tunnel.getExpirationHours())
+                .expirationHours(tunnel.getExpirationHours())
+                .expiresAt(expiresAt(tunnel))
                 .created(tunnel.getCreatedAt())
                 .url(tunnel.getUrl())
                 .type(typeValue(tunnel))
@@ -47,7 +49,8 @@ public final class TunnelAssembler {
                 .clusterId(tunnel.getClusterId())
                 .name(tunnel.getName())
                 .description(tunnel.getDescription())
-                .tunnelExpiration(tunnel.getExpirationHours())
+                .expirationHours(tunnel.getExpirationHours())
+                .expiresAt(expiresAt(tunnel))
                 .created(tunnel.getCreatedAt())
                 .url(tunnel.getUrl())
                 .portCount(tunnel.getPortCount() == null ? 0L : tunnel.getPortCount())
@@ -57,5 +60,10 @@ public final class TunnelAssembler {
     private static String typeValue(Tunnel tunnel) {
         TunnelType type = tunnel.getType();
         return type == null ? null : type.value();
+    }
+
+    private static Long expiresAt(Tunnel tunnel) {
+        Integer expiration = tunnel.getExpiration();
+        return expiration == null ? null : expiration.longValue();
     }
 }

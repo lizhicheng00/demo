@@ -82,7 +82,8 @@ class TunnelAppServiceTest {
         assertThat(response.getTunnelCode()).isEqualTo(123456L);
         assertThat(response.getUrl()).isEqualTo("aaaadysa.cluster-a.myhuaweicloud.com");
         assertThat(response.getType()).isEqualTo("bridge");
-        assertThat(response.getTunnelExpiration()).isEqualTo(72);
+        assertThat(response.getExpirationHours()).isEqualTo(72);
+        assertThat(response.getExpiresAt()).isNotNull();
     }
 
     @Test
@@ -104,7 +105,7 @@ class TunnelAppServiceTest {
         CreateTunnelRequest request = new CreateTunnelRequest();
         request.setName("dev");
         request.setClusterId("cluster-a");
-        request.setExpiration(2);
+        request.setExpirationHours(2);
         when(clusterRepository.findByClusterIdAndRegion("cluster-a", "region-a"))
                 .thenReturn(Cluster.builder().clusterId("cluster-a").region("region-a").build());
         when(tunnelRepository.existsByTunnelCode(123456L)).thenReturn(false);
@@ -112,7 +113,7 @@ class TunnelAppServiceTest {
         when(tunnelRepository.save(org.mockito.ArgumentMatchers.any(Tunnel.class))).thenAnswer(invocation -> invocation.getArgument(0));
         CreateTunnelResponse response = service.createTunnel("ns-user-001", request);
 
-        assertThat(response.getTunnelExpiration()).isEqualTo(2);
+        assertThat(response.getExpirationHours()).isEqualTo(2);
     }
 
     @Test
@@ -121,7 +122,7 @@ class TunnelAppServiceTest {
         CreateTunnelRequest request = new CreateTunnelRequest();
         request.setName("dev");
         request.setClusterId("cluster-a");
-        request.setExpiration(0);
+        request.setExpirationHours(0);
 
         when(clusterRepository.findByClusterIdAndRegion("cluster-a", "region-a"))
                 .thenReturn(Cluster.builder().clusterId("cluster-a").region("region-a").build());
@@ -138,7 +139,7 @@ class TunnelAppServiceTest {
         CreateTunnelRequest request = new CreateTunnelRequest();
         request.setName("dev");
         request.setClusterId("cluster-a");
-        request.setExpiration(721);
+        request.setExpirationHours(721);
 
         when(clusterRepository.findByClusterIdAndRegion("cluster-a", "region-a"))
                 .thenReturn(Cluster.builder().clusterId("cluster-a").region("region-a").build());
@@ -219,7 +220,7 @@ class TunnelAppServiceTest {
     void updateTunnelChangesExpiration() {
         TunnelAppService service = newService(new RelayProperties());
         UpdateTunnelRequest request = new UpdateTunnelRequest();
-        request.setExpiration(1);
+        request.setExpirationHours(1);
         Tunnel tunnel = Tunnel.builder()
                 .tunnelId("aaaadysa")
                 .namespace("ns-user-001")

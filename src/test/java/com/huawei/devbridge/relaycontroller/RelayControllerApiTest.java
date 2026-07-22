@@ -93,8 +93,9 @@ class RelayControllerApiTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.tunnelId").value(TUNNEL_ID))
                 .andExpect(jsonPath("$.clusterId").value(CLUSTER_ID))
-                .andExpect(jsonPath("$.tunnelExpiration").value(720))
-                .andExpect(jsonPath("$.expiration").doesNotExist())
+                .andExpect(jsonPath("$.expirationHours").value(720))
+                .andExpect(jsonPath("$.expiresAt").value(1722592000L))
+                .andExpect(jsonPath("$.tunnelExpiration").doesNotExist())
                 .andExpect(jsonPath("$.jwt").doesNotExist())
                 .andExpect(jsonPath("$.data").doesNotExist())
                 .andExpect(jsonPath("$.error_code").doesNotExist());
@@ -145,12 +146,12 @@ class RelayControllerApiTest {
                                   "name": "dev",
                                   "clusterId": "cluster-a",
                                   "type": "bridge",
-                                  "expiration": 721
+                                  "expirationHours": 721
                                 }
                                 """))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error.code").value("40000"))
-                .andExpect(jsonPath("$.error.details[0].target").value("expiration"));
+                .andExpect(jsonPath("$.error.details[0].target").value("expirationHours"));
     }
 
     @Test
@@ -187,7 +188,8 @@ class RelayControllerApiTest {
                         .clusterId(CLUSTER_ID)
                         .name("dev")
                         .description("dev tunnel")
-                        .tunnelExpiration(720)
+                        .expirationHours(720)
+                        .expiresAt(1722592000L)
                         .created(1720000000L)
                         .url("aaaadysa.cluster-a.myhuaweicloud.com")
                         .portCount(2L)
@@ -201,8 +203,9 @@ class RelayControllerApiTest {
                 .andExpect(jsonPath("$[0].tunnelId").value(TUNNEL_ID))
                 .andExpect(jsonPath("$[0].clusterId").value(CLUSTER_ID))
                 .andExpect(jsonPath("$[0].name").value("dev"))
-                .andExpect(jsonPath("$[0].tunnelExpiration").value(720))
-                .andExpect(jsonPath("$[0].expiration").doesNotExist())
+                .andExpect(jsonPath("$[0].expirationHours").value(720))
+                .andExpect(jsonPath("$[0].expiresAt").value(1722592000L))
+                .andExpect(jsonPath("$[0].tunnelExpiration").doesNotExist())
                 .andExpect(jsonPath("$[0].portCount").value(2));
     }
 
@@ -213,7 +216,8 @@ class RelayControllerApiTest {
                 .tunnelId(TUNNEL_ID)
                 .tunnelCode(123456L)
                 .clusterId(CLUSTER_ID)
-                .tunnelExpiration(720)
+                .expirationHours(720)
+                .expiresAt(1722592000L)
                 .url("aaaadysa.cluster-a.myhuaweicloud.com")
                 .type("bridge")
                 .build());
@@ -223,8 +227,9 @@ class RelayControllerApiTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.tunnelId").value(TUNNEL_ID))
                 .andExpect(jsonPath("$.clusterId").value(CLUSTER_ID))
-                .andExpect(jsonPath("$.tunnelExpiration").value(720))
-                .andExpect(jsonPath("$.expiration").doesNotExist())
+                .andExpect(jsonPath("$.expirationHours").value(720))
+                .andExpect(jsonPath("$.expiresAt").value(1722592000L))
+                .andExpect(jsonPath("$.tunnelExpiration").doesNotExist())
                 .andExpect(jsonPath("$.jwt").doesNotExist());
     }
 
@@ -477,7 +482,8 @@ class RelayControllerApiTest {
                 .tunnelCode(123456L)
                 .clusterId(CLUSTER_ID)
                 .bandwidthUsed(0L)
-                .tunnelExpiration(720)
+                .expirationHours(720)
+                .expiresAt(1722592000L)
                 .created(1720000000L)
                 .url("aaaadysa.cluster-a.myhuaweicloud.com")
                 .type("bridge")

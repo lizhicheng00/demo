@@ -368,7 +368,7 @@ components:
           example: "40000"
         target:
           type: string
-          example: expiration
+          example: expirationHours
         message:
           type: string
           example: must be less than or equal to 720
@@ -386,12 +386,12 @@ components:
           type: string
           pattern: '^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$'
           description: Cluster identifier.
-        expiration:
+        expirationHours:
           type: integer
           format: int32
           minimum: 1
           maximum: 720
-          description: Expiration duration in hours. Defaults to 72 hours. Maximum is 720 hours.
+          description: Tunnel lifetime in hours. Defaults to 72 hours. Maximum is 720 hours.
         type:
           type: string
           enum: [bridge, env]
@@ -405,12 +405,12 @@ components:
         description:
           type: string
           maxLength: 512
-        expiration:
+        expirationHours:
           type: integer
           format: int32
           minimum: 1
           maximum: 720
-          description: Expiration duration in hours from update time. Maximum is 720 hours.
+          description: Tunnel lifetime in hours from update time. Maximum is 720 hours.
         type:
           type: string
           enum: [bridge, env]
@@ -476,12 +476,16 @@ components:
         bandwidthUsed:
           type: integer
           format: int64
-        tunnelExpiration:
+        expirationHours:
           type: integer
           format: int32
           minimum: 1
           maximum: 720
-          description: Configured tunnel expiration duration in hours.
+          description: Configured tunnel lifetime in hours.
+        expiresAt:
+          type: integer
+          format: int64
+          description: Actual tunnel expiration time as Unix seconds.
         created:
           type: integer
           format: int64
@@ -505,12 +509,16 @@ components:
           type: string
         description:
           type: string
-        tunnelExpiration:
+        expirationHours:
           type: integer
           format: int32
           minimum: 1
           maximum: 720
-          description: Configured tunnel expiration duration in hours.
+          description: Configured tunnel lifetime in hours.
+        expiresAt:
+          type: integer
+          format: int64
+          description: Actual tunnel expiration time as Unix seconds.
         created:
           type: integer
           format: int64

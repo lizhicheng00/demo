@@ -12,7 +12,8 @@ public class CreateTunnelResponse {
     private String clusterId;
     private String description;
     private Long bandwidthUsed;
-    private Integer tunnelExpiration;
+    private Integer expirationHours;
+    private Long expiresAt;
     private Long created;
     private String url;
     private String type;

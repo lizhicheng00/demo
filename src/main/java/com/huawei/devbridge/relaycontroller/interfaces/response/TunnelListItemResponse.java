@@ -11,7 +11,8 @@ public class TunnelListItemResponse {
     private String clusterId;
     private String name;
     private String description;
-    private Integer tunnelExpiration;
+    private Integer expirationHours;
+    private Long expiresAt;
     private Long created;
     private String url;
     private Long portCount;
