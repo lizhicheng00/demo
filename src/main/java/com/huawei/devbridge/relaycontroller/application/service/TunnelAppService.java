@@ -60,7 +60,7 @@ public class TunnelAppService {
         Cluster cluster = localClusterService.requireLocalCluster(request.getClusterId());
         long now = TimeUtils.nowSeconds();
         assertTunnelQuota(namespace, now);
-        TunnelExpiration expiration = resolveExpiration(request.getExpirationHours(), now);
+        TunnelExpiration expiration = resolveExpiration(request.getExpiration(), now);
         TunnelCode code = allocateTunnelCode();
         Tunnel tunnel = Tunnel.builder()
                 .name(request.getName())
@@ -168,8 +168,8 @@ public class TunnelAppService {
         if (request.getDescription() != null) {
             tunnel.setDescription(request.getDescription());
         }
-        if (request.getExpirationHours() != null) {
-            TunnelExpiration expiration = resolveExpiration(request.getExpirationHours(), TimeUtils.nowSeconds());
+        if (request.getExpiration() != null) {
+            TunnelExpiration expiration = resolveExpiration(request.getExpiration(), TimeUtils.nowSeconds());
             tunnel.setExpiration(expiration.expiresAt());
             tunnel.setExpirationHours(expiration.expirationHours());
         }
@@ -218,14 +218,14 @@ public class TunnelAppService {
     private TunnelExpiration resolveExpiration(Integer expirationHours, long now) {
         int hours = expirationHours == null ? relayProperties.getDefaultExpirationHours() : expirationHours;
         if (hours <= 0) {
-            throw new BizException(ErrorCode.PARAM_INVALID, "expirationHours must be positive");
+            throw new BizException(ErrorCode.PARAM_INVALID, "expiration must be positive hours");
         }
         if (hours > MAX_EXPIRATION_HOURS) {
-            throw new BizException(ErrorCode.PARAM_INVALID, "expirationHours must be less than or equal to 720");
+            throw new BizException(ErrorCode.PARAM_INVALID, "expiration must be less than or equal to 720 hours");
         }
         long expiresAt = now + (long) hours * SECONDS_PER_HOUR;
         if (expiresAt > Integer.MAX_VALUE) {
-            throw new BizException(ErrorCode.PARAM_INVALID, "expirationHours is too large");
+            throw new BizException(ErrorCode.PARAM_INVALID, "expiration is too large");
         }
         return new TunnelExpiration(hours, Math.toIntExact(expiresAt));
     }

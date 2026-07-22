@@ -146,12 +146,12 @@ class RelayControllerApiTest {
                                   "name": "dev",
                                   "clusterId": "cluster-a",
                                   "type": "bridge",
-                                  "expirationHours": 721
+                                  "expiration": 721
                                 }
                                 """))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error.code").value("40000"))
-                .andExpect(jsonPath("$.error.details[0].target").value("expirationHours"));
+                .andExpect(jsonPath("$.error.details[0].target").value("expiration"));
     }
 
     @Test

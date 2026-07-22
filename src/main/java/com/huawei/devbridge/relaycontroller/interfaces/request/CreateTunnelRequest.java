@@ -21,6 +21,6 @@ public class CreateTunnelRequest {
     private String clusterId;
     @Min(1)
     @Max(720)
-    private Integer expirationHours;
+    private Integer expiration;
     private TunnelType type;
 }

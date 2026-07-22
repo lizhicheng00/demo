@@ -368,7 +368,7 @@ components:
           example: "40000"
         target:
           type: string
-          example: expirationHours
+          example: expiration
         message:
           type: string
           example: must be less than or equal to 720
@@ -386,7 +386,7 @@ components:
           type: string
           pattern: '^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$'
           description: Cluster identifier.
-        expirationHours:
+        expiration:
           type: integer
           format: int32
           minimum: 1
@@ -405,7 +405,7 @@ components:
         description:
           type: string
           maxLength: 512
-        expirationHours:
+        expiration:
           type: integer
           format: int32
           minimum: 1

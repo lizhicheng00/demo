@@ -14,6 +14,6 @@ public class UpdateTunnelRequest {
     private String description;
     @Min(1)
     @Max(720)
-    private Integer expirationHours;
+    private Integer expiration;
     private TunnelType type;
 }

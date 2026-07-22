@@ -22,7 +22,7 @@ Business rules:
 - `tunnelId` is the fixed eight-character lowercase Base32 encoding of `tunnelCode`.
 - tunnel URL is `{tunnelId}.{clusterId}.{relay.domain}`.
 - default expiration is 72 hours and the maximum is 720 hours.
-- create and update requests use `expirationHours`; tunnel responses return both `expirationHours` and the actual Unix expiration time as `expiresAt`.
+- create and update requests use `expiration`; tunnel responses return both `expirationHours` and the actual Unix expiration time as `expiresAt`.
 - a namespace owns at most 10 active tunnels by default.
 - list returns only non-deleted, non-expired tunnels and includes `portCount`.
 - delete is soft delete for tunnel metadata and hard delete for its port policies.
