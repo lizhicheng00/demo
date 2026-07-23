@@ -30,7 +30,6 @@ DELETE /open-api-inner/v1/relay-controller/tunnels/{tunnelId}
 POST   /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/token?scope=host|connect
 
 POST   /open-api-inner/v1/relay-controller/clusters/{clusterId}/metering
-POST   /open-api-inner/v1/relay-controller/clusters/{clusterId}/tunnels/{tunnelId}/activity
 
 POST   /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports
 GET    /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports
@@ -44,7 +43,7 @@ Namespace-scoped APIs read `X-Namespace` directly and store it as the tunnel nam
 Each Relay Controller instance owns one configured region. Set `RELAY_REGION`; tunnel, port, and metering operations only accept clusters found under that local region. Set `RELAY_DOMAIN` to the tunnel URL suffix.
 Tunnel `type` is restricted to `bridge` or `env`; blank create requests default to `bridge`.
 Tunnel `expiration` in create and update requests is the allowed inactivity duration in hours. Blank create requests default to 72 hours. Tunnel responses expose that window as `expirationHours` and the current Unix expiration time as `tunnelExpiration`; clients can derive a live countdown from `tunnelExpiration`.
-Tunnel expiration is a sliding window. Successful tunnel or port changes refresh it. Gateway reports host connections, low-frequency host heartbeats, and successful forwarding through the activity API; positive metering reports also refresh it. Reads and token issuance do not refresh expiration.
+Successful tunnel or port changes refresh `tunnelExpiration`. Positive metering reports will also refresh it when metering integration is enabled. Reads and token issuance do not refresh expiration. Host connection activity is not integrated in this version.
 Tunnel `tunnelCode` is a 40-bit `long`; `tunnelId` is the fixed 8-character lowercase base32 encoding of that 40-bit value.
 Tunnel URL format is `{tunnelId}.{clusterId}.{relay.domain}`.
 Delete operations physically remove tunnels and their port policies. List APIs return only active, non-expired tunnels. Detail, update, port, and metering operations reject expired tunnels; expired records are physically removed after the configured retention period.

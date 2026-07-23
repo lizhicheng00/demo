@@ -56,7 +56,7 @@ Create and update use the `TunnelProtocol` enum from request through persistence
 
 ### Tunnel Activity
 
-Gateway reports host connection or heartbeat activity independently from metering. The persistence update uses `GREATEST` so concurrent reports can only move `tunnelExpiration` forward. Positive traffic reports also refresh activity; reads, zero-usage reports, and token issuance do not.
+Successful tunnel and port changes refresh `tunnelExpiration`. Positive traffic reports will also refresh it when metering integration is enabled. The persistence update uses `GREATEST` so concurrent refreshes can only move the deadline forward. Reads, zero-usage reports, and token issuance do not refresh it. Gateway host activity is not integrated in this version.
 
 ## 4. API Summary
 
@@ -76,7 +76,6 @@ PUT    /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports/{port}
 DELETE /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports/{port}
 
 GET    /open-api-inner/v1/relay-controller/clusters/{clusterId}/tunnels/{tunnelId}/ports/{port}
-POST   /open-api-inner/v1/relay-controller/clusters/{clusterId}/tunnels/{tunnelId}/activity
 POST   /open-api-inner/v1/relay-controller/clusters/{clusterId}/metering
 ```
 
@@ -84,7 +83,7 @@ POST   /open-api-inner/v1/relay-controller/clusters/{clusterId}/metering
 
 Flyway `V1__init_schema.sql` creates `cluster`, `tunnel`, `tunnel_port`, and `metering`. Compound database names use snake_case while Java fields use camelCase.
 
-Tunnel expiration is a sliding inactivity window refreshed by meaningful configuration changes and Gateway activity. Tunnel deletion is soft delete so IDs and metering references remain stable. Related port policies are hard-deleted. The scheduled cleanup later hard-deletes tunnels whose expiration is older than the configured retention period.
+Tunnel expiration is refreshed by meaningful configuration changes and positive metering reports when available. Tunnel deletion is soft delete so IDs and metering references remain stable. Related port policies are hard-deleted. The scheduled cleanup later hard-deletes tunnels whose expiration is older than the configured retention period.
 
 ## 6. Runtime Configuration
 

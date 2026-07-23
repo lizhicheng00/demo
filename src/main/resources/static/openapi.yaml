@@ -7,7 +7,6 @@ servers:
   - url: https://localhost:8443
 tags:
   - name: Tunnel
-  - name: Gateway Tunnel
   - name: Metering
   - name: Tunnel Port
   - name: Gateway Tunnel Port
@@ -177,24 +176,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MeteringReportResponse'
-        default:
-          $ref: '#/components/responses/ErrorResponse'
-  /open-api-inner/v1/relay-controller/clusters/{clusterId}/tunnels/{tunnelId}/activity:
-    post:
-      tags: [Gateway Tunnel]
-      summary: Report tunnel activity
-      description: Refreshes the inactivity expiration after a host connects, remains connected, or successfully forwards traffic.
-      operationId: reportTunnelActivity
-      parameters:
-        - $ref: '#/components/parameters/ClusterIdPath'
-        - $ref: '#/components/parameters/TunnelIdPath'
-      responses:
-        '200':
-          description: Activity acceptance result.
-          content:
-            application/json:
-              schema:
-                type: boolean
         default:
           $ref: '#/components/responses/ErrorResponse'
   /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports:

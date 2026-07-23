@@ -23,7 +23,7 @@ Business rules:
 - tunnel URL is `{tunnelId}.{clusterId}.{relay.domain}`.
 - default expiration is 72 hours and the maximum is 720 hours.
 - create and update requests use `expiration`; tunnel responses return the inactivity window as `expirationHours` and its current Unix deadline as `tunnelExpiration`.
-- tunnel expiration is extended by successful tunnel or port changes and by Gateway activity reports, independently of traffic billing.
+- tunnel expiration is extended by successful tunnel or port changes and by positive metering reports when metering integration is enabled.
 - a namespace owns at most 10 active tunnels by default.
 - list returns only non-deleted, non-expired tunnels and includes `portCount`.
 - delete is soft delete for tunnel metadata and hard delete for its port policies.
@@ -65,17 +65,11 @@ There is no public delete-all port endpoint. Deleting a tunnel and the aging job
 
 Gateway reads a port policy using its `clusterId`. Relay Controller verifies that the cluster is local and that the tunnel belongs to it before returning the policy.
 
-Gateway reports host connection activity with:
-
-```text
-POST /open-api-inner/v1/relay-controller/clusters/{clusterId}/tunnels/{tunnelId}/activity
-```
-
-The same endpoint supports a low-frequency heartbeat while a host remains connected. Read operations and token issuance do not extend the tunnel lifetime.
+Host connection activity is not reported to Relay Controller in this version. Read operations and token issuance do not extend the tunnel lifetime.
 
 ## 5. Metering And Aging
 
-Gateway can report usage only for a local cluster and a matching active tunnel. Positive usage updates tunnel bandwidth totals, writes a metering record, and refreshes tunnel activity. The separate activity API keeps expiration independent from billing availability.
+Gateway can report usage only for a local cluster and a matching active tunnel. Positive usage updates tunnel bandwidth totals, writes a metering record, and refreshes tunnel activity when metering integration is enabled.
 
 Expired tunnels remain recoverable for the configured retention period. The hourly cleanup job hard-deletes aged tunnel metadata and related port policies in bounded batches.
 

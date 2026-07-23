@@ -43,14 +43,13 @@ request "04 list tunnels" GET "$API_BASE/tunnels?clusterId=$CLUSTER_ID" "" yes
 request "05 tunnel detail" GET "$API_BASE/tunnels/$TUNNEL_ID" "" yes
 request "06 update tunnel env" PUT "$API_BASE/tunnels/$TUNNEL_ID" "{\"type\":\"env\"}" yes
 request "07 metering" POST "$API_BASE/clusters/$CLUSTER_ID/metering" "{\"tunnelCode\":123456,\"tunnelId\":\"$TUNNEL_ID\",\"usage\":1024}"
-request "08 report activity" POST "$API_BASE/clusters/$CLUSTER_ID/tunnels/$TUNNEL_ID/activity"
-request "09 issue host token" POST "$API_BASE/tunnels/$TUNNEL_ID/token?scope=host" "" yes
-request "10 create port" POST "$API_BASE/tunnels/$TUNNEL_ID/ports" "{\"port\":8080,\"protocol\":\"auto\",\"allowAnonymous\":false}" yes
-request "11 list ports" GET "$API_BASE/tunnels/$TUNNEL_ID/ports" "" yes
-request "12 get port" GET "$API_BASE/tunnels/$TUNNEL_ID/ports/8080" "" yes
-request "13 update port" PUT "$API_BASE/tunnels/$TUNNEL_ID/ports/8080" "{\"allowAnonymous\":true}" yes
-request "14 gateway port policy" GET "$API_BASE/clusters/$CLUSTER_ID/tunnels/$TUNNEL_ID/ports/8080"
-request "15 delete port" DELETE "$API_BASE/tunnels/$TUNNEL_ID/ports/8080" "" yes
-request "16 delete tunnel" DELETE "$API_BASE/tunnels/$TUNNEL_ID" "" yes
-request "17 delete tunnels" DELETE "$API_BASE/tunnels" "" yes
-request "18 openapi yaml" GET "$BASE_URL/openapi.yaml"
+request "08 issue host token" POST "$API_BASE/tunnels/$TUNNEL_ID/token?scope=host" "" yes
+request "09 create port" POST "$API_BASE/tunnels/$TUNNEL_ID/ports" "{\"port\":8080,\"protocol\":\"auto\",\"allowAnonymous\":false}" yes
+request "10 list ports" GET "$API_BASE/tunnels/$TUNNEL_ID/ports" "" yes
+request "11 get port" GET "$API_BASE/tunnels/$TUNNEL_ID/ports/8080" "" yes
+request "12 update port" PUT "$API_BASE/tunnels/$TUNNEL_ID/ports/8080" "{\"allowAnonymous\":true}" yes
+request "13 gateway port policy" GET "$API_BASE/clusters/$CLUSTER_ID/tunnels/$TUNNEL_ID/ports/8080"
+request "14 delete port" DELETE "$API_BASE/tunnels/$TUNNEL_ID/ports/8080" "" yes
+request "15 delete tunnel" DELETE "$API_BASE/tunnels/$TUNNEL_ID" "" yes
+request "16 delete tunnels" DELETE "$API_BASE/tunnels" "" yes
+request "17 openapi yaml" GET "$BASE_URL/openapi.yaml"

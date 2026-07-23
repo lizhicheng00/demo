@@ -141,15 +141,6 @@ public class TunnelAppService {
     }
 
     @Transactional
-    public Boolean reportActivity(String clusterId, String tunnelId) {
-        localClusterService.requireLocalCluster(clusterId);
-        Tunnel tunnel = tunnelRepository.findByTunnelIdAndRegion(tunnelId, relayProperties.getRegion());
-        tunnelDomainService.assertInClusterAndNotExpired(tunnel, clusterId, ErrorCode.TUNNEL_ACCESS_DENIED);
-        tunnelRepository.refreshExpiration(tunnelId, relayProperties.getRegion(), TimeUtils.nowSeconds());
-        return true;
-    }
-
-    @Transactional
     public Boolean deleteTunnel(String rawNamespace, String tunnelId) {
         Tunnel tunnel = findOwnedTunnel(rawNamespace, tunnelId);
         tunnelPortRepository.deleteByTunnelCode(tunnel.getTunnelCode());

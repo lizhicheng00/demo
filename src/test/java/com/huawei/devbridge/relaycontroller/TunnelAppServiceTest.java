@@ -268,25 +268,6 @@ class TunnelAppServiceTest {
     }
 
     @Test
-    void reportActivityRefreshesLocalActiveTunnel() {
-        TunnelAppService service = newService(new RelayProperties());
-        Tunnel tunnel = Tunnel.builder()
-                .tunnelId("aaaadysa")
-                .clusterId("cluster-a")
-                .deleted(0)
-                .expiration(Math.toIntExact(TimeUtils.nowSeconds() + 3600))
-                .build();
-        when(clusterRepository.findByClusterIdAndRegion("cluster-a", "region-a"))
-                .thenReturn(Cluster.builder().clusterId("cluster-a").region("region-a").build());
-        when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel);
-
-        Boolean accepted = service.reportActivity("cluster-a", "aaaadysa");
-
-        assertThat(accepted).isTrue();
-        verify(tunnelRepository).refreshExpiration(eq("aaaadysa"), eq("region-a"), anyLong());
-    }
-
-    @Test
     void listTunnelsQueriesLocalRegionOnly() {
         TunnelAppService service = newService(new RelayProperties());
         Tunnel local = Tunnel.builder()

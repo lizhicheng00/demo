@@ -257,15 +257,6 @@ class RelayControllerApiTest {
     }
 
     @Test
-    void reportTunnelActivityApi() throws Exception {
-        when(tunnelAppService.reportActivity(CLUSTER_ID, TUNNEL_ID)).thenReturn(true);
-
-        mockMvc.perform(post(BASE + "/clusters/{clusterId}/tunnels/{tunnelId}/activity", CLUSTER_ID, TUNNEL_ID))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").value(true));
-    }
-
-    @Test
     void issueTunnelTokenWithInvalidScopeReturnsBadRequest() throws Exception {
         when(tunnelAppService.issueToken(NAMESPACE, TUNNEL_ID, "admin"))
                 .thenThrow(new BizException(ErrorCode.PARAM_INVALID, "scope must be host or connect"));
