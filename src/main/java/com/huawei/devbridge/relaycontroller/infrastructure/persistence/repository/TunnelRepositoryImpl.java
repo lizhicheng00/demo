@@ -73,6 +73,11 @@ public class TunnelRepositoryImpl implements TunnelRepository {
     }
 
     @Override
+    public void refreshExpiration(String tunnelId, String region, long activityAt) {
+        tunnelMapper.refreshExpiration(tunnelId, region, activityAt);
+    }
+
+    @Override
     public boolean deleteAgedByTunnelId(String tunnelId, long expirationCutoff) {
         return tunnelMapper.delete(new LambdaQueryWrapper<TunnelEntity>()
                 .eq(TunnelEntity::getTunnelId, tunnelId)

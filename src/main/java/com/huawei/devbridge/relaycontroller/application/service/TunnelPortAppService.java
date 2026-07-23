@@ -3,6 +3,7 @@ package com.huawei.devbridge.relaycontroller.application.service;
 import com.huawei.devbridge.relaycontroller.application.assembler.TunnelPortAssembler;
 import com.huawei.devbridge.relaycontroller.common.exception.BizException;
 import com.huawei.devbridge.relaycontroller.common.exception.ErrorCode;
+import com.huawei.devbridge.relaycontroller.common.util.TimeUtils;
 import com.huawei.devbridge.relaycontroller.domain.model.Tunnel;
 import com.huawei.devbridge.relaycontroller.domain.model.TunnelPort;
 import com.huawei.devbridge.relaycontroller.domain.model.TunnelProtocol;
@@ -50,6 +51,7 @@ public class TunnelPortAppService {
                 .protocol(request.getProtocol())
                 .allowAnonymous(request.getAllowAnonymous())
                 .build());
+        refreshExpiration(tunnel);
         log.info("Tunnel port created: tunnelId={}, tunnelCode={}, port={}, protocol={}, allowAnonymous={}",
                 tunnel.getTunnelId(), tunnel.getTunnelCode(), tunnelPort.getPort(), tunnelPort.getProtocol(),
                 tunnelPort.getAllowAnonymous());
@@ -79,6 +81,7 @@ public class TunnelPortAppService {
                 : request.getAllowAnonymous();
         if (request.getProtocol() != null || request.getAllowAnonymous() != null) {
             tunnelPortRepository.updatePolicy(tunnel.getTunnelCode(), port, protocol, allowAnonymous);
+            refreshExpiration(tunnel);
             log.info("Tunnel port updated: tunnelId={}, tunnelCode={}, port={}, protocol={}, allowAnonymous={}",
                     tunnel.getTunnelId(), tunnel.getTunnelCode(), port, protocol, allowAnonymous);
         }
@@ -92,6 +95,7 @@ public class TunnelPortAppService {
         Tunnel tunnel = ownedTunnel(rawNamespace, tunnelId);
         findTunnelPort(tunnel.getTunnelCode(), port);
         tunnelPortRepository.deleteByTunnelCodeAndPort(tunnel.getTunnelCode(), port);
+        refreshExpiration(tunnel);
         log.info("Tunnel port deleted: tunnelId={}, tunnelCode={}, port={}",
                 tunnel.getTunnelId(), tunnel.getTunnelCode(), port);
         return true;
@@ -119,5 +123,9 @@ public class TunnelPortAppService {
             throw new BizException(ErrorCode.TUNNEL_PORT_NOT_FOUND);
         }
         return tunnelPort;
+    }
+
+    private void refreshExpiration(Tunnel tunnel) {
+        tunnelRepository.refreshExpiration(tunnel.getTunnelId(), relayProperties.getRegion(), TimeUtils.nowSeconds());
     }
 }

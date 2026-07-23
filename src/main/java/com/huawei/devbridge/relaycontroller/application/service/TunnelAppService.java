@@ -132,10 +132,20 @@ public class TunnelAppService {
     @Transactional
     public Boolean updateTunnel(String rawNamespace, String tunnelId, UpdateTunnelRequest request) {
         Tunnel tunnel = findOwnedActiveTunnel(rawNamespace, tunnelId);
-        applyUpdates(tunnel, request);
-        tunnel.setUpdatedAt(TimeUtils.nowSeconds());
+        long now = TimeUtils.nowSeconds();
+        applyUpdates(tunnel, request, now);
+        tunnel.setUpdatedAt(now);
         tunnelRepository.update(tunnel);
         log.info("Tunnel updated: tunnelId={}, namespace={}", tunnel.getTunnelId(), tunnel.getNamespace());
+        return true;
+    }
+
+    @Transactional
+    public Boolean reportActivity(String clusterId, String tunnelId) {
+        localClusterService.requireLocalCluster(clusterId);
+        Tunnel tunnel = tunnelRepository.findByTunnelIdAndRegion(tunnelId, relayProperties.getRegion());
+        tunnelDomainService.assertInClusterAndNotExpired(tunnel, clusterId, ErrorCode.TUNNEL_ACCESS_DENIED);
+        tunnelRepository.refreshExpiration(tunnelId, relayProperties.getRegion(), TimeUtils.nowSeconds());
         return true;
     }
 
@@ -161,7 +171,7 @@ public class TunnelAppService {
         return true;
     }
 
-    private void applyUpdates(Tunnel tunnel, UpdateTunnelRequest request) {
+    private void applyUpdates(Tunnel tunnel, UpdateTunnelRequest request, long now) {
         if (request.getName() != null && !request.getName().isBlank()) {
             tunnel.setName(request.getName());
         }
@@ -169,10 +179,10 @@ public class TunnelAppService {
             tunnel.setDescription(request.getDescription());
         }
         if (request.getExpiration() != null) {
-            TunnelExpiration expiration = resolveExpiration(request.getExpiration(), TimeUtils.nowSeconds());
-            tunnel.setExpiration(expiration.expiresAt());
+            TunnelExpiration expiration = resolveExpiration(request.getExpiration(), now);
             tunnel.setExpirationHours(expiration.expirationHours());
         }
+        tunnel.setExpiration(resolveExpiration(tunnel.getExpirationHours(), now).expiresAt());
         if (request.getType() != null) {
             tunnel.setType(request.getType());
         }

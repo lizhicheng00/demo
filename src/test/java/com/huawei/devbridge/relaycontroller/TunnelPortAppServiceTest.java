@@ -2,6 +2,8 @@ package com.huawei.devbridge.relaycontroller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -58,6 +60,7 @@ class TunnelPortAppServiceTest {
         assertThat(response.getPort()).isEqualTo(8080L);
         assertThat(response.getProtocol()).isEqualTo(TunnelProtocol.HTTP);
         assertThat(response.getAllowAnonymous()).isFalse();
+        verify(tunnelRepository).refreshExpiration(eq("aaaadysa"), eq("region-a"), anyLong());
     }
 
     @Test
@@ -154,6 +157,7 @@ class TunnelPortAppServiceTest {
         assertThat(response.getAllowAnonymous()).isTrue();
         assertThat(response.getProtocol()).isEqualTo(TunnelProtocol.HTTPS);
         verify(tunnelPortRepository).updatePolicy(123456L, 8080L, TunnelProtocol.HTTPS, true);
+        verify(tunnelRepository).refreshExpiration(eq("aaaadysa"), eq("region-a"), anyLong());
     }
 
     @Test
@@ -206,6 +210,7 @@ class TunnelPortAppServiceTest {
 
         assertThat(deleted).isTrue();
         verify(tunnelPortRepository).deleteByTunnelCodeAndPort(123456L, 8080L);
+        verify(tunnelRepository).refreshExpiration(eq("aaaadysa"), eq("region-a"), anyLong());
     }
 
     @Test

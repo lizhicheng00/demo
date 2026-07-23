@@ -15,7 +15,7 @@ OpenAPI source is `src/main/resources/static/openapi.yaml`. Maven generates Spri
 
 ### Tunnel
 
-Important fields are `tunnelId`, `tunnelCode`, `clusterId`, `namespace`, `expiration`, `type`, `url`, and `deleted`. `portCount` is a list-query projection and is not stored in the `tunnel` table.
+Important fields are `tunnelId`, `tunnelCode`, `clusterId`, `namespace`, `expiration`, `expirationHours`, `type`, `url`, and `deleted`. `expirationHours` is the inactivity window; `expiration` is its current Unix deadline. `portCount` is a list-query projection and is not stored in the `tunnel` table.
 
 Active tunnel list SQL filters namespace, region, soft-delete state, and expiration in the database. It calculates `portCount` with one indexed correlated count, avoiding an N+1 query.
 
@@ -52,7 +52,11 @@ No cache is read or written. This makes each call independent and removes Redis 
 
 ### Port Policy
 
-Create and update use the `TunnelProtocol` enum from request through persistence. This prevents unsupported protocol strings from entering the domain or database. Gateway policy lookup additionally verifies the caller's cluster against the tunnel.
+Create and update use the `TunnelProtocol` enum from request through persistence. This prevents unsupported protocol strings from entering the domain or database. Gateway policy lookup additionally verifies the caller's cluster against the tunnel. Successful port mutations refresh the tunnel inactivity window.
+
+### Tunnel Activity
+
+Gateway reports host connection or heartbeat activity independently from metering. The persistence update uses `GREATEST` so concurrent reports can only move `tunnelExpiration` forward. Positive traffic reports also refresh activity; reads, zero-usage reports, and token issuance do not.
 
 ## 4. API Summary
 
@@ -72,6 +76,7 @@ PUT    /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports/{port}
 DELETE /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports/{port}
 
 GET    /open-api-inner/v1/relay-controller/clusters/{clusterId}/tunnels/{tunnelId}/ports/{port}
+POST   /open-api-inner/v1/relay-controller/clusters/{clusterId}/tunnels/{tunnelId}/activity
 POST   /open-api-inner/v1/relay-controller/clusters/{clusterId}/metering
 ```
 
@@ -79,7 +84,7 @@ POST   /open-api-inner/v1/relay-controller/clusters/{clusterId}/metering
 
 Flyway `V1__init_schema.sql` creates `cluster`, `tunnel`, `tunnel_port`, and `metering`. Compound database names use snake_case while Java fields use camelCase.
 
-Tunnel deletion is soft delete so IDs and metering references remain stable. Related port policies are hard-deleted. The scheduled cleanup later hard-deletes tunnels whose expiration is older than the configured retention period.
+Tunnel expiration is a sliding inactivity window refreshed by meaningful configuration changes and Gateway activity. Tunnel deletion is soft delete so IDs and metering references remain stable. Related port policies are hard-deleted. The scheduled cleanup later hard-deletes tunnels whose expiration is older than the configured retention period.
 
 ## 6. Runtime Configuration
 

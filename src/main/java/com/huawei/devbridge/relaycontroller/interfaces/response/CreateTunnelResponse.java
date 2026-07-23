@@ -13,7 +13,7 @@ public class CreateTunnelResponse {
     private String description;
     private Long bandwidthUsed;
     private Integer expirationHours;
-    private Long expiresAt;
+    private Long tunnelExpiration;
     private Long created;
     private String url;
     private String type;

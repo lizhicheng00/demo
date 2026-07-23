@@ -44,6 +44,9 @@ public class MeteringAppService {
                 .createdAt(now)
                 .build());
         tunnelRepository.increaseBandwidthUsed(request.getTunnelId(), relayProperties.getRegion(), request.getUsage(), now);
+        if (request.getUsage() > 0) {
+            tunnelRepository.refreshExpiration(request.getTunnelId(), relayProperties.getRegion(), now);
+        }
         log.info("Metering accepted: tunnelId={}, tunnelCode={}, clusterId={}, usageBytes={}",
                 request.getTunnelId(), request.getTunnelCode(), clusterId, request.getUsage());
         return MeteringReportResponse.builder().accepted(true).build();

@@ -2,6 +2,7 @@ package com.huawei.devbridge.relaycontroller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -56,6 +57,8 @@ class MeteringAppServiceTest {
         verify(meteringRepository).save(ArgumentMatchers.argThat(metering -> metering.getUsageBytes().equals(1024L)));
         verify(tunnelRepository).increaseBandwidthUsed(ArgumentMatchers.eq("aaaadysa"), ArgumentMatchers.eq("region-a"),
                 ArgumentMatchers.eq(1024L), ArgumentMatchers.anyLong());
+        verify(tunnelRepository).refreshExpiration(ArgumentMatchers.eq("aaaadysa"), ArgumentMatchers.eq("region-a"),
+                ArgumentMatchers.anyLong());
     }
 
     @Test
@@ -70,6 +73,29 @@ class MeteringAppServiceTest {
                 .isInstanceOf(BizException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.CLUSTER_NOT_FOUND);
+    }
+
+    @Test
+    void zeroUsageDoesNotRefreshTunnelExpiration() {
+        MeteringAppService service = newService();
+        MeteringReportRequest request = new MeteringReportRequest();
+        request.setTunnelId("aaaadysa");
+        request.setTunnelCode(123456L);
+        request.setUsage(0L);
+
+        when(clusterRepository.findByClusterIdAndRegion("cluster-a", "region-a"))
+                .thenReturn(Cluster.builder().clusterId("cluster-a").region("region-a").build());
+        when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(Tunnel.builder()
+                .tunnelId("aaaadysa")
+                .tunnelCode(123456L)
+                .clusterId("cluster-a")
+                .deleted(0)
+                .build());
+
+        service.report("cluster-a", request);
+
+        verify(tunnelRepository, never()).refreshExpiration(
+                ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.anyLong());
     }
 
     private MeteringAppService newService() {

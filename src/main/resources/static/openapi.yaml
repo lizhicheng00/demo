@@ -7,6 +7,7 @@ servers:
   - url: https://localhost:8443
 tags:
   - name: Tunnel
+  - name: Gateway Tunnel
   - name: Metering
   - name: Tunnel Port
   - name: Gateway Tunnel Port
@@ -176,6 +177,24 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MeteringReportResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+  /open-api-inner/v1/relay-controller/clusters/{clusterId}/tunnels/{tunnelId}/activity:
+    post:
+      tags: [Gateway Tunnel]
+      summary: Report tunnel activity
+      description: Refreshes the inactivity expiration after a host connects, remains connected, or successfully forwards traffic.
+      operationId: reportTunnelActivity
+      parameters:
+        - $ref: '#/components/parameters/ClusterIdPath'
+        - $ref: '#/components/parameters/TunnelIdPath'
+      responses:
+        '200':
+          description: Activity acceptance result.
+          content:
+            application/json:
+              schema:
+                type: boolean
         default:
           $ref: '#/components/responses/ErrorResponse'
   /open-api-inner/v1/relay-controller/tunnels/{tunnelId}/ports:
@@ -391,7 +410,7 @@ components:
           format: int32
           minimum: 1
           maximum: 720
-          description: Tunnel lifetime in hours. Defaults to 72 hours. Maximum is 720 hours.
+          description: Allowed inactivity in hours. Defaults to 72 hours. Maximum is 720 hours.
         type:
           type: string
           enum: [bridge, env]
@@ -410,7 +429,7 @@ components:
           format: int32
           minimum: 1
           maximum: 720
-          description: Tunnel lifetime in hours from update time. Maximum is 720 hours.
+          description: Allowed inactivity in hours. Maximum is 720 hours.
         type:
           type: string
           enum: [bridge, env]
@@ -481,11 +500,11 @@ components:
           format: int32
           minimum: 1
           maximum: 720
-          description: Configured tunnel lifetime in hours.
-        expiresAt:
+          description: Configured inactivity window in hours.
+        tunnelExpiration:
           type: integer
           format: int64
-          description: Actual tunnel expiration time as Unix seconds.
+          description: Current inactivity expiration time as Unix seconds. Activity moves this time forward.
         created:
           type: integer
           format: int64
@@ -514,11 +533,11 @@ components:
           format: int32
           minimum: 1
           maximum: 720
-          description: Configured tunnel lifetime in hours.
-        expiresAt:
+          description: Configured inactivity window in hours.
+        tunnelExpiration:
           type: integer
           format: int64
-          description: Actual tunnel expiration time as Unix seconds.
+          description: Current inactivity expiration time as Unix seconds. Activity moves this time forward.
         created:
           type: integer
           format: int64

@@ -6,14 +6,15 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.huawei.devbridge.relaycontroller.application.service.LocalClusterService;
+import com.huawei.devbridge.relaycontroller.application.service.TunnelAppService;
 import com.huawei.devbridge.relaycontroller.common.exception.BizException;
 import com.huawei.devbridge.relaycontroller.common.exception.ErrorCode;
 import com.huawei.devbridge.relaycontroller.common.util.TimeUtils;
-import com.huawei.devbridge.relaycontroller.application.service.TunnelAppService;
 import com.huawei.devbridge.relaycontroller.domain.model.Cluster;
 import com.huawei.devbridge.relaycontroller.domain.model.JwtScope;
 import com.huawei.devbridge.relaycontroller.domain.model.JwtToken;
@@ -83,7 +84,7 @@ class TunnelAppServiceTest {
         assertThat(response.getUrl()).isEqualTo("aaaadysa.cluster-a.myhuaweicloud.com");
         assertThat(response.getType()).isEqualTo("bridge");
         assertThat(response.getExpirationHours()).isEqualTo(72);
-        assertThat(response.getExpiresAt()).isNotNull();
+        assertThat(response.getTunnelExpiration()).isNotNull();
     }
 
     @Test
@@ -243,6 +244,49 @@ class TunnelAppServiceTest {
     }
 
     @Test
+    void updateTunnelRefreshesInactivityExpiration() {
+        TunnelAppService service = newService(new RelayProperties());
+        UpdateTunnelRequest request = new UpdateTunnelRequest();
+        request.setDescription("updated");
+        Tunnel tunnel = Tunnel.builder()
+                .tunnelId("aaaadysa")
+                .namespace("ns-user-001")
+                .clusterId("cluster-a")
+                .deleted(0)
+                .expirationHours(2)
+                .expiration(Math.toIntExact(TimeUtils.nowSeconds() + 60))
+                .build();
+
+        when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel);
+
+        long before = TimeUtils.nowSeconds();
+        service.updateTunnel("ns-user-001", "aaaadysa", request);
+        long after = TimeUtils.nowSeconds();
+
+        assertThat(tunnel.getExpiration())
+                .isBetween(Math.toIntExact(before + 7200L), Math.toIntExact(after + 7200L));
+    }
+
+    @Test
+    void reportActivityRefreshesLocalActiveTunnel() {
+        TunnelAppService service = newService(new RelayProperties());
+        Tunnel tunnel = Tunnel.builder()
+                .tunnelId("aaaadysa")
+                .clusterId("cluster-a")
+                .deleted(0)
+                .expiration(Math.toIntExact(TimeUtils.nowSeconds() + 3600))
+                .build();
+        when(clusterRepository.findByClusterIdAndRegion("cluster-a", "region-a"))
+                .thenReturn(Cluster.builder().clusterId("cluster-a").region("region-a").build());
+        when(tunnelRepository.findByTunnelIdAndRegion("aaaadysa", "region-a")).thenReturn(tunnel);
+
+        Boolean accepted = service.reportActivity("cluster-a", "aaaadysa");
+
+        assertThat(accepted).isTrue();
+        verify(tunnelRepository).refreshExpiration(eq("aaaadysa"), eq("region-a"), anyLong());
+    }
+
+    @Test
     void listTunnelsQueriesLocalRegionOnly() {
         TunnelAppService service = newService(new RelayProperties());
         Tunnel local = Tunnel.builder()
@@ -358,6 +402,7 @@ class TunnelAppServiceTest {
         assertThat(response.getLifetime()).isEqualTo(3600L);
         assertThat(response.getExpiration()).isEqualTo(200000L);
         assertThat(response.getToken()).isEqualTo("host-token");
+        verify(tunnelRepository, never()).refreshExpiration(anyString(), anyString(), anyLong());
     }
 
     @Test

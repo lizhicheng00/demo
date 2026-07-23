@@ -12,7 +12,7 @@ public class TunnelListItemResponse {
     private String name;
     private String description;
     private Integer expirationHours;
-    private Long expiresAt;
+    private Long tunnelExpiration;
     private Long created;
     private String url;
     private Long portCount;

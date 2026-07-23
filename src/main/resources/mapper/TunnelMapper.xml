@@ -70,4 +70,14 @@
           AND c.region = #{region}
           AND t.deleted = 0
     </update>
+
+    <update id="refreshExpiration">
+        UPDATE tunnel t
+        INNER JOIN cluster c ON c.cluster_id = t.cluster_id
+        SET t.expiration = GREATEST(t.expiration, #{activityAt} + t.expiration_hours * 3600)
+        WHERE t.tunnel_id = #{tunnelId}
+          AND c.region = #{region}
+          AND t.deleted = 0
+          AND t.expiration &gt; #{activityAt}
+    </update>
 </mapper>

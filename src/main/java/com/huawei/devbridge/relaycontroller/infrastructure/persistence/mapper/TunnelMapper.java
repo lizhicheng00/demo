@@ -35,4 +35,9 @@ public interface TunnelMapper extends BaseMapper<TunnelEntity> {
             @Param("region") String region,
             @Param("usageBytes") long usageBytes,
             @Param("updatedAt") long updatedAt);
+
+    int refreshExpiration(
+            @Param("tunnelId") String tunnelId,
+            @Param("region") String region,
+            @Param("activityAt") long activityAt);
 }

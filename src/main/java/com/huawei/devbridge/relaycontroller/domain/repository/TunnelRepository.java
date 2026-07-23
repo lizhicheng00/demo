@@ -22,6 +22,8 @@ public interface TunnelRepository {
 
     void update(Tunnel tunnel);
 
+    void refreshExpiration(String tunnelId, String region, long activityAt);
+
     boolean deleteAgedByTunnelId(String tunnelId, long expirationCutoff);
 
     boolean deleteByTunnelId(String tunnelId);

@@ -19,7 +19,7 @@ public final class TunnelAssembler {
                 .description(tunnel.getDescription())
                 .bandwidthUsed(tunnel.getBandwidthUsed())
                 .expirationHours(tunnel.getExpirationHours())
-                .expiresAt(expiresAt(tunnel))
+                .tunnelExpiration(tunnelExpiration(tunnel))
                 .created(tunnel.getCreatedAt())
                 .url(tunnel.getUrl())
                 .type(typeValue(tunnel))
@@ -35,7 +35,7 @@ public final class TunnelAssembler {
                 .description(tunnel.getDescription())
                 .bandwidthUsed(tunnel.getBandwidthUsed())
                 .expirationHours(tunnel.getExpirationHours())
-                .expiresAt(expiresAt(tunnel))
+                .tunnelExpiration(tunnelExpiration(tunnel))
                 .created(tunnel.getCreatedAt())
                 .url(tunnel.getUrl())
                 .type(typeValue(tunnel))
@@ -50,7 +50,7 @@ public final class TunnelAssembler {
                 .name(tunnel.getName())
                 .description(tunnel.getDescription())
                 .expirationHours(tunnel.getExpirationHours())
-                .expiresAt(expiresAt(tunnel))
+                .tunnelExpiration(tunnelExpiration(tunnel))
                 .created(tunnel.getCreatedAt())
                 .url(tunnel.getUrl())
                 .portCount(tunnel.getPortCount() == null ? 0L : tunnel.getPortCount())
@@ -62,7 +62,7 @@ public final class TunnelAssembler {
         return type == null ? null : type.value();
     }
 
-    private static Long expiresAt(Tunnel tunnel) {
+    private static Long tunnelExpiration(Tunnel tunnel) {
         Integer expiration = tunnel.getExpiration();
         return expiration == null ? null : expiration.longValue();
     }
